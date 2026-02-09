@@ -3,10 +3,15 @@ import os
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
-    SQLALCHEMY_DATABASE_URI = os.getenv(
+    _raw_db_url = os.getenv(
         "DATABASE_URL",
         "postgresql+psycopg://admin:12345@localhost:5432/duncan_dhu",
     )
+    if _raw_db_url.startswith("postgres://"):
+        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif _raw_db_url.startswith("postgresql://") and "+psycopg" not in _raw_db_url:
+        _raw_db_url = _raw_db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    SQLALCHEMY_DATABASE_URI = _raw_db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN", "")
