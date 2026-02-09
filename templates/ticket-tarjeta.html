@@ -2,6 +2,15 @@
 <html lang="es">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-C59PFRYZPE');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticket - Duncan Dhu</title>
@@ -30,7 +39,7 @@
     <main class="ticket-viewer">
         <h2 style="text-align:center; margin-bottom: 1rem;">Pedido #{{ order.id }}</h2>
         <div class="ticket-image-container">
-            <img src="img/ticket-completo.png" alt="Ticket de compra Duncan Dhu">
+            <img src="{{ url_for('static', filename='img/ticket-completo.png') }}" alt="Ticket de compra Duncan Dhu">
         </div>
     </main>
 

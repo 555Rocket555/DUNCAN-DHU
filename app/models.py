@@ -131,27 +131,34 @@ def seed_defaults(admin_username: str, admin_password: str) -> None:
 
     db.session.commit()
 
-    if not Product.query.first():
-        sample_category = Category.query.filter_by(slug="hamburguesas").first()
-        if sample_category:
+    products = [
+        ("hamburguesas", "Hamburguesa clásica", "Carne 100% res, queso y vegetales", 60),
+        ("hamburguesas", "Hamburguesa triple", "Triple carne, queso y tocino", 90),
+        ("hamburguesas", "Hamburguesa hawaiana", "Piña, jamón y queso", 85),
+        ("snacks", "Papas a la francesa", "Porción mediana", 40),
+        ("snacks", "Alitas buffalo", "6 piezas con salsa", 75),
+        ("postres", "Pay de limón", "Rebanada", 45),
+        ("postres", "Pay de moras", "Rebanada", 45),
+        ("bebidas", "Coca-cola", "355 ml", 30),
+        ("bebidas", "Sprite", "355 ml", 30),
+        ("combos", "Combo clásico", "Hamburguesa + papas + bebida", 120),
+    ]
+
+    for slug, name, description, price in products:
+        category = Category.query.filter_by(slug=slug).first()
+        if not category:
+            continue
+        exists = Product.query.filter_by(name=name, category_id=category.id).first()
+        if not exists:
             db.session.add(
                 Product(
-                    name="Hamburguesa clásica",
-                    description="Carne 100% res, queso y vegetales",
-                    price=60,
+                    name=name,
+                    description=description,
+                    price=price,
                     image_url="",
                     active=True,
-                    category_id=sample_category.id,
+                    category_id=category.id,
                 )
             )
-            db.session.add(
-                Product(
-                    name="Hamburguesa triple",
-                    description="Triple carne, queso y tocino",
-                    price=90,
-                    image_url="",
-                    active=True,
-                    category_id=sample_category.id,
-                )
-            )
-            db.session.commit()
+
+    db.session.commit()

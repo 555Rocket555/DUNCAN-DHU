@@ -45,3 +45,6 @@ def create_app():
         seed_defaults(app.config.get("ADMIN_USERNAME"), app.config.get("ADMIN_PASSWORD"))
 
     return app
+
+
+app = create_app()

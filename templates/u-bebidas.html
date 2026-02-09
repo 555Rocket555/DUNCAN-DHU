@@ -2,6 +2,15 @@
 <html lang="es">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-C59PFRYZPE');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bebidas - Duncan Dhu</title>
@@ -41,23 +50,23 @@
                     <a href="{{ url_for('public.catalog') }}" class="category-tab">Todos los productos</a>
                     <a href="{{ url_for('public.category', slug='hamburguesas') }}" class="category-tab">
                         <span>Hamburguesas</span>
-                        <img src="img/icon-hamburguesa-tab.png" alt="" class="tab-icon">
+                        <img src="{{ url_for('static', filename='img/icon-hamburguesa-tab.png') }}" alt="" class="tab-icon">
                     </a>
                     <a href="{{ url_for('public.category', slug='snacks') }}" class="category-tab">
                         <span>Snacks</span>
-                        <img src="img/icon-snacks-tab.png" alt="" class="tab-icon">
+                        <img src="{{ url_for('static', filename='img/icon-snacks-tab.png') }}" alt="" class="tab-icon">
                     </a>
                     <a href="{{ url_for('public.category', slug='postres') }}" class="category-tab">
                         <span>Postres</span>
-                        <img src="img/icon-postres-tab.png" alt="" class="tab-icon">
+                        <img src="{{ url_for('static', filename='img/icon-postres-tab.png') }}" alt="" class="tab-icon">
                     </a>
                     <a href="{{ url_for('public.category', slug='bebidas') }}" class="category-tab">
                         <span>Bebidas</span>
-                        <img src="img/icon-bebidas-tab.png" alt="" class="tab-icon">
+                        <img src="{{ url_for('static', filename='img/icon-bebidas-tab.png') }}" alt="" class="tab-icon">
                     </a>
                     <a href="{{ url_for('public.category', slug='combos') }}" class="category-tab">
                         <span>Combos</span>
-                        <img src="img/icon-combos-tab.png" alt="" class="tab-icon">
+                        <img src="{{ url_for('static', filename='img/icon-combos-tab.png') }}" alt="" class="tab-icon">
                     </a>
                 </nav>
 

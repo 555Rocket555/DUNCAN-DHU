@@ -6,7 +6,7 @@ Backend en Flask para las vistas HTML existentes, con PostgreSQL, Mercado Pago, 
 
 ## Requisitos
 - Python 3.11+
-- PostgreSQL local o Docker
+- PostgreSQL local o una base de datos en Render
 
 ## Configuración rápida
 1. Copia .env.example a .env y ajusta valores.
@@ -17,8 +17,16 @@ Backend en Flask para las vistas HTML existentes, con PostgreSQL, Mercado Pago, 
 4. Ejecuta:
    - flask --app app.py run
 
-## Docker
-- docker compose up --build
+## Despliegue en Render
+1. Sube el repositorio a GitHub.
+2. En Render: New + -> Blueprint y selecciona este repo.
+3. Configura las variables de entorno en el servicio web:
+   - `DATABASE_URL` (usa la DB creada por Render)
+   - `BASE_URL` (la URL de tu servicio en Render)
+   - `SECRET_KEY`
+   - `MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY`, `MP_WEBHOOK_SECRET`
+   - `SMTP_*`, `TWILIO_*` si aplican
+4. Despliega y espera a que el servicio inicie.
 
 ## Endpoints principales
 - / (Home)

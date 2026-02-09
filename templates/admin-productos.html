@@ -2,6 +2,15 @@
 <html lang="es">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-C59PFRYZPE');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos Admin - Duncan Dhu</title>
@@ -14,7 +23,7 @@
         <div class="container header-container">
             <div class="logo-container">
                 <h1 class="logo-title">Duncan Dhu</h1>
-                <img src="img/logo-chef-hat.png" alt="Chef" class="logo-icon">
+                <img src="{{ url_for('static', filename='img/logo-chef-hat.png') }}" alt="Chef" class="logo-icon">
                 <p class="logo-subtitle">El deleite de la comida</p>
             </div>
 

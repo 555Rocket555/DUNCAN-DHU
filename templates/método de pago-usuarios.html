@@ -2,6 +2,15 @@
 <html lang="es">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-C59PFRYZPE');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pago - Duncan Dhu</title>
@@ -61,7 +70,7 @@
                     <div class="payment-options">
                         <div class="option">
                             <div class="payment-icon-container">
-                                <img src="img/icon-cash.png" alt="Efectivo" class="payment-icon">
+                                <img src="{{ url_for('static', filename='img/icon-cash.png') }}" alt="Efectivo" class="payment-icon">
                             </div>
                             <form action="{{ url_for('public.checkout_cash') }}" method="post">
                                 <button class="option-btn" type="submit">Efectivo</button>
@@ -70,9 +79,9 @@
 
                         <div class="option">
                             <div class="payment-icon-container card-icons">
-                                <img src="img/icon-visa.png" alt="Visa" class="payment-icon-small">
-                                <img src="img/icon-mastercard.png" alt="Mastercard" class="payment-icon-small">
-                                <img src="img/icon-amex.png" alt="Amex" class="payment-icon-small">
+                                <img src="{{ url_for('static', filename='img/icon-visa.png') }}" alt="Visa" class="payment-icon-small">
+                                <img src="{{ url_for('static', filename='img/icon-mastercard.png') }}" alt="Mastercard" class="payment-icon-small">
+                                <img src="{{ url_for('static', filename='img/icon-amex.png') }}" alt="Amex" class="payment-icon-small">
                             </div>
                             <form action="{{ url_for('public.checkout_mp') }}" method="post">
                                 <button class="option-btn" type="submit">Débito/Crédito</button>
@@ -81,7 +90,7 @@
 
                         <div class="option">
                             <div class="payment-icon-container">
-                                <img src="img/icon-mercadopago.png" alt="Mercado Pago" class="payment-icon">
+                                <img src="{{ url_for('static', filename='img/icon-mercadopago.png') }}" alt="Mercado Pago" class="payment-icon">
                             </div>
                             <form action="{{ url_for('public.checkout_mp') }}" method="post">
                                 <button class="option-btn" type="submit">Mercado pago</button>
