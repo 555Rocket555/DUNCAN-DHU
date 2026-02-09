@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar Ticket - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/efectivo-usuario.css') }}">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="container header-container">
+            <h1 class="logo-title">Duncan Dhu</h1>
+            <a href="{{ url_for('auth.logout') }}" class="logout-button">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
+                    <path d="M9 12h12l-3 -3"></path>
+                    <path d="M18 15l3 -3"></path>
+                </svg>
+                <span>Cerrar sesión</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="site-main">
+        <div class="container">
+            <div id="ticket-layout" class="ticket-layout">
+
+                <section class="ticket-form-section">
+                    <h2>Enviar ticket a:</h2>
+
+                    <form id="ticket-form" class="ticket-form" action="{{ url_for('public.ticket_send') }}"
+                        method="post">
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                        <div class="form-group">
+                            <label for="nombre">Nombre:</label>
+                            <input type="text" id="nombre" name="nombre" placeholder="Ingresa nombre(s)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="whatsapp">WhatsApp:</label>
+                            <input type="tel" id="whatsapp" name="whatsapp" placeholder="Número telefónico">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="correo">Correo:</label>
+                            <input type="email" id="correo" name="correo" placeholder="correo@mail.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="channel">Enviar por:</label>
+                            <select id="channel" name="channel">
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="correo">Correo</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="submit-btn">Enviar</button>
+                    </form>
+                </section>
+
+                {% if sent %}
+                <section id="success-message" class="success-message-column" style="display:flex;">
+                    <div class="success-box">
+                        <h3>¡Ticket enviado!</h3>
+                        <p>Revisa tu canal seleccionado</p>
+                    </div>
+                </section>
+                {% else %}
+                <section id="success-message" class="success-message-column" style="display:none;"></section>
+                {% endif %}
+
+            </div>
+        </div>
+    </main>
+
+</body>
+
+</html>

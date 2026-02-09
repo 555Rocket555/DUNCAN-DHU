@@ -1,0 +1,293 @@
+/* --- Variables de Color y Estilos Globales --- */
+:root {
+    --color-background: #FDD835;  /* Fondo amarillo pálido */
+    --color-surface: #FFF9E0;    /* Tarjeta principal (beige muy claro) */
+    --color-header-bg: #000000;
+    --color-text-dark: #000000;
+    --color-text-light: #FFFFFF;
+    --color-text-muted: #6c757d;  /* Texto gris */
+    --color-primary-yellow: #FDD835; 
+    --color-primary-hover: #C7B632;
+    --color-action-btn-bg: #333333; /* Botones de reporte */
+    --radius-card-main: 20px;
+    --radius-card-stat: 12px;
+    --radius-button: 8px;
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-dark);
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* --- Cabecera (Copiada de admin.css) --- */
+.site-header {
+    background-color: var(--color-header-bg);
+    padding: 1.25rem 0;
+}
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.logo-title {
+    color: var(--color-primary-yellow);
+    font-size: 2.25rem;
+    font-weight: 900;
+    margin: 0;
+}
+.logo-icon {
+    width: 32px;
+    height: 32px;
+}
+.logo-subtitle {
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+.logout-button {
+    background-color: var(--color-primary-yellow);
+    color: var(--color-text-dark);
+    border: none;
+    border-radius: var(--radius-button);
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* --- Contenido Principal del Dashboard --- */
+.admin-dashboard {
+    padding: 3rem 2rem;
+}
+.dashboard-container {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-card-main);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 2.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* --- Navegación Lateral --- */
+.dashboard-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: var(--radius-button);
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: var(--color-text-dark);
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+}
+
+ .nav-link:hover {
+    background-color: #F8F8F8;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+
+/* --- Contenido (Reportes) --- */
+.dashboard-content {
+    min-width: 0;
+}
+.content-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* Grid de estadísticas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+.stat-card {
+    background-color: #FFFFFF;
+    border-radius: var(--radius-card-stat);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    box-shadow: var(--shadow-light);
+}
+.stat-card p {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin: 0 0 0.5rem 0;
+}
+.stat-card span {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--color-text-dark);
+}
+
+/* Sección de la tabla */
+.report-table-section {
+    background-color: #FFFFFF;
+    border-radius: var(--radius-card-main);
+    padding: 2rem;
+    box-shadow: var(--shadow-light);
+}
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.report-header h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+/* --- MODIFICACIÓN AQUÍ --- */
+.download-btn {
+    background-color: var(--color-primary-yellow); /* Color amarillo */
+    color: var(--color-text-dark); /* Texto oscuro */
+    border: none;
+    border-radius: var(--radius-button);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem; /* Tamaño de letra igual a cerrar sesión */
+    font-weight: 500; /* Grosor igual a cerrar sesión */
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.download-btn:hover {
+    background-color: var(--color-primary-hover);
+}
+.download-btn .icon {
+    stroke: var(--color-text-dark); /* Ícono oscuro */
+}
+
+/* Estilos de la tabla */
+.report-table-header {
+    display: grid;
+    grid-template-columns: 0.5fr 1.5fr 1.5fr 2fr 1fr 1fr 1fr;
+    gap: 1rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    padding: 0 1rem 1rem 1rem;
+    border-bottom: 2px solid #F0F0F0;
+    font-size: 0.9rem;
+}
+.report-table-body {
+    min-height: 300px; /* Da el espacio vacío de la imagen */
+}
+
+/* Botones de acción del footer */
+.report-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* --- MODIFICACIÓN AQUÍ --- */
+.report-btn {
+    background-color: var(--color-action-btn-bg);
+    color: var(--color-text-light);
+    border: none;
+    border-radius: var(--radius-button);
+    padding: 0.9rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    /* Se eliminó la opacidad */
+}
+.report-btn:hover {
+    background-color: #000; /* Un poco más oscuro al pasar el ratón */
+}
+.report-btn.active {
+    background-color: #000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.report-btn .icon {
+    stroke: var(--color-text-light);
+}
+
+/* --- Diseño Responsivo --- */
+@media (max-width: 1200px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 900px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .report-table-header {
+        grid-template-columns: 1.5fr 1fr 1fr;
+    }
+    .report-table-header span:nth-child(1),
+    .report-table-header span:nth-child(3),
+    .report-table-header span:nth-child(4),
+    .report-table-header span:nth-child(7) {
+        display: none;
+    }
+}
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .report-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .report-btn {
+        justify-content: center;
+    }
+}

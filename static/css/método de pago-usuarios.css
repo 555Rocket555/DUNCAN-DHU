@@ -1,0 +1,291 @@
+/* --- Variables de Color y Estilos Globales --- */
+:root {
+    --color-background: #FFFFFF;    /* Fondo blanco para esta página */
+    --color-header-bg: #000000;    /* Cabecera negra */
+    --color-header-text: #FFFFFF;
+    --color-text: #111111;
+    --color-price: #E54D42;      /* Naranja-rojo para precios */
+    --color-primary: #FDD835;  /* Amarillo dorado para botones */
+    --color-primary-hover: #C7B632;
+    --color-input-bg: #F8F8F8;   /* Fondo de inputs */
+    --color-input-border: #E0E0E0; /* Borde de inputs */
+    --radius-button: 8px;
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    min-height: 100vh;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* --- Clases de Contenedor y Utilidad --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* --- Cabecera (Header) --- */
+.site-header {
+    background-color: var(--color-header-bg);
+    padding: 1.25rem 0;
+    box-shadow: var(--shadow-light);
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-title {
+    color: #FDD835;
+    font-size: 2.25rem;
+    font-weight: 900;
+    margin: 0;
+}
+
+.logout-button {
+    background-color: var(--color-primary);
+    color: var(--color-text);
+    border: none;
+    border-radius: var(--radius-button);
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* --- Contenido Principal --- */
+.site-main {
+    padding: 3rem 0;
+}
+
+.checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    
+}
+
+h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+/* --- Columna Izquierda: Resumen --- */
+.order-summary {
+    padding-right: 2rem;
+    text-align: center;
+}
+
+.summary-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    font-size: 1.1rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-price {
+    color: #000000;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.divider {
+    border: none;
+    height: 1px;
+    background-color: var(--color-input-border);
+    margin: 2rem 0;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* --- Columna Derecha: Pago --- */
+.payment-method {
+    padding-left: 2rem;
+    text-align: center;
+}
+
+.payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.option {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+.payment-icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 48px;
+}
+
+.payment-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.card-icons {
+    gap: 0.5rem;
+}
+
+.payment-icon-small {
+    height: 24px;
+    width: auto;
+}
+
+.option-btn {
+    background-color: var(--color-primary);
+    border: 2px solid transparent;
+    border-radius: var(--radius-button);
+    padding: 0.9rem 1.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-text);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.option-btn:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.option.active .option-btn {
+    /* Estilo para el botón activo (aunque en la img no se ve, es bueno tenerlo) */
+    /* background-color: #fff; */
+    /* border-color: var(--color-primary); */
+}
+
+/* --- Formulario de Tarjeta --- */
+.card-form {
+    margin-top: 1.5rem;
+}
+
+.form-subtitle {
+    color: #000000;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 0.9rem;
+    border: 1px solid var(--color-input-border);
+    background-color: var(--color-input-bg);
+    border-radius: var(--radius-button);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+input[type="text"]::placeholder {
+    color: #999;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.half-width {
+    flex: 1;
+}
+
+.submit-pay-btn {
+    width: 100%;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: var(--radius-button);
+    padding: 1.1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--color-text);
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.2s;
+}
+
+.submit-pay-btn:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* --- Diseño Responsivo --- */
+@media (max-width: 900px) {
+    .checkout-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    .order-summary {
+        padding-right: 0;
+        margin-bottom: 2rem;
+    }
+    .payment-method {
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0 1rem;
+    }
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .form-group.half-width {
+        margin-bottom: 1rem;
+    }
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+
+<body>
+
+    <main class="login-container">
+        <div class="login-card">
+
+            <header class="login-header">
+                <img src="img/logo-login.png" alt="Logo Duncan Dhu" class="logo-image">
+                <h1 class="logo-title">Duncan Dhu</h1>
+                <p class="logo-subtitle">El deleite de la comida...</p>
+            </header>
+
+            <form class="login-form" action="{{ url_for('auth.login') }}" method="post">
+                <div class="form-group">
+                    <label for="usuario">Usuario:</label>
+                    <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario">
+                </div>
+
+                <div class="form-group">
+                    <label for="contrasena">Contraseña:</label>
+                    <input type="password" id="contrasena" name="contrasena" placeholder="Ingresa tu contraseña">
+                </div>
+
+                <button type="submit" class="submit-btn">Iniciar Sesión</button>
+            </form>
+
+            <footer class="register-footer">
+                <div class="register-text">
+                    <p>¿Aún no tienes una cuenta?</p>
+                    <p>Regístrate aquí</p>
+                </div>
+                <a href="{{ url_for('auth.register') }}" class="register-btn">Registrarse</a>
+            </footer>
+
+        </div>
+    </main>
+
+</body>
+
+</html>

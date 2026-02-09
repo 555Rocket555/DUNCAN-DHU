@@ -1,0 +1,62 @@
+/* Estilos CSS Base y Personalizados */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #171717; /* Fondo oscuro principal */
+    color: #E5E5E5; /* Texto principal claro */
+}
+.header-bg {
+    background-color: #000000; /* Fondo negro para el header */
+}
+.main-container {
+    /* Limita el ancho del contenido principal en pantallas grandes */
+    max-width: 1200px; 
+}
+.duncan-dhu-title {
+    color: #FFD700; /* Amarillo dorado para el título */
+    font-size: 3.5rem; /* Tamaño de fuente grande */
+    line-height: 1;  /* Elimina espacio extra entre líneas */
+}
+.subtitle {
+    color: #E5E5E5; /* Color del subtítulo (claro) */
+    font-size: 0.9rem; /* Tamaño de fuente más pequeño */
+    margin-top: -0.5rem; /* Mueve el subtítulo ligeramente hacia arriba */
+}
+.yellow-card {
+    background-color: #FFD700; /* Fondo de las tarjetas de menú */
+    color: #171717;
+    transition: transform 0.2s, box-shadow 0.2s; /* Transición para efectos de hover */
+}
+/* Efecto hover para las tarjetas de menú */
+.yellow-card:hover {
+    transform: translateY(-4px); /* Se eleva ligeramente */
+    /* Sombra con color amarillo para un efecto brillante */
+    box-shadow: 0 10px 15px -3px rgba(255, 215, 0, 0.5), 0 4px 6px -2px rgba(255, 215, 0, 0.2);
+}
+.product-image {
+    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+    width: 100%;
+    height: 100%;
+}
+/* Estilo para los iconos SVG dentro de las tarjetas del menú */
+.icon {
+    fill: #171717; /* Relleno oscuro para los iconos */
+    width: 50px;
+    height: 50px;
+}
+/* Efecto para las imágenes populares */
+.popular-item-card {
+    transition: all 0.3s ease-in-out; /* Transición para efectos de hover */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+.popular-item-card:hover {
+    transform: scale(1.03); /* Agranda la tarjeta ligeramente */
+    /* Sombra con color amarillo para un efecto brillante y de profundidad */
+    box-shadow: 0 20px 25px -5px rgba(255, 215, 0, 0.3), 0 10px 10px -5px rgba(255, 215, 0, 0.1);
+}
+
+.button-effect:hover {	
+transform: scale(1.03);	/* Mismo efecto de escala para los botones */	
+/* Mismo efecto de sombra brillante que la tarjeta popular */
+box-shadow: 0 20px 25px -5px rgba(255, 215, 0, 0.3), 0 10px 10px -5px rgba(255, 215, 0, 0.1);	
+}
+

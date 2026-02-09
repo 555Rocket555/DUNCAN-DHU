@@ -1,0 +1,95 @@
+/* --- Variables de Color y Estilos Globales --- */
+:root {
+    --color-background: #FFFFFF;    /* Fondo blanco para esta página */
+    --color-header-bg: #000000;
+    --color-text-dark: #000000;
+    --color-primary-yellow:#FDD835; 
+    --color-primary-hover: #C7B632;
+    --radius-button: 8px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-dark);
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* --- Cabecera (Copiada de admin.css) --- */
+.site-header {
+    background-color: var(--color-header-bg);
+    padding: 1.25rem 0;
+}
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo-title {
+    color: var(--color-primary-yellow);
+    font-size: 2.25rem;
+    font-weight: 900;
+    margin: 0;
+}
+.logout-button {
+    background-color: var(--color-primary-yellow);
+    color: var(--color-text-dark);
+    border: none;
+    border-radius: var(--radius-button);
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.logout-button:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* --- Contenido (Visualizador de Ticket) --- */
+.ticket-viewer {
+    padding: 3rem 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.ticket-image-container {
+    width: 100%;
+    max-width: 600px; /* Ancho máximo para el ticket, ajústalo si es necesario */
+}
+
+.ticket-image-container img {
+    width: 100%;
+    height: auto;
+    /* Sombra sutil como en la imagen */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); 
+}
+
+/* --- Diseño Responsivo --- */
+@media (max-width: 600px) {
+    .container {
+        padding: 0 1rem;
+    }
+    .ticket-viewer {
+        padding: 1.5rem 1rem;
+    }
+}

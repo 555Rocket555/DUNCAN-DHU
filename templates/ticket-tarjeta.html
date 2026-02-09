@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket-tarjeta.css') }}">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="container header-container">
+            <h1 class="logo-title">Duncan Dhu</h1>
+
+            <a href="{{ url_for('auth.logout') }}" class="logout-button">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
+                    <path d="M9 12h12l-3 -3"></path>
+                    <path d="M18 15l3 -3"></path>
+                </svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="ticket-viewer">
+        <h2 style="text-align:center; margin-bottom: 1rem;">Pedido #{{ order.id }}</h2>
+        <div class="ticket-image-container">
+            <img src="img/ticket-completo.png" alt="Ticket de compra Duncan Dhu">
+        </div>
+    </main>
+
+</body>
+
+</html>

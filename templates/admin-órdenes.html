@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes Admin - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-órdenes.css') }}">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="container header-container">
+            <div class="logo-container">
+                <h1 class="logo-title">Duncan Dhu</h1>
+                <img src="img/logo-chef-hat.png" alt="Chef" class="logo-icon">
+                <p class="logo-subtitle">El deleite de la comida</p>
+            </div>
+
+            <a href="{{ url_for('auth.logout') }}" class="logout-button">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
+                    <path d="M9 12h12l-3 -3"></path>
+                    <path d="M18 15l3 -3"></path>
+                </svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="admin-dashboard">
+
+        <div class="dashboard-container">
+
+            <aside class="dashboard-nav">
+                <ul>
+                    <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin.products') }}" class="nav-link">Productos</a></li>
+                    <li><a href="{{ url_for('admin.inventory') }}" class="nav-link">Inventario</a></li>
+                    <li><a href="{{ url_for('admin.reports') }}" class="nav-link">Reportes</a></li>
+                    <li><a href="{{ url_for('admin.orders') }}" class="nav-link active">Ordenes</a></li>
+                </ul>
+            </aside>
+
+            <section class="dashboard-content">
+
+                <h2 class="content-title">Órdenes</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p>Total</p>
+                        <span>{{ stats.total }}</span>
+                    </div>
+                    <div class="stat-card">
+                        <p>Pendientes</p>
+                        <span>{{ stats.pendientes }}</span>
+                    </div>
+                    <div class="stat-card">
+                        <p>Preparando</p>
+                        <span>{{ stats.preparando }}</span>
+                    </div>
+                    <div class="stat-card">
+                        <p>Listos</p>
+                        <span>{{ stats.listos }}</span>
+                    </div>
+                    <div class="stat-card">
+                        <p>Completados</p>
+                        <span>{{ stats.completados }}</span>
+                    </div>
+                    <div class="stat-card">
+                        <p>Total</p>
+                        <span>{{ stats.total }}</span>
+                    </div>
+                </div>
+
+                <div class="history-table-section">
+                    <div class="history-header">
+                        <h3>Historial de pedidos ({{ orders|length }})</h3>
+                    </div>
+
+                    <div class="history-table">
+                        <div class="history-table-header">
+                            <span>ID</span>
+                            <span>Fecha y Hora</span>
+                            <span>Cliente/Mesa</span>
+                            <span>Productos</span>
+                            <span>Total</span>
+                            <span>Estado</span>
+                            <span>Pago</span>
+                        </div>
+                        <div class="history-table-body">
+                            {% for order in orders %}
+                            <div class="history-table-row">
+                                <span>#{{ order.id }}</span>
+                                <span>{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                                <span>{{ order.user.name if order.user else 'Invitado' }}</span>
+                                <span>{{ order.items|length }} productos</span>
+                                <span>${{ "%.2f"|format(order.total) }}</span>
+                                <span>{{ order.status }}</span>
+                                <span>{{ order.payment_method }}</span>
+                            </div>
+                            {% else %}
+                            <div class="history-table-row">
+                                <span>Sin pedidos</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+</body>
+
+</html>

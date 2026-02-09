@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Admin - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-inventario.css') }}">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="container header-container">
+            <div class="logo-container">
+                <h1 class="logo-title">Duncan Dhu</h1>
+                <img src="img/logo-chef-hat.png" alt="Chef" class="logo-icon">
+                <p class="logo-subtitle">El deleite de la comida</p>
+            </div>
+
+            <a href="{{ url_for('auth.logout') }}" class="logout-button">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
+                    <path d="M9 12h12l-3 -3"></path>
+                    <path d="M18 15l3 -3"></path>
+                </svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="admin-dashboard">
+        <div class="dashboard-container">
+
+            <aside class="dashboard-nav">
+                <ul>
+                    <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin.products') }}" class="nav-link">Productos</a></li>
+                    <li><a href="{{ url_for('admin.inventory') }}" class="nav-link active">Inventario</a></li>
+                    <li><a href="{{ url_for('admin.reports') }}" class="nav-link">Reportes</a></li>
+                    <li><a href="{{ url_for('admin.orders') }}" class="nav-link">Órdenes</a></li>
+                </ul>
+            </aside>
+
+            <section class="dashboard-content">
+
+                <div class="content-header">
+                    <h2 class="content-title">Inventario</h2>
+                    <button id="open-add-modal" class="add-item-btn">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                            stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        <span>Agregar Insumo</span>
+                    </button>
+                </div>
+
+                <div class="item-list">
+                    <div class="item-list-header">
+                        <span>Insumo</span>
+                        <span>Stock actual</span>
+                        <span>Stock mínimo</span>
+                        <span>Precio pza</span>
+                        <span>Proveedor</span>
+                        <span>Acciones</span>
+                    </div>
+
+                    {% for item in items %}
+                    <div class="item-list-item">
+                        <h3 class="item-name">{{ item.name }}</h3>
+                        <div class="item-stock-actual">
+                            <span class="stock-pill">{{ item.stock_current }}</span>
+                        </div>
+                        <div class="item-status">
+                            <span class="status-pill {{ 'active' if item.active else 'inactive' }}">
+                                {{ 'Activo' if item.active else 'Inactivo' }}
+                            </span>
+                        </div>
+                        <span class="item-price">${{ "%.2f"|format(item.price) }}</span>
+                        <span class="item-provider">{{ item.provider }}</span>
+                        <div class="item-actions">
+                            <form action="{{ url_for('admin.inventory_toggle', item_id=item.id) }}" method="post">
+                                <button class="action-btn delete" type="submit" title="Cambiar estado">
+                                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M4 7l16 0"></path>
+                                        <path d="M10 11l0 6"></path>
+                                        <path d="M14 11l0 6"></path>
+                                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>No hay insumos registrados.</p>
+                    {% endfor %}
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="modal-overlay" class="modal-overlay"></div>
+
+    <div id="add-modal" class="modal">
+        <h3>Agregar insumo</h3>
+        <form action="{{ url_for('admin.inventory') }}" method="post">
+            <div class="form-group">
+                <label for="add-nombre">Nombre del insumo:</label>
+                <input type="text" id="add-nombre" name="name" placeholder="Ingresa el insumo">
+            </div>
+            <div class="form-group">
+                <label for="add-stock-min">Stock mínimo:</label>
+                <input type="text" id="add-stock-min" name="stock_min" placeholder="Ingresa Stock mnimo">
+            </div>
+            <div class="form-group">
+                <label for="add-stock-actual">Stock actual:</label>
+                <input type="text" id="add-stock-actual" name="stock_current"
+                    placeholder="Ingresa Stock actual inicial">
+            </div>
+            <div class="form-group">
+                <label for="add-precio">Precio:</label>
+                <input type="text" id="add-precio" name="price" placeholder="$0.00">
+            </div>
+            <div class="form-group">
+                <label for="add-proveedor">Proveedor:</label>
+                <input type="text" id="add-proveedor" name="provider" placeholder="Ingresa nombre del proveedor">
+            </div>
+            <button type="submit" class="btn btn-primary">Agregar</button>
+        </form>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <h3>Editar insumo</h3>
+        <form>
+            <div class="form-group">
+                <label for="edit-nombre">Nombre del insumo:</label>
+                <input type="text" id="edit-nombre" placeholder="Ingresa el insumo">
+            </div>
+            <div class="form-group">
+                <label for="edit-stock-min">Stock Mínimo:</label> <input type="text" id="edit-stock-min"
+                    placeholder="Ingresa Stock mínimo">
+            </div>
+            <div class="form-group">
+                <label for="edit-stock-actual">Stock actual:</label>
+                <input type="text" id="edit-stock-actual" placeholder="Ingresa Stock actual inicial">
+            </div>
+            <div class="form-group">
+                <label for="edit-precio">Precio:</label>
+                <input type="text" id="edit-precio" placeholder="$0.00">
+            </div>
+            <div class="form-group">
+                <label for="edit-proveedor">Proveedor:</label>
+                <input type="text" id="edit-proveedor" placeholder="Ingresa nombre del proveedor">
+            </div>
+            <button type="submit" class="btn btn-primary">Actualizar</button>
+        </form>
+    </div>
+
+    <div id="delete-modal" class="modal">
+        <h3>Desactivar insumo</h3>
+        <p class="delete-confirm-text">¿Estás seguro de querer desactivar este insumo?</p>
+        <form>
+            <div class="form-group">
+                <label for="del-nombre">Nombre del insumo:</label>
+                <input type="text" id="del-nombre" value="Carne de res" readonly>
+            </div>
+            <div class="form-group">
+                <label for="del-proveedor">Proveedor:</label>
+                <input type="text" id="del-proveedor" value="Hamburguesa" readonly>
+            </div>
+            <button type="submit" class="btn btn-danger">Desactivar Insumo</button>
+        </form>
+    </div>
+
+    <script>
+        // Obtener todos los elementos
+        const overlay = document.getElementById('modal-overlay');
+
+        const addModal = document.getElementById('add-modal');
+        const editModal = document.getElementById('edit-modal');
+        const deleteModal = document.getElementById('delete-modal');
+
+        const openAddBtn = document.getElementById('open-add-modal');
+        const openEditBtns = document.querySelectorAll('.open-edit-modal');
+        const openDeleteBtns = document.querySelectorAll('.open-delete-modal');
+
+        // Función para abrir un modal
+        function openModal(modal) {
+            if (modal == null) return;
+            modal.classList.add('visible');
+            overlay.classList.add('visible');
+        }
+
+        // Función para cerrar todos los modales
+        function closeModal() {
+            const modals = document.querySelectorAll('.modal.visible');
+            modals.forEach(modal => {
+                modal.classList.remove('visible');
+            });
+            overlay.classList.remove('visible');
+        }
+
+        // Asignar eventos
+        openAddBtn.addEventListener('click', () => openModal(addModal));
+
+        openEditBtns.forEach(button => {
+            button.addEventListener('click', () => openModal(editModal));
+        });
+
+        openDeleteBtns.forEach(button => {
+            button.addEventListener('click', () => openModal(deleteModal));
+        });
+
+        // Cerrar al hacer clic en el fondo oscuro
+        overlay.addEventListener('click', closeModal);
+    </script>
+
+</body>
+
+</html>

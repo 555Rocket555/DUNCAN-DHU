@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/método de pago-usuarios.css') }}">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="container header-container">
+            <h1 class="logo-title">Duncan Dhu</h1>
+            <a href="{{ url_for('auth.logout') }}" class="logout-button">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
+                    <path d="M9 12h12l-3 -3"></path>
+                    <path d="M18 15l3 -3"></path>
+                </svg>
+                <span>Cerrar sesión</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="site-main">
+        <div class="container">
+            <div class="checkout-layout">
+
+                <section class="order-summary">
+                    <h2>Resumen del pedido</h2>
+
+                    <div class="summary-item-list">
+                        {% for item in cart_items %}
+                        <div class="summary-item">
+                            <span>{{ item.quantity }} {{ item.product.name }}</span>
+                            <span class="item-price">${{ "%.2f"|format(item.line_total) }}</span>
+                        </div>
+                        {% else %}
+                        <div class="summary-item">
+                            <span>Sin productos</span>
+                            <span class="item-price">$0.00</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="summary-total">
+                        <span>Total a pagar:</span>
+                        <span>${{ "%.2f"|format(total) }}</span>
+                    </div>
+                </section>
+
+                <section class="payment-method">
+                    <h2>Método de pago</h2>
+
+                    <div class="payment-options">
+                        <div class="option">
+                            <div class="payment-icon-container">
+                                <img src="img/icon-cash.png" alt="Efectivo" class="payment-icon">
+                            </div>
+                            <form action="{{ url_for('public.checkout_cash') }}" method="post">
+                                <button class="option-btn" type="submit">Efectivo</button>
+                            </form>
+                        </div>
+
+                        <div class="option">
+                            <div class="payment-icon-container card-icons">
+                                <img src="img/icon-visa.png" alt="Visa" class="payment-icon-small">
+                                <img src="img/icon-mastercard.png" alt="Mastercard" class="payment-icon-small">
+                                <img src="img/icon-amex.png" alt="Amex" class="payment-icon-small">
+                            </div>
+                            <form action="{{ url_for('public.checkout_mp') }}" method="post">
+                                <button class="option-btn" type="submit">Débito/Crédito</button>
+                            </form>
+                        </div>
+
+                        <div class="option">
+                            <div class="payment-icon-container">
+                                <img src="img/icon-mercadopago.png" alt="Mercado Pago" class="payment-icon">
+                            </div>
+                            <form action="{{ url_for('public.checkout_mp') }}" method="post">
+                                <button class="option-btn" type="submit">Mercado pago</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card-form">
+                        <h3 class="form-subtitle">Pago con Mercado Pago</h3>
+                        <p>El pago con tarjeta se procesa vía Mercado Pago para mayor seguridad.</p>
+                        <form action="{{ url_for('public.checkout_mp') }}" method="post">
+                            <button type="submit" class="submit-pay-btn">Pagar total: ${{ "%.2f"|format(total)
+                                }}</button>
+                        </form>
+                    </div>
+
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+</body>
+
+</html>

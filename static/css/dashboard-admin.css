@@ -1,0 +1,237 @@
+/* --- Variables de Color y Estilos Globales --- */
+:root {
+    --color-background: #FDD835;  /* Fondo amarillo pálido de la imagen */
+    --color-surface: #FFF9E0;    /* Tarjeta principal (beige muy claro) */
+    --color-header-bg: #000000;
+    --color-stat-card-bg: #222222;/* Tarjetas de estadísticas */
+    --color-text-light: #FFFFFF;
+    --color-text-dark: #000000;
+    --color-primary-yellow: #D4C04D;
+    --color-primary-hover: #C7B632;
+    --color-danger-red: #E54D42;  /* Rojo para el stock bajo */
+    --radius-card-main: 20px;
+    --radius-card-stat: 12px;
+    --radius-button: 8px;
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-dark);
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* --- Cabecera (Header) --- */
+.site-header {
+    background-color: var(--color-header-bg);
+    padding: 1.25rem 0;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-title {
+    color: #FDD835; 
+    font-size: 2.25rem;
+    font-weight: 900;
+    margin: 0;
+}
+
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    /* Asumiendo que el ícono ya es amarillo, si no, se usaría filter */
+}
+
+.logo-subtitle {
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+
+.logout-button {
+    background-color: #FDD835; 
+    color: var(--color-text-dark);
+    border: none;
+    border-radius: var(--radius-button);
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* --- Contenido Principal del Dashboard --- */
+.admin-dashboard {
+    padding: 3rem 2rem;
+}
+
+.dashboard-container {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-card-main);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    display: grid;
+    grid-template-columns: 240px 1fr; /* Columna de nav fija, contenido flexible */
+    gap: 2.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* --- Navegación Lateral --- */
+.dashboard-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: #FFFFFF; /* Botones blancos puros */
+    border: 1px solid #E0E0E0;
+    border-radius: var(--radius-button);
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: var(--color-text-dark);
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background-color: #F8F8F8;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transform: translateY(-2px);
+}
+
+.icon-nav {
+    width: 24px;
+    height: 24px;
+}
+
+/* --- Contenido (Grid de Estadísticas) --- */
+.dashboard-content {
+    min-width: 0; /* Previene desbordamiento en flex/grid */
+}
+
+.dashboard-title {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--color-text-dark);
+    margin: 0 0 2rem 0;
+    /* Fuente que se asemeja a la de la imagen */
+    font-family: Arial Black, Impact, "Haettenschweiler", "Franklin Gothic Bold", sans-serif;
+    letter-spacing: -1px;
+    text-align: center;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background-color: var(--color-stat-card-bg);
+    color: var(--color-text-light);
+    border-radius: var(--radius-card-stat);
+    padding: 1.5rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #DDDDDD; /* Texto un poco más tenue */
+}
+
+.icon-stat {
+    width: 24px;
+    height: 24px;
+    stroke: #AAAAAA; /* Íconos grises */
+}
+
+.card-value {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1;
+}
+
+.card-value.danger {
+    color: var(--color-danger-red);
+}
+
+/* --- Diseño Responsivo --- */
+@media (max-width: 1200px) {
+    .dashboard-container {
+        grid-template-columns: 1fr; /* Apila la nav y el contenido */
+    }
+}
+
+@media (max-width: 900px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .header-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .admin-dashboard {
+        padding: 1.5rem 1rem;
+    }
+    .dashboard-container {
+        padding: 1.5rem;
+    }
+}

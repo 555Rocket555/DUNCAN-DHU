@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-admin.css') }}">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="container header-container">
+            <div class="logo-container">
+                <h1 class="logo-title">Duncan Dhu</h1>
+                <img src="img/logo-chef-hat.png" alt="Chef" class="logo-icon">
+                <p class="logo-subtitle">El deleite de la comida</p>
+            </div>
+
+            <a href="{{ url_for('auth.logout') }}" class="logout-button">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
+                    <path d="M9 12h12l-3 -3"></path>
+                    <path d="M18 15l3 -3"></path>
+                </svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="admin-dashboard">
+        <div class="dashboard-container">
+
+            <aside class="dashboard-nav">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('admin.products') }}" class="nav-link">
+                            <svg class="icon-nav" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9l8 -4.5"></path>
+                                <path d="M12 12l8 -4.5"></path>
+                                <path d="M12 12l0 9"></path>
+                                <path d="M12 12l-8 -4.5"></path>
+                            </svg>
+                            <span>Productos</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.inventory') }}" class="nav-link">
+                            <svg class="icon-nav" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path
+                                    d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2">
+                                </path>
+                                <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z">
+                                </path>
+                            </svg>
+                            <span>Inventario</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.reports') }}" class="nav-link">
+                            <svg class="icon-nav" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z">
+                                </path>
+                                <path d="M9 8m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z">
+                                </path>
+                                <path
+                                    d="M15 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z">
+                                </path>
+                            </svg>
+                            <span>Reportes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.orders') }}" class="nav-link">
+                            <svg class="icon-nav" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                                <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                                <path d="M9 7l1 0"></path>
+                                <path d="M9 13l6 0"></path>
+                                <path d="M9 17l6 0"></path>
+                            </svg>
+                            <span>Órdenes</span>
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+
+            <section class="dashboard-content">
+                <h2 class="dashboard-title">DASHBOARD ADMIN</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="card-header">
+                            <span class="card-title">Órdenes de Hoy</span>
+                            <svg class="icon-stat" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M17 17h-11v-14h-2"></path>
+                                <path d="M6 5l14 1l-1 7h-13"></path>
+                            </svg>
+                        </div>
+                        <p class="card-value">{{ orders_today }}</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="card-header">
+                            <span class="card-title">Ingresos de Hoy</span>
+                            <svg class="icon-stat" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z">
+                                </path>
+                                <path d="M9 8m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z">
+                                </path>
+                                <path
+                                    d="M15 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z">
+                                </path>
+                            </svg>
+                        </div>
+                        <p class="card-value">${{ "%.2f"|format(revenue_today) }}</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="card-header">
+                            <span class="card-title">Productos</span>
+                            <svg class="icon-stat" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9l8 -4.5"></path>
+                                <path d="M12 12l8 -4.5"></path>
+                                <path d="M12 12l0 9"></path>
+                                <path d="M12 12l-8 -4.5"></path>
+                            </svg>
+                        </div>
+                        <p class="card-value">{{ product_count }}</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="card-header">
+                            <span class="card-title">Stock Bajo</span>
+                            <svg class="icon-stat" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                                <path d="M5 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M17 17h-11v-14h-2"></path>
+                                <path d="M6 5l6.005 .429m7.138 6.573l-1.143 1h-13"></path>
+                                <path d="M15 5l2 8"></path>
+                            </svg>
+                        </div>
+                        <p class="card-value danger">{{ low_stock }}</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+</body>
+
+</html>
