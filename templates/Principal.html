@@ -5,11 +5,11 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-      gtag('config', 'G-C59PFRYZPE');
+        gtag('config', 'G-C59PFRYZPE');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,10 +44,20 @@
                         <path d="M6 5l14 1l-1 7h-13" />
                     </svg>
                 </a>
+                {% if current_user.is_authenticated %}
+                <div class="flex items-center space-x-3">
+                    <span class="text-white font-semibold">{{ current_user.name }}</span>
+                    <a href="{{ url_for('auth.logout') }}"
+                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-150 shadow-md">
+                        Cerrar Sesión
+                    </a>
+                </div>
+                {% else %}
                 <a href="{{ url_for('auth.login') }}"
                     class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded-lg transition duration-150 shadow-md">
                     Iniciar Sesión
                 </a>
+                {% endif %}
             </div>
         </div>
     </header>
