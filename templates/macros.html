@@ -2,34 +2,28 @@
 {% set name = product.name | lower %}
 {% set image_url = 'https://placehold.co/600x600/121212/FFDD00?text=' ~ product.name | replace(' ', '+') %}
 
-{# Check for real DB image first (if we had one, but we know we don't mostly, or it might be a placeholder text) #}
+{# Verificamos si hay imagen real en la Base de Datos primero #}
 {% if product.image_url and 'placehold.co' not in product.image_url %}
 {% set image_url = product.image_url %}
-{% else %} {# Smart Fallback Logic #}
+{% else %}
+{# --- LÓGICA DE ASIGNACIÓN INTELIGENTE --- #}
 {% if 'hamburguesa' in name or 'burger' in name or 'queso' in name or 'doble' in name or 'especial' in name %}
 {% if 'pollo' in name or 'chicken' in name %}
-{% set image_url = 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80' %} {#
-Chicken/Fried #}
+{% set image_url = 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80' %}
 {% elif 'doble' in name or 'monster' in name or 'king' in name %}
-{% set image_url = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80' %} {#
-Big Burger #}
+{% set image_url = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80' %}
 {% else %}
-{# Classic Burger Variety based on ID #}
 {% set variant = product.id % 3 %}
 {% if variant == 0 %}
-{% set image_url = 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80' %} {#
-Classic 1 #}
+{% set image_url = 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80' %}
 {% elif variant == 1 %}
-{% set image_url = 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=600&q=80' %} {#
-Classic 2 (Combo style) #}
+{% set image_url = 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=600&q=80' %}
 {% else %}
-{% set image_url = 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=600&q=80' %} {#
-Classic 3 #}
+{% set image_url = 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=600&q=80' %}
 {% endif %}
 {% endif %}
 
 {% elif 'papa' in name or 'french' in name or 'fries' in name or 'gajo' in name %}
-{# Fixed URL for Fries #}
 {% set image_url = 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=600&q=80' %}
 
 {% elif 'aro' in name or 'onion' in name or 'anillo' in name %}
@@ -47,14 +41,24 @@ Classic 3 #}
 {% elif 'shake' in name or 'malteada' in name or 'helado' in name %}
 {% set image_url = 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=600&q=80' %}
 
+{# --- BLOQUE DE POSTRES CORREGIDO Y SEGURO --- #}
+{% elif 'limon' in name or 'limón' in name or 'lemon' in name %}
+{% set image_url =
+'https://th.bing.com/th/id/R.f09ba6420e5fbb4a266683511687ff24?rik=6QjfOp68fge1yg&riu=http%3a%2f%2fcristaleriamonaco.com%2fwp-content%2fuploads%2f2019%2f10%2fpay-de-limon.jpg&ehk=0P3Tf%2b8gsaf%2fZw080HvCKcEbmJdp1oM1fLqqXqTAPNw%3d&risl=&pid=ImgRaw&r=0'
+%}
+
+{% elif 'mora' in name or 'berry' in name %}
+{% set image_url = 'https://tse4.mm.bing.net/th/id/OIP.44w_ojXAr0kVwU12BXjoxAHaFj?rs=1&pid=ImgDetMain&o=7&rm=3' %}
+
 {% elif 'postre' in name or 'pastel' in name or 'brownie' in name or 'pay' in name %}
 {% set image_url = 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?auto=format&fit=crop&w=600&q=80' %}
 
+{# --- BLOQUE DE COMBOS --- #}
 {% elif 'combo' in name or 'paquete' in name or 'box' in name %}
 {% set image_url = 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=600&q=80' %}
 
 {% else %}
-{# Generic Urban Food fallback #}
+{# Fallback Genérico #}
 {% set image_url = 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80' %}
 {% endif %}
 {% endif %}
