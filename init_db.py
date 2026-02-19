@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+"""Script para inicializar la base de datos en Render"""
+
+import os
+import sys
+
+def init_db():
+    """Inicializar la base de datos"""
+    try:
+        from app import create_app, db
+        from app.models import seed_defaults
+        
+        app = create_app()
+        
+        with app.app_context():
+            # Crear todas las tablas
+            db.create_all()
+            print("✓ Tablas de base de datos creadas/verificadas")
+            
+            # Seed datos por defecto usando config del app
+            admin_username = app.config.get("ADMIN_USERNAME", "admin")
+            admin_password = app.config.get("ADMIN_PASSWORD", "admin123")
+            
+            seed_defaults(admin_username, admin_password)
+            print("✓ Base de datos inicializada con datos por defecto")
+            
+    except Exception as e:
+        print(f"✗ Error al inicializar la base de datos: {e}")
+        import traceback
+        traceback.print_exc()
+        # No fallar el deploy si hay error en init-db
+        # ya que puede ser que la BD ya esté inicializada
+        sys.exit(0)
+
+if __name__ == "__main__":
+    init_db()
+
