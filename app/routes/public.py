@@ -175,7 +175,7 @@ def checkout_cash():
         )
 
     db.session.commit()
-    session.pop("cart", None)
+    # session.pop("cart", None)  <-- Keep cart until confirmed
     return render_template("efectivo-usuario.html", order=order, sent=False)
 
 
@@ -223,7 +223,7 @@ def checkout_mp():
     preference = PaymentService.create_preference(order.id, mp_items)
     order.mp_preference_id = preference.get("id")
     db.session.commit()
-    session.pop("cart", None)
+    # session.pop("cart", None) <-- Keep cart until confirmed
     return redirect(preference.get("init_point"))
 
 
@@ -237,11 +237,11 @@ def mp_return():
             order.payment_status = "aprobado" if status == "success" else status
             if status == "success":
                 order.status = "completado"
-            db.session.commit()
-            if status == "success":
+                session.pop("cart", None) # Clear cart only on success
                 flash("Pago aprobado. Tu pedido se registro correctamente.", "success")
             else:
                 flash("Pago pendiente o rechazado.", "error")
+            db.session.commit()
             return redirect(url_for("public.catalog"))
     flash("No se pudo validar el pago.", "error")
     return redirect(url_for("public.catalog"))

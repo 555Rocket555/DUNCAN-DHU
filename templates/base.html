@@ -61,6 +61,15 @@
 
                 <!-- Desktop Menu -->
                 <nav class="hidden md:flex space-x-8 items-center">
+                    <a href="{{ url_for('public.home') }}#quienes-somos"
+                        class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Quiénes Somos</a>
+                    <a href="{{ url_for('public.home') }}#ubicacion"
+                        class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Ubicación</a>
+                    <a href="{{ url_for('public.home') }}#contactanos"
+                        class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Contáctanos</a>
+                    
+                    <div class="h-6 w-px bg-white/20 mx-2"></div>
+
                     <a href="{{ url_for('public.catalog') }}"
                         class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Menú</a>
                     <a href="{{ url_for('public.category', slug='hamburguesas') }}"

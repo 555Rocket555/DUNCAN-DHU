@@ -20,6 +20,14 @@ body {
     font-family: 'Manrope', sans-serif;
     background: var(--rappi-bg);
     color: var(--rappi-ink);
+    font-size: 1.1rem; /* Slightly larger base */
+}
+
+/* Make containers full width */
+.container, .main-container, .header-container {
+    max-width: 100% !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
 }
 
 .login-container,

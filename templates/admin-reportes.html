@@ -24,6 +24,16 @@
             Mes
         </a>
     </div>
+
+    <!-- Date Search Form -->
+    <form action="{{ url_for('admin.reports') }}" method="get" class="flex gap-2 items-center">
+        <input type="hidden" name="range" value="custom">
+        <input type="date" name="custom_date" value="{{ custom_date if custom_date else '' }}"
+            class="bg-white/5 border border-white/10 text-white rounded-sm px-3 py-2 text-sm focus:border-urban-yellow focus:outline-none">
+        <button type="submit" class="bg-urban-yellow text-black px-4 py-2 font-oswald uppercase text-xs font-bold rounded-sm hover:bg-white hover:text-black transition-colors">
+            Filtrar
+        </button>
+    </form>
 </div>
 
 <!-- Financial Stats -->

@@ -28,7 +28,7 @@
     /* Technical, legible */
 
     /* Spacing & Layout */
-    --container-width: 1280px;
+    --container-width: 100%;
     --header-height: 80px;
 
     /* Mobile First adjustments */

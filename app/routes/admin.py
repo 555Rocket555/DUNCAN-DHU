@@ -259,10 +259,28 @@ def orders():
 @admin_required
 def reports():
     range_type = request.args.get("range", "day")
-    start, _ = _report_range(range_type)
+    custom_date = request.args.get("custom_date")
 
-    orders = Order.query.filter(Order.created_at >= start).all()
-    total_revenue = sum((o.total for o in orders), Decimal("0"))
+    if range_type == "custom" and custom_date:
+        try:
+            start_date = datetime.strptime(custom_date, "%Y-%m-%d")
+            start = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=1)
+            # Override _report_range result
+        except ValueError:
+            flash("Fecha inválida", "error")
+            start, _ = _report_range("day")
+            end = None # _report_range logic usually implies "from X until now"
+    else:
+        start, _ = _report_range(range_type)
+        end = None
+
+    if end:
+         orders = Order.query.filter(Order.created_at >= start, Order.created_at < end).all()
+    else:
+         orders = Order.query.filter(Order.created_at >= start).all()
+
+    total_revenue = sum((o.total for o in orders if o.status in ["completado", "preparando", "listo"]), Decimal("0"))
     completed = len([o for o in orders if o.status == "completado"])
     pending = len([o for o in orders if o.status == "pendiente"])
     cancelled = len([o for o in orders if o.status == "cancelado"])
