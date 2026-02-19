@@ -14,6 +14,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enviar Ticket - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/efectivo-usuario.css') }}">
 </head>
 
@@ -41,6 +43,16 @@
             </div>
         </div>
     </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
     <main class="site-main">
         <div class="container">
@@ -84,6 +96,7 @@
                     <div class="success-box">
                         <h3>¡Ticket enviado!</h3>
                         <p>Revisa tu canal seleccionado</p>
+                        <a href="{{ url_for('public.catalog') }}" class="submit-btn">Aceptar</a>
                     </div>
                 </section>
                 {% else %}
@@ -93,6 +106,27 @@
             </div>
         </div>
     </main>
+
+    {% if sent %}
+    <script>
+        window.addEventListener('load', () => {
+            const container = document.createElement('div');
+            container.className = 'toast-container';
+
+            const toast = document.createElement('div');
+            toast.className = 'toast success';
+            toast.textContent = 'Se envio el ticket correctamente.';
+
+            container.appendChild(toast);
+            document.body.appendChild(container);
+
+            setTimeout(() => {
+                toast.remove();
+                container.remove();
+            }, 3500);
+        });
+    </script>
+    {% endif %}
 
 </body>
 

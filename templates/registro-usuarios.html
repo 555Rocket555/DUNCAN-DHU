@@ -5,15 +5,17 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-      gtag('config', 'G-C59PFRYZPE');
+        gtag('config', 'G-C59PFRYZPE');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/registro-usuarios.css') }}">
 </head>
 
@@ -38,6 +40,16 @@
     <main class="site-main">
         <div class="registration-container">
             <h3 class="form-title">Nuevo usuario</h3>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
 
             <form id="registration-form" class="registration-form" action="{{ url_for('auth.register') }}"
                 method="post">
@@ -68,17 +80,6 @@
 
                 <button type="submit" class="submit-btn">¡Registrarse!</button>
             </form>
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div class="success-message-box" style="display:block;">
-                {% for category, message in messages %}
-                <p>{{ message }}</p>
-                {% endfor %}
-                <a href="{{ url_for('auth.login') }}" class="success-login-btn">Iniciar sesión</a>
-            </div>
-            {% endif %}
-            {% endwith %}
 
         </div>
     </main>

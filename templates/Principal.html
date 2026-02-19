@@ -16,10 +16,14 @@
     <title>Duncan Dhu - El Deleite de la Comida Rápida</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
 </head>
 
 <body class="min-h-screen">
+
+    {% set order_url = url_for('public.catalog') if current_user.is_authenticated else url_for('auth.login',
+    next=url_for('public.catalog')) %}
 
     <!-- Menú lateral móvil -->
     <div id="mobile-menu" class="mobile-menu">
@@ -72,7 +76,7 @@
                 <a href="{{ url_for('public.catalog') }}" class="mobile-menu-item-highlight">
                     Ver todos los productos
                 </a>
-                <a href="{{ url_for('public.catalog') }}" class="mobile-menu-item-highlight">
+                <a href="{{ order_url }}" class="mobile-menu-item-highlight">
                     ¡Realiza tu orden Aquí!
                 </a>
             </nav>
@@ -139,14 +143,17 @@
             <h2 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 duncan-dhu-title">Populares:</h2>
             <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                 {% for product in popular_products %}
-                <div class="popular-item-card bg-black rounded-xl overflow-hidden cursor-pointer shadow-xl">
+                {% set product_url = url_for('public.category', slug=product.category.slug) if product.category else
+                url_for('public.catalog') %}
+                <a href="{{ product_url }}"
+                    class="popular-item-card bg-black rounded-xl overflow-hidden cursor-pointer shadow-xl">
                     {% if product.image_url %}
                     <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image rounded-xl">
                     {% else %}
                     <img src="https://placehold.co/600x400/171717/FFD700?text={{ product.name | replace(' ', '+') }}"
                         alt="{{ product.name }}" class="product-image rounded-xl">
                     {% endif %}
-                </div>
+                </a>
                 {% else %}
                 <div class="popular-item-card bg-black rounded-xl overflow-hidden shadow-xl">
                     <img src="https://placehold.co/600x400/171717/FFD700?text=Producto" alt="Producto"
@@ -222,7 +229,7 @@
                         Ver todos los productos
                     </a>
 
-                    <a href="{{ url_for('public.catalog') }}"
+                    <a href="{{ order_url }}"
                         class="bg-yellow-500 text-black font-bold py-2 px-3 sm:py-3 sm:px-4 rounded-xl flex items-center justify-center text-center h-14 sm:h-16 md:h-20 shadow-xl button-effect transition-all duration-300 text-xs sm:text-sm md:text-base">
                         ¡Realiza tu orden Aquí!
                     </a>

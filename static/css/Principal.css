@@ -1,15 +1,12 @@
 /* Estilos CSS Base y Personalizados */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #171717;
-    /* Fondo oscuro principal */
-    color: #E5E5E5;
-    /* Texto principal claro */
+    font-family: 'Manrope', sans-serif;
+    background-color: var(--rappi-bg);
+    color: var(--rappi-ink);
 }
 
 .header-bg {
-    background-color: #000000;
-    /* Fondo negro para el header */
+    background-color: var(--rappi-surface);
 }
 
 .main-container {
@@ -18,37 +15,28 @@ body {
 }
 
 .duncan-dhu-title {
-    color: #FFD700;
-    /* Amarillo dorado para el título */
+    color: var(--rappi-ink);
     font-size: 3.5rem;
-    /* Tamaño de fuente grande */
     line-height: 1;
-    /* Elimina espacio extra entre líneas */
 }
 
 .subtitle {
-    color: #E5E5E5;
-    /* Color del subtítulo (claro) */
+    color: var(--rappi-muted);
     font-size: 0.9rem;
-    /* Tamaño de fuente más pequeño */
     margin-top: -0.5rem;
-    /* Mueve el subtítulo ligeramente hacia arriba */
 }
 
 .yellow-card {
-    background-color: #FFD700;
-    /* Fondo de las tarjetas de menú */
-    color: #171717;
+    background-color: var(--rappi-surface);
+    color: var(--rappi-ink);
+    border: 1px solid var(--rappi-border);
     transition: transform 0.2s, box-shadow 0.2s;
-    /* Transición para efectos de hover */
 }
 
 /* Efecto hover para las tarjetas de menú */
 .yellow-card:hover {
     transform: translateY(-4px);
-    /* Se eleva ligeramente */
-    /* Sombra con color amarillo para un efecto brillante */
-    box-shadow: 0 10px 15px -3px rgba(255, 215, 0, 0.5), 0 4px 6px -2px rgba(255, 215, 0, 0.2);
+    box-shadow: 0 12px 20px rgba(0, 178, 92, 0.18);
 }
 
 .product-image {
@@ -60,10 +48,9 @@ body {
 
 /* Estilo para los iconos SVG dentro de las tarjetas del menú */
 .icon {
-    fill: #171717;
-    /* Relleno oscuro para los iconos */
-    width: 50px;
-    height: 50px;
+    fill: var(--rappi-accent);
+    width: 44px;
+    height: 44px;
 }
 
 /* Efecto para las imágenes populares */
@@ -77,21 +64,21 @@ body {
     transform: scale(1.03);
     /* Agranda la tarjeta ligeramente */
     /* Sombra con color amarillo para un efecto brillante y de profundidad */
-    box-shadow: 0 20px 25px -5px rgba(255, 215, 0, 0.3), 0 10px 10px -5px rgba(255, 215, 0, 0.1);
+    box-shadow: 0 20px 25px -5px rgba(0, 178, 92, 0.2), 0 10px 10px -5px rgba(15, 23, 42, 0.08);
 }
 
 .button-effect:hover {
     transform: scale(1.03);
     /* Mismo efecto de escala para los botones */
     /* Mismo efecto de sombra brillante que la tarjeta popular */
-    box-shadow: 0 20px 25px -5px rgba(255, 215, 0, 0.3), 0 10px 10px -5px rgba(255, 215, 0, 0.1);
+    box-shadow: 0 20px 25px -5px rgba(0, 178, 92, 0.2), 0 10px 10px -5px rgba(15, 23, 42, 0.08);
 }
 
 /* Estilos del menú hamburguesa */
 .menu-hamburger {
     background: none;
     border: none;
-    color: #FFD700;
+    color: var(--rappi-accent);
     cursor: pointer;
     padding: 0.5rem;
     display: flex;
@@ -102,7 +89,7 @@ body {
 }
 
 .menu-hamburger:hover {
-    background-color: rgba(255, 215, 0, 0.1);
+    background-color: rgba(0, 178, 92, 0.12);
     transform: scale(1.1);
 }
 
@@ -117,7 +104,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(15, 23, 42, 0.45);
     z-index: 9999;
     opacity: 0;
     visibility: hidden;
@@ -136,8 +123,8 @@ body {
     width: 80%;
     max-width: 320px;
     height: 100%;
-    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+    background: var(--rappi-surface);
+    box-shadow: 4px 0 20px rgba(15, 23, 42, 0.2);
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     overflow-y: auto;
@@ -152,12 +139,12 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    background-color: #000;
-    border-bottom: 2px solid #FFD700;
+    background-color: var(--rappi-surface);
+    border-bottom: 2px solid var(--rappi-accent);
 }
 
 .mobile-menu-title {
-    color: #FFD700;
+    color: var(--rappi-ink);
     font-size: 1.5rem;
     font-weight: 900;
     margin: 0;
@@ -166,7 +153,7 @@ body {
 .close-menu-btn {
     background: none;
     border: none;
-    color: #FFD700;
+    color: var(--rappi-ink);
     cursor: pointer;
     padding: 0.5rem;
     display: flex;
@@ -177,7 +164,7 @@ body {
 }
 
 .close-menu-btn:hover {
-    background-color: rgba(255, 215, 0, 0.1);
+    background-color: rgba(0, 178, 92, 0.12);
     transform: rotate(90deg);
 }
 
@@ -189,7 +176,7 @@ body {
     display: flex;
     align-items: center;
     padding: 1rem 1.5rem;
-    color: #E5E5E5;
+    color: var(--rappi-ink);
     text-decoration: none;
     font-size: 1.1rem;
     font-weight: 600;
@@ -198,8 +185,8 @@ body {
 }
 
 .mobile-menu-item:hover {
-    background-color: rgba(255, 215, 0, 0.1);
-    border-left-color: #FFD700;
+    background-color: rgba(0, 178, 92, 0.12);
+    border-left-color: var(--rappi-accent);
     padding-left: 2rem;
 }
 
@@ -207,15 +194,15 @@ body {
     width: 32px;
     height: 32px;
     margin-right: 1rem;
-    fill: #FFD700;
+    fill: var(--rappi-accent);
 }
 
 .mobile-menu-item-highlight {
     display: block;
     padding: 1rem 1.5rem;
     margin: 0.5rem 1rem;
-    background-color: #FFD700;
-    color: #000;
+    background-color: var(--rappi-accent);
+    color: #ffffff;
     text-decoration: none;
     font-size: 1rem;
     font-weight: 700;
@@ -225,7 +212,7 @@ body {
 }
 
 .mobile-menu-item-highlight:hover {
-    background-color: #FFC700;
+    background-color: var(--rappi-accent-600);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
 }

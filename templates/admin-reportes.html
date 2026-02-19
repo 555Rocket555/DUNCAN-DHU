@@ -5,15 +5,17 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-      gtag('config', 'G-C59PFRYZPE');
+        gtag('config', 'G-C59PFRYZPE');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes Admin - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-reportes.css') }}">
 </head>
 
@@ -84,7 +86,7 @@
                     <div class="report-header">
                         <h3 id="report-title">Reporte del día</h3>
 
-                        <button id="download-pdf-btn" class="download-btn">
+                        <a href="{{ url_for('admin.reports_pdf', range=range_type) }}" class="download-btn">
                             <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -94,7 +96,7 @@
                                 <path d="M12 4l0 12"></path>
                             </svg>
                             <span>Descargar PDF</span>
-                        </button>
+                        </a>
                     </div>
 
                     <div class="report-table">

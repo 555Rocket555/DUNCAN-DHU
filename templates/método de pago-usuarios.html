@@ -14,6 +14,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pago - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/método de pago-usuarios.css') }}">
 </head>
 
@@ -86,20 +88,6 @@
                         </div>
 
                         <div class="option">
-                            <div class="payment-icon-container card-icons">
-                                <img src="{{ url_for('static', filename='img/icon-visa.png') }}" alt="Visa"
-                                    class="payment-icon-small">
-                                <img src="{{ url_for('static', filename='img/icon-mastercard.png') }}" alt="Mastercard"
-                                    class="payment-icon-small">
-                                <img src="{{ url_for('static', filename='img/icon-amex.png') }}" alt="Amex"
-                                    class="payment-icon-small">
-                            </div>
-                            <form action="{{ url_for('public.checkout_mp') }}" method="post">
-                                <button class="option-btn" type="submit">Débito/Crédito</button>
-                            </form>
-                        </div>
-
-                        <div class="option">
                             <div class="payment-icon-container">
                                 <img src="{{ url_for('static', filename='img/icon-mercadopago.png') }}"
                                     alt="Mercado Pago" class="payment-icon">
@@ -108,15 +96,6 @@
                                 <button class="option-btn" type="submit">Mercado pago</button>
                             </form>
                         </div>
-                    </div>
-
-                    <div class="card-form">
-                        <h3 class="form-subtitle">Pago con Mercado Pago</h3>
-                        <p>El pago con tarjeta se procesa vía Mercado Pago para mayor seguridad.</p>
-                        <form action="{{ url_for('public.checkout_mp') }}" method="post">
-                            <button type="submit" class="submit-pay-btn">Pagar total: ${{ "%.2f"|format(total)
-                                }}</button>
-                        </form>
                     </div>
 
                 </section>

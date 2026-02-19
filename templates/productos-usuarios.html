@@ -14,6 +14,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duncan Dhu - Todos los productos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/productos-usuarios.css') }}">
 </head>
 
@@ -50,6 +52,16 @@
             </div>
         </div>
     </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
     <main class="site-main">
         <div class="container">
@@ -109,19 +121,6 @@
             </section>
         </div>
     </main>
-    <footer class="logout-footer">
-        <a href="{{ url_for('auth.logout') }}" class="logout-link">
-            <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
-                <path d="M9 12h12l-3 -3"></path>
-                <path d="M18 15l3 -3"></path>
-            </svg>
-            <span>Cerrar sesión</span>
-        </a>
-    </footer>
-
 </body>
 
 </html>

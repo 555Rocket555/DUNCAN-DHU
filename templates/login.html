@@ -5,15 +5,17 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-      gtag('config', 'G-C59PFRYZPE');
+        gtag('config', 'G-C59PFRYZPE');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 
@@ -23,12 +25,27 @@
         <div class="login-card">
 
             <header class="login-header">
-                <img src="{{ url_for('static', filename='img/logo-login.png') }}" alt="Logo Duncan Dhu" class="logo-image">
+                <img src="{{ url_for('static', filename='img/logo-login.png') }}" alt="Logo Duncan Dhu"
+                    class="logo-image">
                 <h1 class="logo-title">Duncan Dhu</h1>
                 <p class="logo-subtitle">El deleite de la comida...</p>
             </header>
 
             <form class="login-form" action="{{ url_for('auth.login') }}" method="post">
+                {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
                 <div class="form-group">
                     <label for="usuario">Usuario:</label>
                     <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario">

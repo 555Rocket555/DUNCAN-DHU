@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, current_user
 from app.extensions import db
@@ -7,6 +9,15 @@ from app.models import User
 auth_bp = Blueprint("auth", __name__)
 
 
+def _safe_next(target: str | None) -> str | None:
+    if not target:
+        return None
+    parsed = urlparse(target)
+    if parsed.scheme or parsed.netloc:
+        return None
+    return target
+
+
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
@@ -14,20 +25,24 @@ def login():
             return redirect(url_for("admin.dashboard"))
         return redirect(url_for("public.home"))
 
+    next_url = _safe_next(request.args.get("next"))
+
     if request.method == "POST":
         username = request.form.get("usuario", "").strip()
         password = request.form.get("contrasena", "")
+        next_url = _safe_next(request.form.get("next") or request.args.get("next"))
         user = User.query.filter((User.username == username) | (User.email == username)).first()
         if not user or not user.check_password(password):
             flash("Credenciales inválidas", "error")
         else:
-            login_user(user)
-            # Redirigir según el tipo de usuario
+            login_user(user, remember=user.is_admin)
             if user.is_admin:
                 return redirect(url_for("admin.dashboard"))
+            if next_url:
+                return redirect(next_url)
             return redirect(url_for("public.home"))
 
-    return render_template("login.html")
+    return render_template("login.html", next=next_url)
 
 
 @auth_bp.route("/registro", methods=["GET", "POST"])
@@ -66,6 +81,11 @@ def logout():
 
 @auth_bp.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
+    if current_user.is_authenticated:
+        if current_user.is_admin:
+            return redirect(url_for("admin.dashboard"))
+        return redirect(url_for("public.home"))
+
     if request.method == "POST":
         username = request.form.get("usuario", "").strip()
         password = request.form.get("contrasena", "")
@@ -73,7 +93,7 @@ def admin_login():
         if not user or not user.check_password(password):
             flash("Credenciales inválidas", "error")
         else:
-            login_user(user)
+            login_user(user, remember=True)
             return redirect(url_for("admin.dashboard"))
 
     return render_template("login-admin.html")

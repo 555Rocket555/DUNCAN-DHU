@@ -14,6 +14,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito - Duncan Dhu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/carrito de compras-usuarios.css') }}">
 </head>
 
@@ -28,7 +30,6 @@
             <div style="display: flex; align-items: center; gap: 1rem;">
                 {% if current_user.is_authenticated %}
                 <span style="color: #FFD700; font-weight: 600;">{{ current_user.name }}</span>
-                {% endif %}
                 <a href="{{ url_for('auth.logout') }}" class="logout-button">
                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                         stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
@@ -41,12 +42,37 @@
                     </svg>
                     <span>Cerrar sesión</span>
                 </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="logout-button">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M7 5m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z"></path>
+                        <path d="M10 12l4 0"></path>
+                        <path d="M12 10l0 4"></path>
+                    </svg>
+                    <span>Iniciar sesión</span>
+                </a>
+                {% endif %}
             </div>
         </div>
     </header>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
     <main class="site-main">
         <div class="container">
+            {% set checkout_url = url_for('public.checkout') if current_user.is_authenticated else url_for('auth.login',
+            next=url_for('public.checkout')) %}
 
             <section class="cart-grid">
                 {% for item in cart_items %}
@@ -92,7 +118,7 @@
                         <span class="total-amount">${{ "%.2f"|format(total) }}</span>
                     </div>
                 </div>
-                <a href="{{ url_for('public.checkout') }}" class="pay-button">Pagar</a>
+                <a href="{{ checkout_url }}" class="pay-button">Pagar</a>
             </section>
 
             <footer class="return-footer">
