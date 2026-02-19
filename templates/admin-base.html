@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin - Duncan Dhu{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Oswald:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'urban-black': '#121212',
+                        'urban-yellow': '#FFDD00',
+                        'urban-red': '#FF3333',
+                    },
+                    fontFamily: {
+                        'oswald': ['Oswald', 'sans-serif'],
+                        'archivo': ['Archivo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Global Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/urban-theme.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-black text-white min-h-screen">
+
+    <!-- Header -->
+    <header class="fixed w-full z-40 bg-black/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Branding -->
+                <div class="flex-shrink-0 flex items-center gap-4">
+                    <a href="{{ url_for('admin.dashboard') }}" class="flex flex-col">
+                        <span
+                            class="font-oswald text-3xl font-bold text-urban-yellow tracking-tighter uppercase relative group">
+                            Duncan Dhu <span class="text-white">Admin</span>
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Admin Action -->
+                <div>
+                    <a href="{{ url_for('auth.logout') }}"
+                        class="urban-btn-secondary py-2 px-4 text-sm uppercase">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="pt-20 flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-urban-black border-r border-white/10 hidden md:block fixed h-full overflow-y-auto">
+            <nav class="p-6 space-y-2">
+                {% set active_page = active_page|default('dashboard') %}
+
+                <a href="{{ url_for('admin.dashboard') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-oswald uppercase tracking-wide
+                   {% if active_page == 'dashboard' %}bg-urban-yellow text-black font-bold{% else %}text-gray-400 hover:bg-white/5 hover:text-urban-yellow{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('admin.products') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-oswald uppercase tracking-wide
+                   {% if active_page == 'products' %}bg-urban-yellow text-black font-bold{% else %}text-gray-400 hover:bg-white/5 hover:text-urban-yellow{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    Productos
+                </a>
+
+                <a href="{{ url_for('admin.inventory') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-oswald uppercase tracking-wide
+                   {% if active_page == 'inventory' %}bg-urban-yellow text-black font-bold{% else %}text-gray-400 hover:bg-white/5 hover:text-urban-yellow{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Inventario
+                </a>
+
+                <a href="{{ url_for('admin.orders') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-oswald uppercase tracking-wide
+                   {% if active_page == 'orders' %}bg-urban-yellow text-black font-bold{% else %}text-gray-400 hover:bg-white/5 hover:text-urban-yellow{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    Órdenes
+                </a>
+
+                <a href="{{ url_for('admin.reports') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-oswald uppercase tracking-wide
+                   {% if active_page == 'reports' %}bg-urban-yellow text-black font-bold{% else %}text-gray-400 hover:bg-white/5 hover:text-urban-yellow{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Reportes
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 md:ml-64 p-6 overflow-x-hidden">
+            <div class="max-w-7xl mx-auto">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Menu Overlay (Hidden logic for now or implement if needed) -->
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

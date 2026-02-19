@@ -1,174 +1,126 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'admin-base.html' %}
+{% set active_page = 'reports' %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block title %}Reportes - Duncan Dhu Admin{% endblock %}
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes Admin - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-reportes.css') }}">
-</head>
+{% block content %}
+<div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+    <div>
+        <h1 class="font-oswald text-4xl font-bold text-white uppercase tracking-tighter mb-2">Reportes</h1>
+        <p class="font-archivo text-gray-400">Análisis de ventas y rendimiento.</p>
+    </div>
+    
+    <div class="flex bg-white/5 p-1 rounded-sm gap-1">
+        <a href="{{ url_for('admin.reports', range='day') }}" 
+           class="px-4 py-2 font-oswald uppercase text-xs tracking-wider transition-colors {{ 'bg-urban-yellow text-black font-bold' if range_type == 'day' else 'text-gray-400 hover:text-white hover:bg-white/10' }}">
+            Día
+        </a>
+        <a href="{{ url_for('admin.reports', range='week') }}" 
+           class="px-4 py-2 font-oswald uppercase text-xs tracking-wider transition-colors {{ 'bg-urban-yellow text-black font-bold' if range_type == 'week' else 'text-gray-400 hover:text-white hover:bg-white/10' }}">
+            Semana
+        </a>
+        <a href="{{ url_for('admin.reports', range='month') }}" 
+           class="px-4 py-2 font-oswald uppercase text-xs tracking-wider transition-colors {{ 'bg-urban-yellow text-black font-bold' if range_type == 'month' else 'text-gray-400 hover:text-white hover:bg-white/10' }}">
+            Mes
+        </a>
+    </div>
+</div>
 
-<body>
-
-    <header class="site-header">
-        <div class="container header-container">
-            <div class="logo-container">
-                <h1 class="logo-title">Duncan Dhu</h1>
-                <img src="{{ url_for('static', filename='img/logo-chef-hat.png') }}" alt="Chef" class="logo-icon">
-                <p class="logo-subtitle">El deleite de la comida</p>
-            </div>
-
-            <a href="{{ url_for('auth.logout') }}" class="logout-button">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
-                    <path d="M9 12h12l-3 -3"></path>
-                    <path d="M18 15l3 -3"></path>
-                </svg>
-                <span>Cerrar Sesión</span>
-            </a>
+<!-- Financial Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+    <div class="bg-gradient-to-br from-urban-black to-gray-900 border border-white/10 p-6 rounded-sm relative overflow-hidden group hover:border-urban-yellow transition-all">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-urban-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
         </div>
-    </header>
+        <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-2">Ingresos Totales</p>
+        <span class="font-oswald text-3xl font-bold text-white">${{ "%.2f"|format(total_revenue) }}</span>
+    </div>
+    
+    <div class="bg-gradient-to-br from-urban-black to-gray-900 border border-white/10 p-6 rounded-sm relative overflow-hidden group hover:border-green-500 transition-all">
+        <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-2">Pedidos Completados</p>
+        <span class="font-oswald text-3xl font-bold text-green-500">{{ completed }}</span>
+    </div>
+    
+    <div class="bg-gradient-to-br from-urban-black to-gray-900 border border-white/10 p-6 rounded-sm relative overflow-hidden group hover:border-blue-500 transition-all">
+        <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-2">Ticket Promedio</p>
+        <span class="font-oswald text-3xl font-bold text-blue-500">${{ "%.2f"|format(avg_ticket) }}</span>
+    </div>
+    
+     <div class="bg-gradient-to-br from-urban-black to-gray-900 border border-white/10 p-6 rounded-sm relative overflow-hidden group hover:border-yellow-500 transition-all">
+        <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-2">Pendientes</p>
+        <span class="font-oswald text-3xl font-bold text-yellow-500">{{ pending }}</span>
+    </div>
+    
+     <div class="bg-gradient-to-br from-urban-black to-gray-900 border border-white/10 p-6 rounded-sm relative overflow-hidden group hover:border-red-500 transition-all">
+        <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-2">Cancelados</p>
+        <span class="font-oswald text-3xl font-bold text-red-500">{{ cancelled }}</span>
+    </div>
+</div>
 
-    <main class="admin-dashboard">
-        <div class="dashboard-container">
-
-            <aside class="dashboard-nav">
-                <ul>
-                    <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a></li>
-                    <li><a href="{{ url_for('admin.products') }}" class="nav-link">Productos</a></li>
-                    <li><a href="{{ url_for('admin.inventory') }}" class="nav-link">Inventario</a></li>
-                    <li><a href="{{ url_for('admin.reports') }}" class="nav-link active">Reportes</a></li>
-                    <li><a href="{{ url_for('admin.orders') }}" class="nav-link">Ordenes</a></li>
-                </ul>
-            </aside>
-
-            <section class="dashboard-content">
-
-                <h2 class="content-title">Reportes</h2>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <p>Ingresos totales</p>
-                        <span>${{ "%.2f"|format(total_revenue) }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Pedidos completados</p>
-                        <span>{{ completed }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Ticket promedio</p>
-                        <span>${{ "%.2f"|format(avg_ticket) }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Pedidos pendientes</p>
-                        <span>{{ pending }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Pedidos cancelados</p>
-                        <span>{{ cancelled }}</span>
-                    </div>
-                </div>
-
-                <div class="report-table-section">
-                    <div class="report-header">
-                        <h3 id="report-title">Reporte del día</h3>
-
-                        <a href="{{ url_for('admin.reports_pdf', range=range_type) }}" class="download-btn">
-                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path>
-                                <path d="M7 11l5 5l5 -5"></path>
-                                <path d="M12 4l0 12"></path>
-                            </svg>
-                            <span>Descargar PDF</span>
-                        </a>
-                    </div>
-
-                    <div class="report-table">
-                        <div class="report-table-header">
-                            <span>ID</span>
-                            <span>Fecha y Hora</span>
-                            <span>Cliente/Mesa</span>
-                            <span>Productos</span>
-                            <span>Total</span>
-                            <span>Estado</span>
-                            <span>Pago</span>
-                        </div>
-                        <div class="report-table-body">
-                            {% for order in orders %}
-                            <div class="report-table-row">
-                                <span>#{{ order.id }}</span>
-                                <span>{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
-                                <span>{{ order.user.name if order.user else 'Invitado' }}</span>
-                                <span>{{ order.items|length }} productos</span>
-                                <span>${{ "%.2f"|format(order.total) }}</span>
-                                <span>{{ order.status }}</span>
-                                <span>{{ order.payment_method }}</span>
-                            </div>
-                            {% else %}
-                            <div class="report-table-row">
-                                <span>Sin registros</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-
-                <footer class="report-actions">
-                    <a href="{{ url_for('admin.reports', range='day') }}"
-                        class="report-btn {{ 'active' if range_type == 'day' else '' }}" data-report="Reporte del día">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                            stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                            <path d="M12 5l0 14"></path>
-                            <path d="M5 12l14 0"></path>
-                        </svg>
-                        <span>Reporte del día</span>
-                    </a>
-                    <a href="{{ url_for('admin.reports', range='week') }}"
-                        class="report-btn {{ 'active' if range_type == 'week' else '' }}" data-report="Reporte semanal">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                            stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                            <path d="M12 5l0 14"></path>
-                            <path d="M5 12l14 0"></path>
-                        </svg>
-                        <span>Reporte semanal</span>
-                    </a>
-                    <a href="{{ url_for('admin.reports', range='month') }}"
-                        class="report-btn {{ 'active' if range_type == 'month' else '' }}"
-                        data-report="Reporte mensual">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                            stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                            <path d="M12 5l0 14"></path>
-                            <path d="M5 12l14 0"></path>
-                        </svg>
-                        <span>Reporte mensual</span>
-                    </a>
-                </footer>
-
-            </section>
-        </div>
-    </main>
-</body>
-
-</html>
+<!-- Detailed Report Table -->
+<div class="bg-urban-black border border-white/10 overflow-hidden mb-8">
+    <div class="p-4 border-b border-white/10 bg-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h3 class="font-oswald text-xl text-urban-yellow uppercase" id="report-title">
+            {% if range_type == 'day' %}Reporte del Día
+            {% elif range_type == 'week' %}Reporte Semanal
+            {% elif range_type == 'month' %}Reporte Mensual
+            {% else %}Reporte{% endif %}
+        </h3>
+         <a href="{{ url_for('admin.reports_pdf', range=range_type) }}" class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-archivo text-sm rounded-sm transition-colors border border-white/20">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Descargar PDF
+        </a>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">ID</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Fecha</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Cliente/Mesa</th>
+                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Productos</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Total</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Estado</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Pago</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/10 font-archivo text-gray-300">
+                {% for order in orders %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="p-4 font-mono text-urban-yellow">#{{ order.id }}</td>
+                    <td class="p-4 text-sm">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="p-4 font-bold text-white">{{ order.user.name if order.user else 'Invitado' }}</td>
+                    <td class="p-4 text-sm">{{ order.items|length }} productos</td>
+                    <td class="p-4 font-oswald font-bold text-white">${{ "%.2f"|format(order.total) }}</td>
+                    <td class="p-4">
+                        {% set status_colors = {
+                            'pendiente': 'text-gray-400',
+                            'preparando': 'text-yellow-400',
+                            'listo': 'text-blue-400',
+                            'completado': 'text-green-400',
+                            'cancelado': 'text-red-400'
+                        } %}
+                        {% set color_class = status_colors.get(order.status|lower, 'text-gray-400') %}
+                         <span class="inline-flex items-center text-xs font-bold uppercase {{ color_class }}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-sm opacity-80">{{ order.payment_method }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="p-8 text-center text-gray-500">
+                        No hay registros para este periodo.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

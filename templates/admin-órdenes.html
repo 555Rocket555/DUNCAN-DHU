@@ -1,131 +1,95 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'admin-base.html' %}
+{% set active_page = 'orders' %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block title %}Órdenes - Duncan Dhu Admin{% endblock %}
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Órdenes Admin - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-órdenes.css') }}">
-</head>
+{% block content %}
+<div class="mb-8">
+    <h1 class="font-oswald text-4xl font-bold text-white uppercase tracking-tighter mb-2">Órdenes</h1>
+    <p class="font-archivo text-gray-400">Monitoreo de pedidos en tiempo real.</p>
+</div>
 
-<body>
+<!-- Stats Grid - Orders -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+     <div class="bg-urban-black border border-white/10 p-4 text-center">
+        <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-1">Total</p>
+        <span class="font-oswald text-2xl font-bold text-white">{{ stats.total }}</span>
+    </div>
+    <div class="bg-gray-800 border border-gray-600 p-4 text-center">
+        <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-1">Pendientes</p>
+        <span class="font-oswald text-2xl font-bold text-gray-100">{{ stats.pendientes }}</span>
+    </div>
+    <div class="bg-yellow-900/30 border border-yellow-600 p-4 text-center">
+        <p class="font-archivo text-yellow-400 text-xs uppercase tracking-wider mb-1">Preparando</p>
+        <span class="font-oswald text-2xl font-bold text-yellow-500">{{ stats.preparando }}</span>
+    </div>
+    <div class="bg-blue-900/30 border border-blue-600 p-4 text-center">
+        <p class="font-archivo text-blue-400 text-xs uppercase tracking-wider mb-1">Listos</p>
+        <span class="font-oswald text-2xl font-bold text-blue-500">{{ stats.listos }}</span>
+    </div>
+      <div class="bg-green-900/30 border border-green-600 p-4 text-center">
+        <p class="font-archivo text-green-400 text-xs uppercase tracking-wider mb-1">Completados</p>
+        <span class="font-oswald text-2xl font-bold text-green-500">{{ stats.completados }}</span>
+    </div>
+     <div class="bg-red-900/30 border border-red-600 p-4 text-center">
+        <p class="font-archivo text-red-400 text-xs uppercase tracking-wider mb-1">Cancelados</p>
+        <!-- Assuming cancelled stat exists or calculating it -->
+        <span class="font-oswald text-2xl font-bold text-red-500">{{ stats.total - (stats.pendientes + stats.preparando + stats.listos + stats.completados) }}</span>
+    </div>
+</div>
 
-    <header class="site-header">
-        <div class="container header-container">
-            <div class="logo-container">
-                <h1 class="logo-title">Duncan Dhu</h1>
-                <img src="{{ url_for('static', filename='img/logo-chef-hat.png') }}" alt="Chef" class="logo-icon">
-                <p class="logo-subtitle">El deleite de la comida</p>
-            </div>
-
-            <a href="{{ url_for('auth.logout') }}" class="logout-button">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
-                    <path d="M9 12h12l-3 -3"></path>
-                    <path d="M18 15l3 -3"></path>
-                </svg>
-                <span>Cerrar Sesión</span>
-            </a>
-        </div>
-    </header>
-
-    <main class="admin-dashboard">
-
-        <div class="dashboard-container">
-
-            <aside class="dashboard-nav">
-                <ul>
-                    <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a></li>
-                    <li><a href="{{ url_for('admin.products') }}" class="nav-link">Productos</a></li>
-                    <li><a href="{{ url_for('admin.inventory') }}" class="nav-link">Inventario</a></li>
-                    <li><a href="{{ url_for('admin.reports') }}" class="nav-link">Reportes</a></li>
-                    <li><a href="{{ url_for('admin.orders') }}" class="nav-link active">Ordenes</a></li>
-                </ul>
-            </aside>
-
-            <section class="dashboard-content">
-
-                <h2 class="content-title">Órdenes</h2>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <p>Total</p>
-                        <span>{{ stats.total }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Pendientes</p>
-                        <span>{{ stats.pendientes }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Preparando</p>
-                        <span>{{ stats.preparando }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Listos</p>
-                        <span>{{ stats.listos }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Completados</p>
-                        <span>{{ stats.completados }}</span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Total</p>
-                        <span>{{ stats.total }}</span>
-                    </div>
-                </div>
-
-                <div class="history-table-section">
-                    <div class="history-header">
-                        <h3>Historial de pedidos ({{ orders|length }})</h3>
-                    </div>
-
-                    <div class="history-table">
-                        <div class="history-table-header">
-                            <span>ID</span>
-                            <span>Fecha y Hora</span>
-                            <span>Cliente/Mesa</span>
-                            <span>Productos</span>
-                            <span>Total</span>
-                            <span>Estado</span>
-                            <span>Pago</span>
-                        </div>
-                        <div class="history-table-body">
-                            {% for order in orders %}
-                            <div class="history-table-row">
-                                <span>#{{ order.id }}</span>
-                                <span>{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
-                                <span>{{ order.user.name if order.user else 'Invitado' }}</span>
-                                <span>{{ order.items|length }} productos</span>
-                                <span>${{ "%.2f"|format(order.total) }}</span>
-                                <span>{{ order.status }}</span>
-                                <span>{{ order.payment_method }}</span>
-                            </div>
-                            {% else %}
-                            <div class="history-table-row">
-                                <span>Sin pedidos</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-
-            </section>
-        </div>
-    </main>
-
-</body>
-
-</html>
+<!-- Orders History -->
+<div class="bg-urban-black border border-white/10 overflow-hidden">
+    <div class="p-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
+        <h3 class="font-oswald text-xl text-urban-yellow uppercase">Historial de Pedidos ({{ orders|length }})</h3>
+        <!-- Filter/Search could go here -->
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">ID</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Fecha</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Cliente/Mesa</th>
+                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Productos</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Total</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Estado</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Pago</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/10 font-archivo text-gray-300">
+                {% for order in orders %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="p-4 font-mono text-urban-yellow">#{{ order.id }}</td>
+                    <td class="p-4 text-sm">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="p-4 font-bold text-white">{{ order.user.name if order.user else 'Invitado' }}</td>
+                    <td class="p-4 text-sm">{{ order.items|length }} productos</td>
+                    <td class="p-4 font-oswald font-bold text-white">${{ "%.2f"|format(order.total) }}</td>
+                    <td class="p-4">
+                        {% set status_colors = {
+                            'pendiente': 'bg-gray-700 text-gray-300',
+                            'preparando': 'bg-yellow-900 text-yellow-300',
+                            'listo': 'bg-blue-900 text-blue-300',
+                            'completado': 'bg-green-900 text-green-300',
+                            'cancelado': 'bg-red-900 text-red-300'
+                        } %}
+                        {% set color_class = status_colors.get(order.status|lower, 'bg-gray-800 text-gray-400') %}
+                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase {{ color_class }}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-sm opacity-80">{{ order.payment_method }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="p-8 text-center text-gray-500">
+                        No hay pedidos registrados en el historial.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

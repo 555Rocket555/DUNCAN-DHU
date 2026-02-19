@@ -2,54 +2,99 @@
 <html lang="es">
 
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login-admin.css') }}">
+    <title>Admin Login - Duncan Dhu</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Oswald:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'urban-black': '#121212',
+                        'urban-yellow': '#FFDD00',
+                        'urban-red': '#FF3333',
+                    },
+                    fontFamily: {
+                        'oswald': ['Oswald', 'sans-serif'],
+                        'archivo': ['Archivo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body>
+<body class="bg-black min-h-screen flex items-center justify-center relative overflow-hidden font-archivo">
+    
+    <!-- Background Decor -->
+    <div class="absolute inset-0 z-0 pointer-events-none">
+        <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-urban-yellow/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-1/2 h-1/2 bg-urban-red/5 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+    </div>
 
-    <main class="login-container">
-        <div class="login-card">
+    <!-- Login Container -->
+    <div class="relative z-10 w-full max-w-md px-4">
+        <div class="bg-urban-black border border-white/10 p-8 md:p-10 shadow-2xl relative group">
+            <!-- Border Glow Effect on Hover -->
+            <div class="absolute inset-0 border border-transparent group-hover:border-urban-yellow/50 transition-colors duration-500 pointer-events-none"></div>
 
-            <header class="login-header">
-                <img src="{{ url_for('static', filename='img/logo-chef-hat.png') }}" alt="Logo Duncan Dhu"
-                    class="logo-image">
-                <h1 class="logo-title">Duncan Dhu</h1>
-                <p class="logo-subtitle">El deleite de la comida...</p>
-            </header>
+            <div class="text-center mb-8">
+                <h1 class="font-oswald text-4xl font-bold text-white uppercase tracking-tighter mb-2">
+                    Duncan Dhu <span class="text-urban-yellow">Admin</span>
+                </h1>
+                <div class="h-1 w-12 bg-urban-yellow mx-auto mb-4"></div>
+                <p class="text-gray-400 text-sm tracking-widest uppercase">Portón de Acceso</p>
+            </div>
 
-            <form class="login-form" action="{{ url_for('auth.admin_login') }}" method="post">
-                <div class="form-group">
-                    <label for="usuario">Usuario:</label>
-                    <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for category, message in messages %}
+                    <div class="p-3 bg-red-900/20 border border-urban-red/50 text-red-200 text-sm text-center">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('auth.admin_login') }}" method="post" class="space-y-6">
+                <div>
+                    <label for="usuario" class="block text-urban-yellow text-xs font-bold uppercase tracking-widest mb-2 font-oswald">Usuario</label>
+                    <input type="text" id="usuario" name="usuario" 
+                        class="w-full bg-white/5 border border-white/10 text-white px-4 py-3 focus:outline-none focus:border-urban-yellow focus:bg-white/10 transition-all placeholder-gray-600"
+                        placeholder="ADMIN USER" autocomplete="off" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="contrasena">Contraseña:</label>
-                    <input type="password" id="contrasena" name="contrasena" placeholder="Ingresa tu contraseña">
+                <div>
+                    <label for="contrasena" class="block text-urban-yellow text-xs font-bold uppercase tracking-widest mb-2 font-oswald">Contraseña</label>
+                    <input type="password" id="contrasena" name="contrasena" 
+                        class="w-full bg-white/5 border border-white/10 text-white px-4 py-3 focus:outline-none focus:border-urban-yellow focus:bg-white/10 transition-all placeholder-gray-600"
+                        placeholder="••••••••" required>
                 </div>
 
-                <button type="submit" class="submit-btn">Iniciar sesión</button>
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-urban-yellow text-black font-oswald font-bold uppercase text-lg py-3 hover:bg-white hover:tracking-widest transition-all duration-300">
+                        Entrar al Sistema
+                    </button>
+                </div>
             </form>
-
+            
+            <div class="mt-8 text-center">
+                 <a href="{{ url_for('public.home') }}" class="text-gray-500 text-xs hover:text-urban-yellow underline transition-colors">Volver al sitio público</a>
+            </div>
         </div>
-    </main>
-
-    <footer class="bottom-bar"></footer>
+    </div>
 
 </body>
-
 </html>

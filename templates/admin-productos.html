@@ -1,254 +1,155 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'admin-base.html' %}
+{% set active_page = 'products' %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block title %}Productos - Duncan Dhu Admin{% endblock %}
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos Admin - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-productos.css') }}">
-</head>
-
-<body>
-
-    <header class="site-header">
-        <div class="container header-container">
-            <div class="logo-container">
-                <h1 class="logo-title">Duncan Dhu</h1>
-                <img src="{{ url_for('static', filename='img/logo-chef-hat.png') }}" alt="Chef" class="logo-icon">
-                <p class="logo-subtitle">El deleite de la comida</p>
-            </div>
-
-            <a href="{{ url_for('auth.logout') }}" class="logout-button">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
-                    <path d="M9 12h12l-3 -3"></path>
-                    <path d="M18 15l3 -3"></path>
-                </svg>
-                <span>Cerrar Sesión</span>
-            </a>
-        </div>
-    </header>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div class="flash-container">
-        {% for category, message in messages %}
-        <div class="flash-message {{ category }}">{{ message }}</div>
-        {% endfor %}
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+    <div>
+        <h1 class="font-oswald text-4xl font-bold text-white uppercase tracking-tighter">Productos</h1>
+        <p class="font-archivo text-gray-400">Gestiona el menú de tu restaurante.</p>
     </div>
-    {% endif %}
-    {% endwith %}
+    <button onclick="openModal('add-modal')" class="bg-urban-yellow text-black font-oswald uppercase font-bold py-3 px-6 hover:bg-white transition-colors duration-300 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        Agregar Producto
+    </button>
+</div>
 
-    <main class="admin-dashboard">
-        <div class="dashboard-container">
-
-            <aside class="dashboard-nav">
-                <ul>
-                    <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a></li>
-                    <li><a href="{{ url_for('admin.products') }}" class="nav-link active">Productos</a></li>
-                    <li><a href="{{ url_for('admin.inventory') }}" class="nav-link">Inventario</a></li>
-                    <li><a href="{{ url_for('admin.reports') }}" class="nav-link">Reportes</a></li>
-                    <li><a href="{{ url_for('admin.orders') }}" class="nav-link">Órdenes</a></li>
-                </ul>
-            </aside>
-
-            <section class="dashboard-content">
-
-                <div class="content-header">
-                    <h2 class="content-title">Productos</h2>
-                    <button id="open-add-modal" class="add-product-btn">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                            <path d="M12 5l0 14"></path>
-                            <path d="M5 12l14 0"></path>
-                        </svg>
-                        <span>Agregar producto</span>
-                    </button>
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="mb-8 space-y-2">
+            {% for category, message in messages %}
+                <div class="p-4 border-l-4 {{ 'border-green-500 bg-green-500/10 text-green-400' if category == 'success' else 'border-urban-red bg-urban-red/10 text-urban-red' }} font-archivo">
+                    {{ message }}
                 </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
 
-                <div class="product-list">
-                    <div class="product-list-header">
-                        <span>Nombre</span>
-                        <span>Categoría</span>
-                        <span>Precio</span>
-                        <span>Estado</span>
-                        <span>Acciones</span>
-                    </div>
-
-                    {% for product in products %}
-                    <div class="product-list-item">
-                        <div class="product-info">
-                            <h3>{{ product.name }}</h3>
-                            <p>{{ product.description or "" }}</p>
-                        </div>
-                        <span class="product-category">{{ product.category.name if product.category else "Sin categora"
-                            }}</span>
-                        <span class="product-price">${{ "%.2f"|format(product.price) }}</span>
-                        <div class="product-status">
-                            <span class="status-pill {{ 'active' if product.active else 'inactive' }}">
-                                {{ 'Activo' if product.active else 'Inactivo' }}
-                            </span>
-                        </div>
-                        <div class="product-actions">
-                            <form action="{{ url_for('admin.product_toggle', product_id=product.id) }}" method="post">
-                                <button class="action-btn delete" type="submit" title="Eliminar">
-                                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
-                                        stroke-linecap="round" stroke-linejoin="round">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                        <path d="M4 7l16 0"></path>
-                                        <path d="M10 11l0 6"></path>
-                                        <path d="M14 11l0 6"></path>
-                                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
-                                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+<!-- Products List -->
+<div class="bg-urban-black border border-white/10 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="p-4 font-oswald text-urban-yellow uppercase tracking-wider">Nombre</th>
+                    <th class="p-4 font-oswald text-urban-yellow uppercase tracking-wider">Categoría</th>
+                    <th class="p-4 font-oswald text-urban-yellow uppercase tracking-wider">Precio</th>
+                    <th class="p-4 font-oswald text-urban-yellow uppercase tracking-wider">Estado</th>
+                    <th class="p-4 font-oswald text-urban-yellow uppercase tracking-wider text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/10 font-archivo text-gray-300">
+                {% for product in products %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="p-4">
+                        <div class="font-bold text-white text-lg">{{ product.name }}</div>
+                        <div class="text-sm text-gray-500">{{ product.description or "Sin descripción" }}</div>
+                    </td>
+                    <td class="p-4">{{ product.category.name if product.category else "Sin categoría" }}</td>
+                    <td class="p-4 font-oswald text-xl">${{ "%.2f"|format(product.price) }}</td>
+                    <td class="p-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ 'bg-green-100 text-green-800' if product.active else 'bg-gray-100 text-gray-800' }}">
+                            {{ 'Activo' if product.active else 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <!-- Edit Button (Placeholder functionality) -->
+                            <!-- <button class="p-2 text-blue-400 hover:text-white transition-colors" title="Editar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button> -->
+                            
+                            <form action="{{ url_for('admin.product_toggle', product_id=product.id) }}" method="post" class="inline">
+                                <button type="submit" class="p-2 {{ 'text-red-400 hover:text-red-200' if product.active else 'text-green-400 hover:text-green-200' }} transition-colors" title="{{ 'Desactivar' if product.active else 'Activar' }}">
+                                    {% if product.active %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
+                                    {% else %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    {% endif %}
                                 </button>
                             </form>
                         </div>
-                    </div>
-                    {% else %}
-                    <p>No hay productos registrados.</p>
-                    {% endfor %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="p-8 text-center text-gray-500">
+                        No hay productos registrados. ¡Comienza agregando uno!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div id="add-modal" class="fixed inset-0 z-50 hidden">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeModal('add-modal')"></div>
+    
+    <!-- Modal Content -->
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-urban-black border border-urban-yellow p-8 shadow-2xl">
+        <h3 class="font-oswald text-2xl text-urban-yellow uppercase mb-6">Agregar Nuevo Producto</h3>
+        
+        <form action="{{ url_for('admin.products') }}" method="post" class="space-y-4">
+            <div>
+                <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del producto</label>
+                <input type="text" name="name" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="Ej. Hamburguesa Doble" required>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-oswald text-white uppercase text-sm mb-1">Categoría</label>
+                    <select name="category_id" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo appearance-none">
+                        <option value="" class="bg-black text-gray-500">Seleccionar...</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" class="bg-black">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-            </section>
-        </div>
-    </main>
-
-    <div id="modal-overlay" class="modal-overlay"></div>
-
-    <div id="add-modal" class="modal">
-        <h3>Agregar producto</h3>
-        <form action="{{ url_for('admin.products') }}" method="post">
-            <div class="form-group">
-                <label for="add-nombre">Nombre del producto:</label>
-                <input type="text" id="add-nombre" name="name" placeholder="Ingresa producto">
+                <div>
+                    <label class="block font-oswald text-white uppercase text-sm mb-1">Precio</label>
+                    <input type="number" step="0.01" name="price" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="0.00" required>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="add-categoria">Categoría:</label>
-                <select id="add-categoria" name="category_id">
-                    <option value="">Sin categora</option>
-                    {% for category in categories %}
-                    <option value="{{ category.id }}">{{ category.name }}</option>
-                    {% endfor %}
-                </select>
+            
+            <div>
+                <label class="block font-oswald text-white uppercase text-sm mb-1">Stock Inicial</label>
+                <input type="number" name="stock" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="0" required>
             </div>
-            <div class="form-group">
-                <label for="add-precio">Precio:</label>
-                <input type="text" id="add-precio" name="price" placeholder="Ingresa precio">
+            
+            <div>
+                <label class="block font-oswald text-white uppercase text-sm mb-1">Descripción</label>
+                <textarea name="description" rows="3" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="Breve descripción del producto..."></textarea>
             </div>
-            <div class="form-group">
-                <label for="add-stock">Stock:</label>
-                <input type="text" id="add-stock" name="stock" placeholder="Ingresa stock">
+            
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeModal('add-modal')" class="px-6 py-2 border border-white/20 text-white font-oswald uppercase hover:bg-white/10 transition-colors">Cancelar</button>
+                <button type="submit" class="px-6 py-2 bg-urban-yellow text-black font-oswald uppercase font-bold hover:bg-white transition-colors">Guardar Producto</button>
             </div>
-            <div class="form-group">
-                <label for="add-descripcion">Descripcia:</label>
-                <input type="text" id="add-descripcion" name="description" placeholder="Descripcia corta">
-            </div>
-            <button type="submit" class="btn btn-primary">Agregar</button>
         </form>
     </div>
+</div>
 
-    <div id="edit-modal" class="modal">
-        <h3>Editar producto</h3>
-        <form>
-            <div class="form-group">
-                <label for="edit-nombre">Nombre del producto:</label>
-                <input type="text" id="edit-nombre" placeholder="Ingresa producto">
-            </div>
-            <div class="form-group">
-                <label for="edit-categoria">Categoría:</label>
-                <input type="text" id="edit-categoria" placeholder="Ingresa categoría">
-            </div>
-            <div class="form-group">
-                <label for="edit-precio">Precio:</label>
-                <input type="text" id="edit-precio" placeholder="Ingresa precio">
-            </div>
-            <div class="form-group">
-                <label for="edit-stock">Stock:</label>
-                <input type="text" id="edit-stock" placeholder="Ingresa stock">
-            </div>
-            <div class="form-group">
-                <label for="edit-nombre2">Nombre del producto:</label>
-                <input type="text" id="edit-nombre2" placeholder="Ingresa producto">
-            </div>
-            <button type="submit" class="btn btn-primary">Editar</button>
-        </form>
-    </div>
-
-    <div id="delete-modal" class="modal">
-        <h3>Desactivar producto</h3>
-        <p class="delete-confirm-text">¿Estás seguro de querer desactivar este producto de tu menú?</p>
-        <form>
-            <div class="form-group">
-                <label for="del-nombre">Nombre del producto:</label>
-                <input type="text" id="del-nombre" value="Hamburguesa clásica" readonly>
-            </div>
-            <div class="form-group">
-                <label for="del-categoria">Categoría:</label>
-                <input type="text" id="del-categoria" value="Hamburguesa" readonly>
-            </div>
-            <button type="submit" class="btn btn-danger">Desactivar Producto</button>
-        </form>
-    </div>
-
-    <script>
-        // Obtener todos los elementos
-        const overlay = document.getElementById('modal-overlay');
-
-        const addModal = document.getElementById('add-modal');
-        const editModal = document.getElementById('edit-modal');
-        const deleteModal = document.getElementById('delete-modal');
-
-        const openAddBtn = document.getElementById('open-add-modal');
-        const openEditBtns = document.querySelectorAll('.open-edit-modal');
-        const openDeleteBtns = document.querySelectorAll('.open-delete-modal');
-
-        // Función para abrir un modal
-        function openModal(modal) {
-            if (modal == null) return;
-            modal.classList.add('visible');
-            overlay.classList.add('visible');
-        }
-
-        // Función para cerrar todos los modales
-        function closeModal() {
-            const modals = document.querySelectorAll('.modal.visible');
-            modals.forEach(modal => {
-                modal.classList.remove('visible');
-            });
-            overlay.classList.remove('visible');
-        }
-
-        // Asignar eventos
-        openAddBtn.addEventListener('click', () => openModal(addModal));
-
-        openEditBtns.forEach(button => {
-            button.addEventListener('click', () => openModal(editModal));
-        });
-
-        openDeleteBtns.forEach(button => {
-            button.addEventListener('click', () => openModal(deleteModal));
-        });
-
-        // Cerrar al hacer clic en el fondo oscuro
-        overlay.addEventListener('click', closeModal);
-    </script>
-
-</body>
-
-</html>
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+    }
+</script>
+{% endblock %}
