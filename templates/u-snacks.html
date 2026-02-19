@@ -1,139 +1,67 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'base.html' %}
+{% from 'macros.html' import render_product_image %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block title %}Duncan Dhu - Snacks{% endblock %}
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snacks - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/u-snacks.css') }}">
-</head>
+{% block content %}
 
-<body>
+<div class="text-center mb-12">
+    <h1 class="font-oswald text-5xl md:text-7xl uppercase text-white tracking-tighter">
+        Snacks <span class="text-stroke text-transparent" style="-webkit-text-stroke: 2px #FFDD00;">Brutales</span>
+    </h1>
+    <p class="font-archivo text-gray-400 mt-4 max-w-2xl mx-auto border-b border-urban-yellow pb-4 inline-block">
+        Para picar o acompañar, pero siempre a lo grande.
+    </p>
+</div>
 
-    <header class="site-header">
-        <div class="container header-container">
+<nav class="flex flex-wrap justify-center gap-4 mb-16">
+    <a href="{{ url_for('public.catalog') }}"
+        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform -rotate-2 border-white">TODO</a>
+    <a href="{{ url_for('public.category', slug='hamburguesas') }}"
+        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-1 border-white">HAMBURGUESAS</a>
+    <a href="{{ url_for('public.category', slug='snacks') }}"
+        class="urban-btn bg-urban-yellow text-black transform -rotate-1">SNACKS</a>
+    <a href="{{ url_for('public.category', slug='postres') }}"
+        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-2 border-white">POSTRES</a>
+    <a href="{{ url_for('public.category', slug='bebidas') }}"
+        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform -rotate-1 border-white">BEBIDAS</a>
+    <a href="{{ url_for('public.category', slug='combos') }}"
+        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-1 border-white">COMBOS</a>
+</nav>
 
-            <div class="logo-container">
-                <a href="{{ url_for('public.home') }}" class="logo-link">
-                    <h1 class="logo-title">Duncan Dhu</h1>
-                    <p class="logo-subtitle">El deleite de la comida</p>
-                </a>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a href="{{ url_for('public.cart') }}" class="cart-button">
-                    <span>Carrito</span>
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                        <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                        <path d="M17 17h-11v-14h-2"></path>
-                        <path d="M6 5l14 1l-1 7h-13"></path>
-                    </svg>
-                </a>
-                {% if current_user.is_authenticated %}
-                <span style="color: #FFD700; font-weight: 600;">{{ current_user.name }}</span>
-                <a href="{{ url_for('auth.logout') }}"
-                    style="background-color: #dc2626; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600;">
-                    Cerrar Sesión
-                </a>
-                {% else %}
-                <a href="{{ url_for('auth.login') }}"
-                    style="background-color: #FFD700; color: black; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600;">
-                    Iniciar Sesión
-                </a>
-                {% endif %}
-            </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    {% for product in products %}
+    <div class="urban-card group relative flex flex-col h-full bg-urban-surface p-4">
+        <div
+            class="absolute -top-3 -right-3 bg-urban-yellow text-black font-oswald font-bold text-xl px-3 py-1 transform rotate-3 z-10 shadow-lg border border-black">
+            ${{ "%.2f"|format(product.price) if product.price else '0.00' }}
         </div>
-    </header>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div class="flash-container">
-        {% for category, message in messages %}
-        <div class="flash-message {{ category }}">{{ message }}</div>
-        {% endfor %}
+        <div class="relative overflow-hidden border border-gray-800 mb-4 bg-black aspect-square">
+            {{ render_product_image(product, 'w-full h-full object-cover transition-transform duration-500
+            group-hover:scale-110') }}
+            <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post"
+                class="absolute inset-x-0 bottom-0">
+                <button type="submit"
+                    class="w-full bg-urban-red text-white py-3 font-oswald uppercase tracking-widest text-sm hover:bg-red-600 transition-colors translate-y-full group-hover:translate-y-0 duration-300">
+                    Añadir al Carrito
+                </button>
+            </form>
+        </div>
+        <h3
+            class="font-oswald text-2xl text-white uppercase mb-2 group-hover:text-urban-yellow transition-colors leading-tight">
+            {{ product.name }}</h3>
+        <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post" class="mt-auto">
+            <button type="submit"
+                class="w-full urban-btn-secondary text-center text-sm py-2 border-urban-yellow text-urban-yellow hover:bg-urban-yellow hover:text-black">
+                Pedir
+            </button>
+        </form>
     </div>
-    {% endif %}
-    {% endwith %}
+    {% else %}
+    <div class="col-span-full text-center py-20 border-2 border-dashed border-gray-800 rounded-lg">
+        <h3 class="font-oswald text-3xl text-gray-500 uppercase">No hay snacks disponibles.</h3>
+    </div>
+    {% endfor %}
+</div>
 
-    <main class="site-main" style="padding-top: 3rem;">
-
-        <main class="content-area">
-
-            <div class="container">
-                <nav class="category-nav">
-                    <a href="{{ url_for('public.catalog') }}" class="category-tab">Todos los productos</a>
-                    <a href="{{ url_for('public.category', slug='hamburguesas') }}" class="category-tab">
-                        <span>Hamburguesas</span>
-                        <img src="{{ url_for('static', filename='img/icon-hamburguesa-tab.png') }}" alt=""
-                            class="tab-icon">
-                    </a>
-                    <a href="{{ url_for('public.category', slug='snacks') }}" class="category-tab">
-                        <span>Snacks</span>
-                        <img src="{{ url_for('static', filename='img/icon-snacks-tab.png') }}" alt="" class="tab-icon">
-                    </a>
-                    <a href="{{ url_for('public.category', slug='postres') }}" class="category-tab">
-                        <span>Postres</span>
-                        <img src="{{ url_for('static', filename='img/icon-postres-tab.png') }}" alt="" class="tab-icon">
-                    </a>
-                    <a href="{{ url_for('public.category', slug='bebidas') }}" class="category-tab">
-                        <span>Bebidas</span>
-                        <img src="{{ url_for('static', filename='img/icon-bebidas-tab.png') }}" alt="" class="tab-icon">
-                    </a>
-                    <a href="{{ url_for('public.category', slug='combos') }}" class="category-tab">
-                        <span>Combos</span>
-                        <img src="{{ url_for('static', filename='img/icon-combos-tab.png') }}" alt="" class="tab-icon">
-                    </a>
-                </nav>
-
-                <section class="product-grid">
-                    {% for product in products %}
-                    <div class="product-card">
-                        <div class="card-header">
-                            <h3 class="card-title">{{ product.name }}</h3>
-                        </div>
-                        {% if product.image_url %}
-                        <img class="card-image" src="{{ product.image_url }}" alt="{{ product.name }}">
-                        {% else %}
-                        <img class="card-image"
-                            src="https://placehold.co/600x400/171717/FFD700?text={{ product.name | replace(' ', '+') }}"
-                            alt="{{ product.name }}">
-                        {% endif %}
-                        <span class="card-price">${{ "%.2f"|format(product.price) }}</span>
-                        <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post">
-                            <button class="add-button" type="submit">
-                                <svg class="icon-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                    viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                    <path d="M12 5l0 14"></path>
-                                    <path d="M5 12l14 0"></path>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                    {% else %}
-                    <p>No hay productos disponibles.</p>
-                    {% endfor %}
-
-                </section>
-            </div>
-        </main>
-
-</body>
-
-</html>
+{% endblock %}

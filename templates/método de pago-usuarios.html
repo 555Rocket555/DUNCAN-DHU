@@ -1,111 +1,114 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'base.html' %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block title %}Duncan Dhu - Pago{% endblock %}
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pago - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/método de pago-usuarios.css') }}">
-</head>
+{% block content %}
 
-<body>
+<h1 class="font-oswald text-4xl sm:text-5xl uppercase text-white mb-10 text-center">Finalizar <span
+        class="text-urban-yellow">Pedido</span></h1>
 
-    <header class="site-header">
-        <div class="container header-container">
-            <a href="{{ url_for('public.home') }}" class="logo-link">
-                <h1 class="logo-title">Duncan Dhu</h1>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+    <!-- Order Summary -->
+    <div class="lg:col-span-1 order-2 lg:order-1">
+        <div class="bg-urban-surface border border-gray-800 p-6 shadow-lg">
+            <h2 class="font-oswald text-2xl text-white uppercase mb-6 border-b border-gray-700 pb-2">Resumen</h2>
+
+            <div class="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                {% for item in cart_items %}
+                <div class="flex justify-between items-start text-sm">
+                    <div class="text-gray-300">
+                        <span class="font-bold text-urban-yellow">{{ item.quantity }}x</span> {{ item.product.name }}
+                    </div>
+                    <div class="font-archivo text-white font-bold">
+                        ${{ "%.2f"|format(item.line_total if item.line_total is defined else item.product.price *
+                        item.quantity) }}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-gray-500 italic">Carrito vacío</p>
+                {% endfor %}
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-gray-700">
+                <div class="flex justify-between items-center">
+                    <span class="font-oswald text-xl text-white uppercase">Total</span>
+                    <span class="font-oswald text-3xl text-urban-yellow">${{ "%.2f"|format(total) }}</span>
+                </div>
+            </div>
+
+            <a href="{{ url_for('public.cart') }}"
+                class="block text-center mt-6 text-gray-500 hover:text-white underline text-xs uppercase tracking-widest">
+                Editar Pedido
             </a>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                {% if current_user.is_authenticated %}
-                <span style="color: #FFD700; font-weight: 600;">{{ current_user.name }}</span>
-                {% endif %}
-                <a href="{{ url_for('auth.logout') }}" class="logout-button">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2">
-                        </path>
-                        <path d="M9 12h12l-3 -3"></path>
-                        <path d="M18 15l3 -3"></path>
-                    </svg>
-                    <span>Cerrar sesión</span>
-                </a>
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="lg:col-span-2 order-1 lg:order-2">
+        <h2 class="font-oswald text-2xl text-white uppercase mb-6 pl-2 border-l-4 border-urban-red">Elige tu método de
+            pago</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <!-- Efectivo -->
+            <form action="{{ url_for('public.checkout_cash') }}" method="post" class="h-full">
+                <button type="submit"
+                    class="w-full h-full urban-card p-6 flex flex-col items-center justify-center gap-4 hover:border-urban-yellow group text-left">
+                    <div
+                        class="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center group-hover:bg-urban-yellow transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white group-hover:text-black"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <span class="font-oswald text-lg text-white uppercase group-hover:text-urban-yellow">Efectivo</span>
+                </button>
+            </form>
+
+            <!-- Card / MP -->
+            <form action="{{ url_for('public.checkout_mp') }}" method="post" class="h-full">
+                <button type="submit"
+                    class="w-full h-full urban-card p-6 flex flex-col items-center justify-center gap-4 hover:border-urban-yellow group text-left">
+                    <div
+                        class="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center group-hover:bg-urban-yellow transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white group-hover:text-black"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </div>
+                    <span class="font-oswald text-lg text-white uppercase group-hover:text-urban-yellow">Tarjeta</span>
+                </button>
+            </form>
+
+            <!-- MP Logo -->
+            <form action="{{ url_for('public.checkout_mp') }}" method="post" class="h-full">
+                <button type="submit"
+                    class="w-full h-full urban-card p-6 flex flex-col items-center justify-center gap-4 hover:border-urban-yellow group text-left">
+                    <div
+                        class="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center group-hover:bg-urban-yellow transition-colors">
+                        <span class="font-bold text-white group-hover:text-black">MP</span>
+                    </div>
+                    <span class="font-oswald text-lg text-white uppercase group-hover:text-urban-yellow">Mercado
+                        Pago</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-urban-black border border-gray-800 p-6 flex items-start gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-urban-yellow flex-shrink-0 mt-1" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+                <h4 class="font-oswald text-white uppercase mb-1">Pago Seguro</h4>
+                <p class="font-archivo text-gray-400 text-sm">Todas las transacciones son procesadas de forma segura. Si
+                    eliges efectivo, pagarás al recibir tu pedido.</p>
             </div>
         </div>
-    </header>
+    </div>
+</div>
 
-    <main class="site-main">
-        <div class="container">
-            <div class="checkout-layout">
-
-                <section class="order-summary">
-                    <h2>Resumen del pedido</h2>
-
-                    <div class="summary-item-list">
-                        {% for item in cart_items %}
-                        <div class="summary-item">
-                            <span>{{ item.quantity }} {{ item.product.name }}</span>
-                            <span class="item-price">${{ "%.2f"|format(item.line_total) }}</span>
-                        </div>
-                        {% else %}
-                        <div class="summary-item">
-                            <span>Sin productos</span>
-                            <span class="item-price">$0.00</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <hr class="divider">
-
-                    <div class="summary-total">
-                        <span>Total a pagar:</span>
-                        <span>${{ "%.2f"|format(total) }}</span>
-                    </div>
-                </section>
-
-                <section class="payment-method">
-                    <h2>Método de pago</h2>
-
-                    <div class="payment-options">
-                        <div class="option">
-                            <div class="payment-icon-container">
-                                <img src="{{ url_for('static', filename='img/icon-cash.png') }}" alt="Efectivo"
-                                    class="payment-icon">
-                            </div>
-                            <form action="{{ url_for('public.checkout_cash') }}" method="post">
-                                <button class="option-btn" type="submit">Efectivo</button>
-                            </form>
-                        </div>
-
-                        <div class="option">
-                            <div class="payment-icon-container">
-                                <img src="{{ url_for('static', filename='img/icon-mercadopago.png') }}"
-                                    alt="Mercado Pago" class="payment-icon">
-                            </div>
-                            <form action="{{ url_for('public.checkout_mp') }}" method="post">
-                                <button class="option-btn" type="submit">Mercado pago</button>
-                            </form>
-                        </div>
-                    </div>
-
-                </section>
-
-            </div>
-        </div>
-    </main>
-
-</body>
-
-</html>
+{% endblock %}

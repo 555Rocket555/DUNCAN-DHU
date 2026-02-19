@@ -1,317 +1,291 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'base.html' %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block extra_css %}
+<style>
+    /* Marquee Animation */
+    .marquee-container {
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+    }
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duncan Dhu - El Deleite de la Comida Rápida</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
-</head>
+    .marquee-content {
+        display: inline-block;
+        animation: marquee 20s linear infinite;
+    }
 
-<body class="min-h-screen">
+    @keyframes marquee {
+        0% {
+            transform: translateX(0);
+        }
 
-    {% set order_url = url_for('public.catalog') if current_user.is_authenticated else url_for('auth.login',
-    next=url_for('public.catalog')) %}
+        100% {
+            transform: translateX(-50%);
+        }
+    }
 
-    <!-- Menú lateral móvil -->
-    <div id="mobile-menu" class="mobile-menu">
-        <div class="mobile-menu-content">
-            <div class="mobile-menu-header">
-                <h2 class="mobile-menu-title">Nuestro Menú</h2>
-                <button id="close-menu" class="close-menu-btn" aria-label="Cerrar menú">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
+    /* Hero Text Stroke */
+    .hero-title-stroke {
+        -webkit-text-stroke: 1px white;
+        color: transparent;
+        transition: all 0.3s;
+    }
+
+    @media (min-width: 640px) {
+        .hero-title-stroke {
+            -webkit-text-stroke: 2px white;
+        }
+    }
+
+    .hero-title-stroke:hover {
+        color: white;
+        -webkit-text-stroke: 0px;
+    }
+</style>
+{% endblock %}
+
+{% from 'macros.html' import render_product_image %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="relative mb-16 mt-6 md:mt-10 px-0">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div class="order-2 lg:order-1 text-center lg:text-left">
+            <h1
+                class="font-oswald text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold uppercase leading-none tracking-tighter mb-4 sm:mb-6 relative z-10">
+                <span class="block">Auténtico</span>
+                <span class="block text-urban-yellow">Sabor</span>
+                <span class="block hero-title-stroke">Urbano</span>
+            </h1>
+            <p
+                class="font-archivo text-gray-400 text-base sm:text-lg lg:text-xl max-w-md mx-auto lg:mx-0 mb-8 border-l-0 lg:border-l-4 border-urban-red pl-0 lg:pl-6">
+                Hamburguesas artesanales, snacks brutales y la mejor vibra de la ciudad. Rompe la rutina con Duncan Dhu.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start w-full sm:w-auto">
+                <a href="{{ url_for('public.catalog') }}" class="urban-btn">
+                    Ver Menú
+                </a>
+                <a href="#populares" class="urban-btn-secondary">
+                    Lo más pedido
+                </a>
             </div>
-            <nav class="mobile-menu-nav">
-                <a href="{{ url_for('public.category', slug='hamburguesas') }}" class="mobile-menu-item">
-                    <svg class="menu-icon" viewBox="0 0 24 24">
-                        <path
-                            d="M21 9H3C2.45 9 2 9.45 2 10v4c0 .55.45 1 1 1h18c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1zm-14 3c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm10 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-                    </svg>
-                    <span>Hamburguesas</span>
-                </a>
-                <a href="{{ url_for('public.category', slug='snacks') }}" class="mobile-menu-item">
-                    <svg class="menu-icon" viewBox="0 0 24 24">
-                        <path
-                            d="M21 13c0-3.87-3.13-7-7-7s-7 3.13-7 7c0 2.05 1.05 3.87 2.65 4.96L3 22l1.41 1.41L8 19.83l3.59 3.59L13 22l-4.59-4.59L13 13.41V18h8v-5zm-5 4H9v-2h7v2zm0-4H9v-2h7v2z" />
-                    </svg>
-                    <span>Snacks</span>
-                </a>
-                <a href="{{ url_for('public.category', slug='postres') }}" class="mobile-menu-item">
-                    <svg class="menu-icon" viewBox="0 0 24 24">
-                        <path
-                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 6c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                    </svg>
-                    <span>Postres</span>
-                </a>
-                <a href="{{ url_for('public.category', slug='bebidas') }}" class="mobile-menu-item">
-                    <svg class="menu-icon" viewBox="0 0 24 24">
-                        <path d="M3 2v20h18V2H3zm16 18H5V4h14v16zM13 8h-2V6h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2z" />
-                    </svg>
-                    <span>Bebidas</span>
-                </a>
-                <a href="{{ url_for('public.category', slug='combos') }}" class="mobile-menu-item">
-                    <svg class="menu-icon" viewBox="0 0 24 24">
-                        <path
-                            d="M19 8h-1V3H6v5H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-9-3h4v3h-4V5zm9 15H5v-8h14v8zM7 12H5v2h2v-2zM19 12h-2v2h2v-2z" />
-                    </svg>
-                    <span>Combos</span>
-                </a>
-                <a href="{{ url_for('public.catalog') }}" class="mobile-menu-item-highlight">
-                    Ver todos los productos
-                </a>
-            </nav>
+        </div>
+        <div class="order-1 lg:order-2 relative px-4 lg:px-0">
+            <!-- Decorative Elements -->
+            <div class="absolute -top-6 -right-6 w-full h-full border-4 border-urban-yellow z-0 hidden lg:block"></div>
+            <div
+                class="relative z-10 urban-shadow bg-urban-black aspect-video lg:aspect-square overflow-hidden rounded-sm">
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Hamburguesa Premium"
+                    class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500">
+            </div>
         </div>
     </div>
+</section>
 
-    <header class="header-bg shadow-lg">
-        <div class="main-container mx-auto px-4 py-4 flex justify-between items-center">
+<!-- Infinite Marquee -->
+<div
+    class="bg-urban-yellow text-urban-black py-3 sm:py-4 -mx-4 sm:-mx-6 lg:-mx-8 mb-16 rotate-1 transform shadow-xl overflow-hidden border-y-4 border-black">
+    <div class="marquee-container">
+        <div class="marquee-content font-oswald text-2xl sm:text-4xl font-bold uppercase tracking-widest">
+            ★ HAMBURGUESAS ★ SNACKS ★ BEBIDAS ★ COMBOS ★ DUNCAN DHU ★ URBAN FOOD ★ OPEN LATE ★ DELIVERY RAPIDO ★ SABOR
+            REAL ★ HAMBURGUESAS ★ SNACKS ★ BEBIDAS ★ COMBOS ★ DUNCAN DHU ★ URBAN FOOD ★ OPEN LATE ★ DELIVERY RAPIDO ★
+            SABOR REAL
+        </div>
+    </div>
+</div>
 
-            <div class="flex items-center space-x-2 sm:space-x-3">
-                <!-- Botón del menú hamburguesa -->
-                <button id="menu-btn" class="menu-hamburger lg:hidden" aria-label="Abrir menú">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
+<!-- Popular Products -->
+<section id="populares" class="mb-16">
+    <div
+        class="flex flex-col sm:flex-row items-center sm:items-end justify-between mb-8 pb-4 border-b border-gray-800 text-center sm:text-left gap-4">
+        <h2 class="font-oswald text-4xl sm:text-5xl text-white uppercase mb-0">
+            Los <span class="text-urban-red">Populares</span>
+        </h2>
+        <a href="{{ url_for('public.catalog') }}"
+            class="hidden sm:inline-block font-archivo text-urban-yellow hover:underline uppercase text-sm tracking-widest">Ver
+            todo -></a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for product in popular_products %}
+        <div class="urban-card group relative p-4">
+            <!-- Price Tag (Rotated) -->
+            <div
+                class="absolute -top-2 -right-2 bg-urban-yellow text-black font-oswald font-bold text-lg px-2 py-1 transform rotate-3 z-10 shadow-lg border border-black">
+                ${{ "%.2f"|format(product.price) if product.price else '0.00' }}
+            </div>
+
+            <div class="relative overflow-hidden border border-gray-800 mb-4 bg-black aspect-square">
+                {{ render_product_image(product, 'w-full h-full object-cover opacity-80 group-hover:opacity-100
+                group-hover:scale-110 transition-all duration-500') }}
+
+                <!-- Overlay Action -->
+                <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post"
+                    class="absolute inset-x-0 bottom-0 z-20">
+                    <button type="submit"
+                        class="w-full bg-urban-red text-white text-center py-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300 font-oswald uppercase tracking-widest text-sm hidden lg:block hover:bg-red-600 cursor-pointer border-none">
+                        Añadir
+                    </button>
+                </form>
+            </div>
+
+            <h3 class="font-oswald text-2xl text-white uppercase mb-2 group-hover:text-urban-yellow transition-colors">
+                {{ product.name }}</h3>
+
+            <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post" class="mt-auto">
+                <button type="submit" class="urban-btn py-3 text-sm w-full block">
+                    Pedir Ahora
                 </button>
-                <div class="flex flex-col">
-                    <h1 class="duncan-dhu-title font-black tracking-wider text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
-                        Duncan Dhu</h1>
-                    <p class="subtitle font-semibold text-xs sm:text-sm">El deleite de la comida</p>
-                </div>
-
-            </div>
-
-            <div class="flex items-center space-x-2 sm:space-x-4">
-                <a href="{{ url_for('public.cart') }}"
-                    class="w-7 h-7 sm:w-8 sm:h-8 text-yellow-500 cursor-pointer hover:text-white transition duration-150">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-                        <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-                        <path d="M17 17h-11v-14h-2" />
-                        <path d="M6 5l14 1l-1 7h-13" />
-                    </svg>
-                </a>
-                {% if current_user.is_authenticated %}
-                <div class="flex items-center space-x-2 sm:space-x-3">
-                    <span class="hidden sm:inline text-white font-semibold text-sm sm:text-base">{{ current_user.name
-                        }}</span>
-                    <a href="{{ url_for('auth.logout') }}"
-                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded-lg transition duration-150 shadow-md text-xs sm:text-sm">
-                        <span class="hidden sm:inline">Cerrar Sesión</span>
-                        <span class="sm:hidden">Salir</span>
-                    </a>
-                </div>
-                {% else %}
-                <a href="{{ url_for('auth.login') }}"
-                    class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded-lg transition duration-150 shadow-md text-xs sm:text-sm">
-                    <span class="hidden sm:inline">Iniciar Sesión</span>
-                    <span class="sm:hidden">Entrar</span>
-                </a>
-                {% endif %}
-            </div>
+            </form>
         </div>
-    </header>
-
-    <main class="main-container mx-auto px-4 py-6 sm:py-8">
-
-        <section class="mb-8 sm:mb-12">
-            <h2 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 duncan-dhu-title">Populares:</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                {% for product in popular_products %}
-                {% set product_url = url_for('public.category', slug=product.category.slug) if product.category else
-                url_for('public.catalog') %}
-                <a href="{{ product_url }}"
-                    class="popular-item-card bg-black rounded-xl overflow-hidden cursor-pointer shadow-xl">
-                    {% if product.image_url %}
-                    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image rounded-xl">
-                    {% else %}
-                    <img src="https://placehold.co/600x400/171717/FFD700?text={{ product.name | replace(' ', '+') }}"
-                        alt="{{ product.name }}" class="product-image rounded-xl">
-                    {% endif %}
-                </a>
-                {% else %}
-                <div class="popular-item-card bg-black rounded-xl overflow-hidden shadow-xl">
-                    <img src="https://placehold.co/600x400/171717/FFD700?text=Producto" alt="Producto"
-                        class="product-image rounded-xl">
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <section>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-
-                <a href="{{ url_for('public.category', slug='hamburguesas') }}"
-                    class="yellow-card p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center text-center font-semibold h-32 sm:h-36 md:h-40 shadow-xl">
-                    <span class="text-sm sm:text-base md:text-lg mb-2">Hamburguesas</span>
-                    <svg class="icon w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" viewBox="0 0 24 24">
-                        <path
-                            d="M21 9H3C2.45 9 2 9.45 2 10v4c0 .55.45 1 1 1h18c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1zm-14 3c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm10 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-                    </svg>
-                </a>
-
-                <a href="{{ url_for('public.category', slug='snacks') }}"
-                    class="yellow-card p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center text-center font-semibold h-32 sm:h-36 md:h-40 shadow-xl">
-                    <span class="text-sm sm:text-base md:text-lg mb-2">Snacks</span>
-                    <svg class="icon w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" viewBox="0 0 24 24">
-                        <path
-                            d="M21 13c0-3.87-3.13-7-7-7s-7 3.13-7 7c0 2.05 1.05 3.87 2.65 4.96L3 22l1.41 1.41L8 19.83l3.59 3.59L13 22l-4.59-4.59L13 13.41V18h8v-5zm-5 4H9v-2h7v2zm0-4H9v-2h7v2z" />
-                    </svg>
-                </a>
-
-                <a href="{{ url_for('public.category', slug='postres') }}"
-                    class="yellow-card p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center text-center font-semibold h-32 sm:h-36 md:h-40 shadow-xl">
-                    <span class="text-sm sm:text-base md:text-lg mb-2">Postres</span>
-                    <svg class="icon w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" viewBox="0 0 24 24">
-                        <path
-                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 6c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                    </svg>
-                </a>
-
-                <a href="{{ url_for('public.category', slug='bebidas') }}"
-                    class="yellow-card p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center text-center font-semibold h-32 sm:h-36 md:h-40 shadow-xl">
-                    <span class="text-sm sm:text-base md:text-lg mb-2">Bebidas</span>
-                    <svg class="icon w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" viewBox="0 0 24 24">
-                        <path d="M3 2v20h18V2H3zm16 18H5V4h14v16zM13 8h-2V6h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2z" />
-                    </svg>
-                </a>
-
-                <a href="{{ url_for('public.category', slug='combos') }}"
-                    class="yellow-card p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center text-center font-semibold h-32 sm:h-36 md:h-40 shadow-xl">
-                    <span class="text-sm sm:text-base md:text-lg mb-2">Combos</span>
-                    <svg class="icon w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" viewBox="0 0 24 24">
-                        <path
-                            d="M19 8h-1V3H6v5H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-9-3h4v3h-4V5zm9 15H5v-8h14v8zM7 12H5v2h2v-2zM19 12h-2v2h2v-2z" />
-                    </svg>
-                </a>
-
-                <div class="flex flex-col space-y-3 sm:space-y-4">
-                    <a href="{{ url_for('public.catalog') }}"
-                        class="bg-yellow-500 text-black font-bold py-2 px-3 sm:py-3 sm:px-4 rounded-xl flex items-center justify-center text-center h-14 sm:h-16 md:h-20 shadow-xl button-effect transition-all duration-300 text-xs sm:text-sm md:text-base">
-                        Ver todos los productos
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <section class="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-            <div class="bg-black/40 p-4 sm:p-6 rounded-xl shadow-xl">
-                <h3 class="text-lg sm:text-xl font-bold mb-2">¿Quiénes somos?</h3>
-                <p class="text-sm sm:text-base text-gray-300">Somos Duncan Dhu, un equipo apasionado por la comida
-                    rápida con sabor casero.
-                </p>
-            </div>
-            <div class="bg-black/40 p-4 sm:p-6 rounded-xl shadow-xl">
-                <h3 class="text-lg sm:text-xl font-bold mb-2">Ubicación</h3>
-                <p class="text-sm sm:text-base text-gray-300 mb-3">Encuéntranos en tu mapa favorito.</p>
-                <a href="{{ maps_url }}" target="_blank"
-                    class="text-yellow-400 font-semibold flex items-center space-x-2 text-sm sm:text-base">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z" />
-                        <circle cx="12" cy="11" r="2" />
-                    </svg>
-                    <span>Abrir Google Maps</span>
-                </a>
-            </div>
-            <div class="bg-black/40 p-4 sm:p-6 rounded-xl shadow-xl">
-                <h3 class="text-lg sm:text-xl font-bold mb-2">Redes sociales</h3>
-                <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                    <a href="{{ social.facebook }}" target="_blank"
-                        class="text-yellow-400 text-sm sm:text-base font-semibold flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M14 8h2V6h-2c-1.66 0-3 1.34-3 3v2H9v2h2v6h2v-6h2l1-2h-3V9c0-.55.45-1 1-1z" />
-                        </svg>
-                        <span>Facebook</span>
-                    </a>
-                    <a href="{{ social.instagram }}" target="_blank"
-                        class="text-yellow-400 text-sm sm:text-base font-semibold flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4" y="4" width="16" height="16" rx="4" />
-                            <circle cx="12" cy="12" r="3" />
-                            <circle cx="17" cy="7" r="1" />
-                        </svg>
-                        <span>Instagram</span>
-                    </a>
-                    <a href="{{ social.tiktok }}" target="_blank"
-                        class="text-yellow-400 text-sm sm:text-base font-semibold flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M16 3c.4 2.3 1.9 3.8 4 4v3c-1.7-.1-3.2-.7-4-1.6v6.6a5 5 0 1 1-5-5c.3 0 .7 0 1 .1v3.1a2 2 0 1 0 2 2V3h2z" />
-                        </svg>
-                        <span>TikTok</span>
-                    </a>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="header-bg py-4 mt-8">
-        <div class="main-container mx-auto px-4 text-center text-gray-400 text-sm">
-            Derechos Reservados &copy; 2025 Duncan Dhu
+        {% else %}
+        <div class="col-span-4 text-center py-10 border border-dashed border-gray-700">
+            <p class="font-archivo text-gray-500 text-xl">No hay productos populares en este momento.</p>
         </div>
-    </footer>
+        {% endfor %}
+    </div>
 
-    <script>
-        // Funcionalidad del menú hamburguesa
-        const menuBtn = document.getElementById('menu-btn');
-        const closeMenuBtn = document.getElementById('close-menu');
-        const mobileMenu = document.getElementById('mobile-menu');
+    <div class="mt-8 text-center sm:hidden">
+        <a href="{{ url_for('public.catalog') }}" class="urban-btn-secondary w-full">Ver todo el menú</a>
+    </div>
+</section>
 
-        // Abrir menú
-        menuBtn.addEventListener('click', () => {
-            mobileMenu.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevenir scroll del body
-        });
+<!-- Categories Grid -->
+<section class="mb-16">
+    <h2 class="font-oswald text-4xl sm:text-5xl text-white uppercase mb-8 text-center">
+        Explora el <span class="text-urban-yellow">Menú</span>
+    </h2>
 
-        // Cerrar menú
-        closeMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.remove('active');
-            document.body.style.overflow = 'auto'; // Restaurar scroll
-        });
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4">
+        <!-- Big Cards (2 spanned cols) -->
+        <a href="{{ url_for('public.category', slug='hamburguesas') }}"
+            class="col-span-2 md:col-span-3 bg-gray-800 h-48 sm:h-64 relative group overflow-hidden border border-gray-700 hover:border-urban-yellow transition-colors">
+            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors z-10"></div>
+            <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                class="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                alt="Hamburguesas">
+            <div class="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-20">
+                <h3
+                    class="font-oswald text-3xl sm:text-4xl text-white uppercase italic group-hover:translate-x-2 transition-transform">
+                    Hamburguesas</h3>
+            </div>
+        </a>
 
-        // Cerrar menú al hacer clic fuera de él
-        mobileMenu.addEventListener('click', (e) => {
-            if (e.target === mobileMenu) {
-                mobileMenu.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        });
+        <a href="{{ url_for('public.category', slug='combos') }}"
+            class="col-span-2 md:col-span-3 bg-gray-800 h-48 sm:h-64 relative group overflow-hidden border border-gray-700 hover:border-urban-yellow transition-colors">
+            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors z-10"></div>
+            <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                class="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                alt="Combos">
+            <div class="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-20">
+                <h3
+                    class="font-oswald text-3xl sm:text-4xl text-white uppercase italic group-hover:translate-x-2 transition-transform">
+                    Combos</h3>
+            </div>
+        </a>
 
-        // Cerrar menú con la tecla Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
-                mobileMenu.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        });
-    </script>
+        <!-- Smaller Cards -->
+        <a href="{{ url_for('public.category', slug='snacks') }}"
+            class="col-span-1 md:col-span-2 bg-gray-800 h-32 sm:h-48 relative group overflow-hidden border border-gray-700 hover:border-urban-yellow transition-colors">
+            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors z-20"></div>
+            <img src="https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80"
+                class="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 z-10"
+                alt="Snacks">
+            <div class="absolute inset-0 flex items-center justify-center z-30">
+                <h3
+                    class="font-oswald text-xl sm:text-2xl text-white uppercase tracking-wider group-hover:scale-110 transition-transform shadow-black drop-shadow-md">
+                    Snacks</h3>
+            </div>
+        </a>
 
-</body>
+        <a href="{{ url_for('public.category', slug='bebidas') }}"
+            class="col-span-1 md:col-span-2 bg-gray-800 h-32 sm:h-48 relative group overflow-hidden border border-gray-700 hover:border-urban-yellow transition-colors">
+            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors z-20"></div>
+            <img src="https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80"
+                class="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 z-10"
+                alt="Bebidas">
+            <div class="absolute inset-0 flex items-center justify-center z-30">
+                <h3
+                    class="font-oswald text-xl sm:text-2xl text-white uppercase tracking-wider group-hover:scale-110 transition-transform shadow-black drop-shadow-md">
+                    Bebidas</h3>
+            </div>
+        </a>
 
-</html>
+        <a href="{{ url_for('public.category', slug='postres') }}"
+            class="col-span-2 md:col-span-2 bg-gray-800 h-32 sm:h-48 relative group overflow-hidden border border-gray-700 hover:border-urban-yellow transition-colors">
+            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors z-20"></div>
+            <img src="https://images.unsplash.com/photo-1624353365286-3f8d62daad51?auto=format&fit=crop&w=600&q=80"
+                class="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 z-10"
+                alt="Postres">
+            <div class="absolute inset-0 flex items-center justify-center z-30">
+                <h3
+                    class="font-oswald text-xl sm:text-2xl text-white uppercase tracking-wider group-hover:scale-110 transition-transform shadow-black drop-shadow-md">
+                    Postres</h3>
+            </div>
+        </a>
+    </div>
+</section>
+
+<!-- Info Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+    <div class="bg-gradient-to-br from-urban-surface to-black border border-gray-800 p-6 sm:p-8 urban-shadow">
+        <h3 class="font-oswald text-2xl text-urban-yellow uppercase mb-4">La Crew</h3>
+        <p class="font-archivo text-gray-400">
+            Somos rebeldes de la cocina. No hacemos comida rápida, hacemos comida buena... rápido.
+        </p>
+    </div>
+
+    <div class="bg-gradient-to-br from-urban-surface to-black border border-gray-800 p-6 sm:p-8 urban-shadow">
+        <h3 class="font-oswald text-2xl text-urban-yellow uppercase mb-4">El Spot</h3>
+        <p class="font-archivo text-gray-400 mb-4">
+            Donde pasa todo. Ven a visitarnos o pide delivery.
+        </p>
+        <a href="{{ maps_url }}" target="_blank"
+            class="text-white hover:text-urban-yellow underline font-bold uppercase text-sm">
+            Ver en Mapa ->
+        </a>
+    </div>
+
+    <div class="bg-gradient-to-br from-urban-surface to-black border border-gray-800 p-6 sm:p-8 urban-shadow">
+        <h3 class="font-oswald text-2xl text-urban-yellow uppercase mb-4">Síguenos</h3>
+        <div class="flex space-x-4">
+            <a href="{{ social.facebook }}" target="_blank"
+                class="w-10 h-10 border border-gray-600 flex items-center justify-center hover:bg-urban-yellow hover:text-black hover:border-urban-yellow transition-all text-gray-400">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 8h2V6h-2c-1.66 0-3 1.34-3 3v2H9v2h2v6h2v-6h2l1-2h-3V9c0-.55.45-1 1-1z" />
+                </svg>
+            </a>
+            <a href="{{ social.instagram }}" target="_blank"
+                class="w-10 h-10 border border-gray-600 flex items-center justify-center hover:bg-urban-yellow hover:text-black hover:border-urban-yellow transition-all text-gray-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="4"></rect>
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <line x1="16.5" y1="7.5" x2="16.5" y2="7.5"></line>
+                </svg>
+            </a>
+            <a href="{{ social.tiktok }}" target="_blank"
+                class="w-10 h-10 border border-gray-600 flex items-center justify-center hover:bg-urban-yellow hover:text-black hover:border-urban-yellow transition-all text-gray-400">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M16 3c.4 2.3 1.9 3.8 4 4v3c-1.7-.1-3.2-.7-4-1.6v6.6a5 5 0 1 1-5-5c.3 0 .7 0 1 .1v3.1a2 2 0 1 0 2 2V3h2z" />
+                </svg>
+            </a>
+            <a href="{{ url_for('public.contact') }}"
+                style="width: 90px; height: 40px; border: 1px solid #4b5563; display: flex; align-items: center; justify-content: center; color: #9ca3af; transition: all 0.3s;"
+                title="Contáctanos">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                    </path>
+                </svg>
+                <p>contacto</p>
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

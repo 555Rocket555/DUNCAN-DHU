@@ -1,89 +1,81 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'base.html' %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block title %}Duncan Dhu - Registro{% endblock %}
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/rappi-base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/Principal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/registro-usuarios.css') }}">
-</head>
+{% block content %}
 
-<body>
-
-    <header class="site-header">
-        <div class="container header-container">
-            <h1 class="logo-title">Duncan Dhu</h1>
-            <h2 class="page-title">Registro de usuarios</h2>
-            <a href="{{ url_for('public.home') }}" class="nav-button">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M15 12h-10"></path>
-                    <path d="M9 8l-4 4l4 4"></path>
-                </svg>
-                <span>Pagina principal</span>
-            </a>
+<div class="min-h-[60vh] flex items-center justify-center py-10">
+    <div class="w-full max-w-lg">
+        <div class="text-center mb-8">
+            <h1 class="font-oswald text-4xl text-white uppercase tracking-wider">
+                Únete a la <span class="text-urban-yellow">Crew</span>
+            </h1>
         </div>
-    </header>
 
-    <main class="site-main">
-        <div class="registration-container">
-            <h3 class="form-title">Nuevo usuario</h3>
+        <div class="bg-urban-surface border border-gray-800 p-8 urban-shadow">
+            <form action="{{ url_for('auth.register') }}" method="post" class="space-y-4">
+                <div>
+                    <label for="nombre"
+                        class="block font-oswald text-white uppercase tracking-wider mb-1 text-sm">Nombre
+                        Completo</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Tu nombre"
+                        class="w-full bg-black border border-gray-700 text-white p-3 focus:border-urban-yellow focus:outline-none font-archivo transition-colors">
+                </div>
+
+                <div>
+                    <label for="correo"
+                        class="block font-oswald text-white uppercase tracking-wider mb-1 text-sm">Correo
+                        Electrónico</label>
+                    <input type="email" id="correo" name="correo" placeholder="tucorreo@email.com"
+                        class="w-full bg-black border border-gray-700 text-white p-3 focus:border-urban-yellow focus:outline-none font-archivo transition-colors">
+                </div>
+
+                <div>
+                    <label for="telefono"
+                        class="block font-oswald text-white uppercase tracking-wider mb-1 text-sm">Teléfono</label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="Número celular"
+                        class="w-full bg-black border border-gray-700 text-white p-3 focus:border-urban-yellow focus:outline-none font-archivo transition-colors">
+                </div>
+
+                <div>
+                    <label for="usuario"
+                        class="block font-oswald text-white uppercase tracking-wider mb-1 text-sm">Usuario</label>
+                    <input type="text" id="usuario" name="usuario" placeholder="Elige un usuario"
+                        class="w-full bg-black border border-gray-700 text-white p-3 focus:border-urban-yellow focus:outline-none font-archivo transition-colors">
+                </div>
+
+                <div>
+                    <label for="contrasena"
+                        class="block font-oswald text-white uppercase tracking-wider mb-1 text-sm">Contraseña</label>
+                    <input type="password" id="contrasena" name="contrasena" placeholder="Crea una contraseña"
+                        class="w-full bg-black border border-gray-700 text-white p-3 focus:border-urban-yellow focus:outline-none font-archivo transition-colors">
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full urban-btn text-center text-sm tracking-widest">
+                        Crear Cuenta
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center">
+                <a href="{{ url_for('auth.login') }}"
+                    class="text-gray-500 hover:text-white underline text-xs font-archivo">
+                    ¿Ya tienes cuenta? Inicia sesión
+                </a>
+            </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-            <div class="flash-container">
+            <div class="mt-6 p-4 border border-urban-yellow bg-yellow-900/20">
                 {% for category, message in messages %}
-                <div class="flash-message {{ category }}">{{ message }}</div>
+                <p class="font-oswald text-urban-yellow uppercase text-center">{{ message }}</p>
                 {% endfor %}
             </div>
             {% endif %}
             {% endwith %}
-
-            <form id="registration-form" class="registration-form" action="{{ url_for('auth.register') }}"
-                method="post">
-                <div class="form-group">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" name="nombre" placeholder="Ingresa nombre(s)">
-                </div>
-
-                <div class="form-group">
-                    <label for="correo">Correo</label>
-                    <input type="email" id="correo" name="correo" placeholder="correo@mail.com">
-                </div>
-
-                <div class="form-group">
-                    <label for="telefono">Telefono</label>
-                    <input type="tel" id="telefono" name="telefono">
-                </div>
-
-                <div class="form-group">
-                    <label for="usuario">Usuario</label>
-                    <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario">
-                </div>
-
-                <div class="form-group">
-                    <label for="contrasena">Contraseña</label>
-                    <input type="password" id="contrasena" name="contrasena" placeholder="Ingresa tu contraseña">
-                </div>
-
-                <button type="submit" class="submit-btn">¡Registrarse!</button>
-            </form>
-
         </div>
-    </main>
+    </div>
+</div>
 
-</body>
-
-</html>
+{% endblock %}

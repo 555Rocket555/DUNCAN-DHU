@@ -1,0 +1,63 @@
+{% macro render_product_image(product, extra_classes='') %}
+{% set name = product.name | lower %}
+{% set image_url = 'https://placehold.co/600x600/121212/FFDD00?text=' ~ product.name | replace(' ', '+') %}
+
+{# Check for real DB image first (if we had one, but we know we don't mostly, or it might be a placeholder text) #}
+{% if product.image_url and 'placehold.co' not in product.image_url %}
+{% set image_url = product.image_url %}
+{% else %} {# Smart Fallback Logic #}
+{% if 'hamburguesa' in name or 'burger' in name or 'queso' in name or 'doble' in name or 'especial' in name %}
+{% if 'pollo' in name or 'chicken' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80' %} {#
+Chicken/Fried #}
+{% elif 'doble' in name or 'monster' in name or 'king' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80' %} {#
+Big Burger #}
+{% else %}
+{# Classic Burger Variety based on ID #}
+{% set variant = product.id % 3 %}
+{% if variant == 0 %}
+{% set image_url = 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80' %} {#
+Classic 1 #}
+{% elif variant == 1 %}
+{% set image_url = 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=600&q=80' %} {#
+Classic 2 (Combo style) #}
+{% else %}
+{% set image_url = 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=600&q=80' %} {#
+Classic 3 #}
+{% endif %}
+{% endif %}
+
+{% elif 'papa' in name or 'french' in name or 'fries' in name or 'gajo' in name %}
+{# Fixed URL for Fries #}
+{% set image_url = 'https://images.unsplash.com/photo-1541592106381-b31e9671c321?auto=format&fit=crop&w=600&q=80' %}
+
+{% elif 'aro' in name or 'onion' in name or 'anillo' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1639024471283-03518883512d?auto=format&fit=crop&w=600&q=80' %}
+
+{% elif 'hot dog' in name or 'jocho' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1612392062631-94dd85fa2ddb?auto=format&fit=crop&w=600&q=80' %}
+
+{% elif 'coca' in name or 'pepsi' in name or 'soda' in name or 'refresco' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80' %}
+
+{% elif 'agua' in name or 'water' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=600&q=80' %}
+
+{% elif 'shake' in name or 'malteada' in name or 'helado' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=600&q=80' %}
+
+{% elif 'postre' in name or 'pastel' in name or 'brownie' in name or 'pay' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?auto=format&fit=crop&w=600&q=80' %}
+
+{% elif 'combo' in name or 'paquete' in name or 'box' in name %}
+{% set image_url = 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=600&q=80' %}
+
+{% else %}
+{# Generic Urban Food fallback #}
+{% set image_url = 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80' %}
+{% endif %}
+{% endif %}
+
+<img src="{{ image_url }}" alt="{{ product.name }}" class="{{ extra_classes }}">
+{% endmacro %}
