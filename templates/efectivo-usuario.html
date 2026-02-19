@@ -1,99 +1,76 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'base.html' %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block title %}Duncan Dhu - Confirmar Efectivo{% endblock %}
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enviar Ticket - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/efectivo-usuario.css') }}">
-</head>
+{% block content %}
 
-<body>
+<div class="max-w-xl mx-auto">
+    <div class="text-center mb-10">
+        <h1 class="font-oswald text-4xl uppercase text-white">Datos de <span class="text-urban-yellow">Contacto</span>
+        </h1>
+        <p class="font-archivo text-gray-400 mt-2">Para enviarte el ticket de tu compra en efectivo.</p>
+    </div>
 
-    <header class="site-header">
-        <div class="container header-container">
-            <h1 class="logo-title">Duncan Dhu</h1>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                {% if current_user.is_authenticated %}
-                <span style="color: #FFD700; font-weight: 600;">{{ current_user.name }}</span>
-                {% endif %}
-                <a href="{{ url_for('auth.logout') }}" class="logout-button">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2">
-                        </path>
-                        <path d="M9 12h12l-3 -3"></path>
-                        <path d="M18 15l3 -3"></path>
-                    </svg>
-                    <span>Cerrar sesión</span>
-                </a>
+    <div class="bg-urban-surface border border-gray-800 p-8 urban-shadow">
+        <form action="{{ url_for('public.ticket_send') }}" method="post" class="space-y-6">
+            <input type="hidden" name="order_id" value="{{ order.id }}">
+
+            <div>
+                <label for="nombre" class="block font-oswald text-white uppercase tracking-wider mb-2">Nombre</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Tu nombre"
+                    class="w-full bg-black border border-gray-700 text-white p-4 focus:border-urban-yellow focus:outline-none font-archivo transition-colors placeholder-gray-600">
             </div>
-        </div>
-    </header>
 
-    <main class="site-main">
-        <div class="container">
-            <div id="ticket-layout" class="ticket-layout">
+            <div>
+                <label for="whatsapp"
+                    class="block font-oswald text-white uppercase tracking-wider mb-2">WhatsApp</label>
+                <input type="tel" id="whatsapp" name="whatsapp" placeholder="55 1234 5678"
+                    class="w-full bg-black border border-gray-700 text-white p-4 focus:border-urban-yellow focus:outline-none font-archivo transition-colors placeholder-gray-600">
+            </div>
 
-                <section class="ticket-form-section">
-                    <h2>Enviar ticket a:</h2>
+            <div>
+                <label for="correo" class="block font-oswald text-white uppercase tracking-wider mb-2">Correo
+                    Electrónico</label>
+                <input type="email" id="correo" name="correo" placeholder="ejemplo@email.com"
+                    class="w-full bg-black border border-gray-700 text-white p-4 focus:border-urban-yellow focus:outline-none font-archivo transition-colors placeholder-gray-600">
+            </div>
 
-                    <form id="ticket-form" class="ticket-form" action="{{ url_for('public.ticket_send') }}"
-                        method="post">
-                        <input type="hidden" name="order_id" value="{{ order.id }}">
-                        <div class="form-group">
-                            <label for="nombre">Nombre:</label>
-                            <input type="text" id="nombre" name="nombre" placeholder="Ingresa nombre(s)">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="whatsapp">WhatsApp:</label>
-                            <input type="tel" id="whatsapp" name="whatsapp" placeholder="Número telefónico">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="correo">Correo:</label>
-                            <input type="email" id="correo" name="correo" placeholder="correo@mail.com">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="channel">Enviar por:</label>
-                            <select id="channel" name="channel">
-                                <option value="whatsapp">WhatsApp</option>
-                                <option value="correo">Correo</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="submit-btn">Enviar</button>
-                    </form>
-                </section>
-
-                {% if sent %}
-                <section id="success-message" class="success-message-column" style="display:flex;">
-                    <div class="success-box">
-                        <h3>¡Ticket enviado!</h3>
-                        <p>Revisa tu canal seleccionado</p>
+            <div>
+                <label for="channel" class="block font-oswald text-white uppercase tracking-wider mb-2">Enviar ticket
+                    por</label>
+                <div class="relative">
+                    <select id="channel" name="channel"
+                        class="w-full bg-black border border-gray-700 text-white p-4 appearance-none focus:border-urban-yellow focus:outline-none font-archivo cursor-pointer">
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="correo">Correo</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
                     </div>
-                </section>
-                {% else %}
-                <section id="success-message" class="success-message-column" style="display:none;"></section>
-                {% endif %}
+                </div>
+            </div>
 
+            <button type="submit" class="w-full urban-btn text-center mt-4">
+                Confirmar y Enviar
+            </button>
+        </form>
+
+        {% if sent %}
+        <div class="mt-6 bg-green-900/30 border border-green-500 p-4 flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 flex-shrink-0" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <div>
+                <h3 class="font-oswald text-white uppercase">¡Ticket Enviado!</h3>
+                <p class="font-archivo text-gray-300 text-sm">Revisa tu bandeja de entrada o WhatsApp.</p>
             </div>
         </div>
-    </main>
+        {% endif %}
+    </div>
+</div>
 
-</body>
-
-</html>
+{% endblock %}

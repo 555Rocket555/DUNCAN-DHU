@@ -1,0 +1,219 @@
+/* Urban & Energetic Theme - Duncan Dhu */
+:root {
+    /* Color Palette */
+    --color-bg-primary: #121212;
+    /* Dark Asphalt */
+    --color-bg-secondary: #000000;
+    /* Pure Black */
+    --color-surface: #1E1E1E;
+    /* Dark Grey Surface */
+
+    --color-accent-primary: #FFDD00;
+    /* Cyber Yellow */
+    --color-accent-secondary: #FF3333;
+    /* Sriracha Red */
+    --color-accent-tertiary: #00FF99;
+    /* Neon Green (for success/freshness) */
+
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #B0B0B0;
+    --color-text-inverse: #000000;
+
+    --color-border: #333333;
+
+    /* Typography */
+    --font-heading: 'Oswald', sans-serif;
+    /* Bold, condensed */
+    --font-body: 'Archivo', sans-serif;
+    /* Technical, legible */
+
+    /* Spacing & Layout */
+    --container-width: 1280px;
+    --header-height: 80px;
+
+    /* Mobile First adjustments */
+    --btn-padding: 0.8rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+    :root {
+        --btn-padding: 1rem 2rem;
+    }
+}
+
+/* Base Resets & Typography */
+body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    line-height: 1.1;
+}
+
+/* Utilities - Brutalist Style */
+.urban-border {
+    border: 2px solid var(--color-accent-primary);
+}
+
+.urban-shadow {
+    box-shadow: 4px 4px 0px var(--color-accent-primary);
+}
+
+.urban-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    height: 100%;
+    /* Ensure full height in flex/grid contexts */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hover effects only on devices that support hover */
+@media (hover: hover) {
+    .urban-card:hover {
+        transform: translate(-4px, -4px);
+        box-shadow: 6px 6px 0px var(--color-accent-primary);
+        border-color: var(--color-accent-primary);
+    }
+}
+
+/* Use Active state for touch devices to give feedback */
+.urban-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+}
+
+.urban-btn {
+    display: inline-block;
+    background-color: var(--color-accent-primary);
+    color: var(--color-text-inverse);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: var(--btn-padding);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-size: 1.1rem;
+    /* Slightly smaller on mobile default */
+    letter-spacing: 1px;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 0 100%);
+    /* Slight angled cut */
+    width: 100%;
+    /* Default full width on mobile */
+    text-align: center;
+}
+
+@media (min-width: 640px) {
+    .urban-btn {
+        width: auto;
+        font-size: 1.25rem;
+    }
+}
+
+.urban-btn:hover {
+    background-color: #FFEE00;
+    /* Lighter yellow */
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(255, 221, 0, 0.4);
+}
+
+.urban-btn:active {
+    transform: scale(0.95);
+}
+
+.urban-btn-secondary {
+    display: inline-block;
+    background-color: transparent;
+    color: var(--color-accent-primary);
+    border: 2px solid var(--color-accent-primary);
+    padding: var(--btn-padding);
+    clip-path: none;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.2s;
+    width: 100%;
+    /* Default full width on mobile */
+    text-align: center;
+}
+
+@media (min-width: 640px) {
+    .urban-btn-secondary {
+        width: auto;
+    }
+}
+
+.urban-btn-secondary:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-text-inverse);
+}
+
+.text-stroke {
+    -webkit-text-stroke: 1px var(--color-accent-primary);
+    color: transparent;
+}
+
+.text-gradient {
+    background: linear-gradient(90deg, var(--color-accent-primary), #FF9900);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-menu-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Custom Scrollbar for urban feel */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-accent-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #FFEE00;
+}

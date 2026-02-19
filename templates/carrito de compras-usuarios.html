@@ -1,117 +1,95 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'base.html' %}
+{% from 'macros.html' import render_product_image %}
 
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C59PFRYZPE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+{% block title %}Duncan Dhu - Carrito{% endblock %}
 
-        gtag('config', 'G-C59PFRYZPE');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito - Duncan Dhu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/carrito de compras-usuarios.css') }}">
-</head>
+{% block content %}
 
-<body>
+<div class="max-w-4xl mx-auto px-0 md:px-4">
+    <div class="text-center mb-8 md:mb-12">
+        <h1 class="font-oswald text-4xl sm:text-5xl md:text-6xl uppercase text-white tracking-tighter">
+            Tu <span class="text-stroke text-transparent" style="-webkit-text-stroke: 1px #FFDD00;">Pedido</span>
+        </h1>
+    </div>
 
-    <header class="site-header">
-        <div class="container header-container">
-            <div class="logo-container">
-                <h1 class="logo-title">Duncan Dhu</h1>
-                <p class="logo-subtitle">El deleite de la comida</p>
-            </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                {% if current_user.is_authenticated %}
-                <span style="color: #FFD700; font-weight: 600;">{{ current_user.name }}</span>
-                {% endif %}
-                <a href="{{ url_for('auth.logout') }}" class="logout-button">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2">
-                        </path>
-                        <path d="M9 12h12l-3 -3"></path>
-                        <path d="M18 15l3 -3"></path>
-                    </svg>
-                    <span>Cerrar sesión</span>
-                </a>
-            </div>
-        </div>
-    </header>
+    <div class="bg-urban-surface border-0 md:border border-gray-800 p-4 md:p-8 urban-shadow">
+        {% if cart_items %}
+        <div class="space-y-6">
+            {% for item in cart_items %}
+            <div
+                class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-gray-700 pb-6 last:border-0 last:pb-0 gap-4">
+                <div class="flex items-center gap-4 w-full sm:w-auto">
+                    <div
+                        class="w-16 h-16 sm:w-20 sm:h-20 bg-black border border-gray-600 flex-shrink-0 relative overflow-hidden">
+                        {{ render_product_image(item.product, 'w-full h-full object-cover') }}
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="font-oswald text-lg sm:text-xl text-white uppercase leading-tight">{{
+                            item.product.name }}</h3>
+                        <p class="font-archivo text-urban-yellow font-bold text-sm sm:text-base">${{
+                            "%.2f"|format(item.product.price) }}</p>
+                    </div>
+                </div>
 
-    <main class="site-main">
-        <div class="container">
-
-            <section class="cart-grid">
-                {% for item in cart_items %}
-                <div class="cart-item-card">
-                    <h2 class="item-name">{{ item.product.name }}</h2>
-                    <p class="item-price">${{ "%.2f"|format(item.product.price) }}</p>
-                    <div class="item-quantity">
+                <div
+                    class="flex items-center justify-between w-full sm:w-auto gap-4 sm:gap-6 mt-2 sm:mt-0 pl-20 sm:pl-0">
+                    <div class="flex items-center border border-gray-600">
                         <form action="{{ url_for('public.update_cart') }}" method="post">
                             <input type="hidden" name="product_id" value="{{ item.product.id }}">
                             <input type="hidden" name="action" value="minus">
-                            <button class="quantity-btn minus" type="submit">
-                                <span>-</span>
-                            </button>
+                            <button type="submit"
+                                class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-white hover:bg-urban-yellow hover:text-black transition-colors text-lg font-bold font-oswald">-</button>
                         </form>
-                        <span class="quantity-value">{{ item.quantity }}</span>
+                        <span class="w-10 sm:w-12 text-center font-archivo text-white font-bold text-sm sm:text-base">{{
+                            item.quantity }}</span>
                         <form action="{{ url_for('public.update_cart') }}" method="post">
                             <input type="hidden" name="product_id" value="{{ item.product.id }}">
                             <input type="hidden" name="action" value="plus">
-                            <button class="quantity-btn plus" type="submit">
-                                <span>+</span>
-                            </button>
+                            <button type="submit"
+                                class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-white hover:bg-urban-yellow hover:text-black transition-colors text-lg font-bold font-oswald">+</button>
                         </form>
                     </div>
+                    <p class="font-oswald text-lg sm:text-xl text-white w-20 text-right">
+                        ${{ "%.2f"|format(item.line_total if item.line_total is defined else item.product.price *
+                        item.quantity) }}
+                    </p>
                 </div>
-                {% else %}
-                <p>No hay productos en tu carrito.</p>
-                {% endfor %}
-
-            </section>
-            <section class="summary-bar">
-                <div class="total-section">
-                    <svg class="icon-cart" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                        <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                        <path d="M17 17h-11v-14h-2"></path>
-                        <path d="M6 5l14 1l-1 7h-13"></path>
-                    </svg>
-                    <div class="total-text">
-                        <span class="total-label">Total</span>
-                        <span class="total-amount">${{ "%.2f"|format(total) }}</span>
-                    </div>
-                </div>
-                <a href="{{ url_for('public.checkout') }}" class="pay-button">Pagar</a>
-            </section>
-
-            <footer class="return-footer">
-                <a href="{{ url_for('public.catalog') }}" class="return-button">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <path d="M5 12l14 0"></path>
-                        <path d="M5 12l4 4"></path>
-                        <path d="M5 12l4 -4"></path>
-                    </svg>
-                    <span>Regresar</span>
-                </a>
-            </footer>
-
+            </div>
+            {% endfor %}
         </div>
-    </main>
 
-</body>
+        <div class="mt-8 md:mt-10 border-t-2 border-dashed border-gray-700 pt-6 md:pt-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-8 gap-2">
+                <span class="font-oswald text-xl sm:text-2xl text-gray-400 uppercase">Total a Pagar</span>
+                <span class="font-oswald text-3xl sm:text-4xl text-urban-yellow tracking-tight">${{ "%.2f"|format(total)
+                    }}</span>
+            </div>
 
-</html>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="{{ url_for('public.catalog') }}" class="urban-btn-secondary text-center order-2 sm:order-1">
+                    Seguir Pidiendo
+                </a>
+                <a href="{{ url_for('public.checkout') }}"
+                    class="urban-btn text-center flex-grow text-black bg-urban-yellow hover:bg-white order-1 sm:order-2">
+                    Proceder al Pago ->
+                </a>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 md:h-20 md:w-20 text-gray-700 mx-auto mb-6"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <h2 class="font-oswald text-2xl md:text-3xl text-gray-500 uppercase mb-4">Tu carrito está vacío</h2>
+            <a href="{{ url_for('public.catalog') }}" class="urban-btn inline-block">
+                Ir al Menú
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

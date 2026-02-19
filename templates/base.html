@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Duncan Dhu - Urban Food{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Oswald:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS (CDN for compatibility) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'urban-black': '#121212',
+                        'urban-yellow': '#FFDD00',
+                        'urban-red': '#FF3333',
+                    },
+                    fontFamily: {
+                        'oswald': ['Oswald', 'sans-serif'],
+                        'archivo': ['Archivo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Global Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/urban-theme.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header / Navbar -->
+    <header class="fixed w-full z-40 bg-black/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Branding -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{{ url_for('public.home') }}" class="flex flex-col">
+                        <span
+                            class="font-oswald text-3xl font-bold text-urban-yellow tracking-tighter uppercase relative group">
+                            Duncan Dhu
+                            <span
+                                class="absolute bottom-0 left-0 w-0 h-1 bg-urban-yellow transition-all duration-300 group-hover:w-full"></span>
+                        </span>
+                        <span class="text-xs font-archivo text-gray-400 tracking-widest uppercase">Street Food
+                            Culture</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex space-x-8 items-center">
+                    <a href="{{ url_for('public.catalog') }}"
+                        class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Menú</a>
+                    <a href="{{ url_for('public.category', slug='hamburguesas') }}"
+                        class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Burgers</a>
+                    <a href="{{ url_for('public.category', slug='combos') }}"
+                        class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Combos</a>
+
+                    {% if current_user.is_authenticated %}
+                    <div class="relative group">
+                        <button class="font-oswald text-lg text-urban-yellow flex items-center gap-1 uppercase">
+                            <span>{{ current_user.name }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div
+                            class="absolute right-0 mt-2 w-48 bg-black border border-urban-yellow rounded-none shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-50">
+                            <a href="{{ url_for('auth.logout') }}"
+                                class="block px-4 py-3 text-sm text-white hover:bg-urban-yellow hover:text-black font-archivo font-bold">CERRAR
+                                SESIÓN</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="urban-btn-secondary py-2 px-4 text-sm">Entrar</a>
+                    {% endif %}
+
+                    <a href="{{ url_for('public.cart') }}"
+                        class="relative text-white hover:text-urban-yellow transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        {% set cart_count = session.get('cart', {}).values() | sum %}
+                        {% if cart_count > 0 %}
+                        <span
+                            class="absolute -top-2 -right-2 bg-urban-red text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border border-black animate-pulse">
+                            {{ cart_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-white hover:text-urban-yellow focus:outline-none">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="mobile-menu-overlay">
+            <button id="close-mobile-menu" class="absolute top-6 right-6 text-white hover:text-urban-yellow">
+                <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <nav class="flex flex-col space-y-6 text-center">
+                <a href="{{ url_for('public.home') }}"
+                    class="font-oswald text-4xl text-white hover:text-urban-yellow uppercase">Inicio</a>
+                <a href="{{ url_for('public.catalog') }}"
+                    class="font-oswald text-4xl text-white hover:text-urban-yellow uppercase">Menú Completo</a>
+                <a href="{{ url_for('public.category', slug='hamburguesas') }}"
+                    class="font-oswald text-3xl text-gray-300 hover:text-urban-yellow uppercase">Hamburguesas</a>
+                <a href="{{ url_for('public.category', slug='combos') }}"
+                    class="font-oswald text-3xl text-gray-300 hover:text-urban-yellow uppercase">Combos</a>
+
+                <div class="border-t border-gray-700 w-24 mx-auto my-4"></div>
+
+                {% if current_user.is_authenticated %}
+                <span class="font-archivo text-xl text-urban-yellow">Hola, {{ current_user.name }}</span>
+                <a href="{{ url_for('auth.logout') }}"
+                    class="font-oswald text-2xl text-urban-red hover:underline uppercase">Cerrar Sesión</a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}"
+                    class="font-oswald text-3xl text-white hover:text-urban-yellow uppercase">Iniciar Sesión</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-white/10 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-8 md:mb-0 text-center md:text-left">
+                    <h2 class="font-oswald text-3xl font-bold text-white uppercase tracking-tighter">Duncan Dhu</h2>
+                    <p class="font-archivo text-gray-500 mt-2">Sabor urbano, calidad premium.</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-urban-yellow transition-colors">
+                        <span class="sr-only">Facebook</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd"
+                                d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-urban-yellow transition-colors">
+                        <span class="sr-only">Instagram</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd"
+                                d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772 4.902 4.902 0 011.772-1.153c.636-.247 1.363-.416 2.427-.465C9.673 2.013 10.03 2 12.48 2h.165zm-1.08 1.92h.08c2.515 0 2.809.01 3.84.056.937.043 1.442.203 1.778.333.45.174.773.382 1.114.723.339.34.549.664.723 1.114.13.336.29.84.333 1.778.046 1.031.056 1.325.056 3.84v.08c0 2.515-.01 2.809-.056 3.84-.043.937-.203 1.442-.333 1.778-.174.45-.382.773-.723 1.114-.34.339-.664.549-1.114.723-.336.13-.84.29-1.778.333-1.031.046-1.325.056-3.84.056h-.08c-2.515 0-2.809-.01-3.84-.056-.937-.043-1.442-.203-1.778-.333-.45-.174-.773-.382-1.114-.723-.339-.34-.549-.664-.723-1.114-.13-.336-.29-.84-.333-1.778-.046-1.031-.056-1.325-.056-3.84v-.08c0-2.515.01-2.809.056-3.84.043-.937.203-1.442.333-1.778.174-.45.382-.773.723-1.114.34-.339.664-.549 1.114-.723.336-.13.84-.29 1.778-.333 1.031-.046 1.325-.056 3.84-.056z"
+                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd"
+                                d="M12.315 6.883a5.217 5.217 0 100 10.434 5.217 5.217 0 000-10.434zm0 1.916a3.3 3.3 0 110 6.6 3.3 3.3 0 010-6.6z"
+                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M17.436 6.564a1.28 1.28 0 100 2.56 1.28 1.28 0 000-2.56z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center md:text-left">
+                <p class="font-archivo text-xs text-gray-600 uppercase">
+                    &copy; 2026 Duncan Dhu. Todos los derechos reservados.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Mobile menu toggle logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const closeMobileMenuBtn = document.getElementById('close-mobile-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('active');
+            if (mobileMenu.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+        closeMobileMenuBtn.addEventListener('click', toggleMenu);
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>
