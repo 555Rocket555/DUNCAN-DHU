@@ -1,8 +1,12 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+import io
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, current_user
+from sqlalchemy.exc import IntegrityError
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 from app.extensions import db
 from app.models import Product, Category, InventoryItem, Order
@@ -81,9 +85,25 @@ def products():
 @admin_required
 def product_toggle(product_id: int):
     product = Product.query.get_or_404(product_id)
-    product.active = not product.active
-    db.session.commit()
+    try:
+        db.session.delete(product)
+        db.session.commit()
+        flash("Producto eliminado", "success")
+    except IntegrityError:
+        db.session.rollback()
+        product.active = False
+        db.session.commit()
+        flash("No se pudo eliminar por historial. Se desactivo el producto.", "error")
     return redirect(url_for("admin.products"))
+
+
+def _report_range(range_type: str) -> tuple[datetime, str]:
+    now = datetime.utcnow()
+    if range_type == "week":
+        return now - timedelta(days=7), "Reporte semanal"
+    if range_type == "month":
+        return now - timedelta(days=30), "Reporte mensual"
+    return now.replace(hour=0, minute=0, second=0, microsecond=0), "Reporte del dia"
 
 
 @admin_bp.route("/inventario", methods=["GET", "POST"])
@@ -138,13 +158,7 @@ def orders():
 @admin_required
 def reports():
     range_type = request.args.get("range", "day")
-    now = datetime.utcnow()
-    if range_type == "week":
-        start = now - timedelta(days=7)
-    elif range_type == "month":
-        start = now - timedelta(days=30)
-    else:
-        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start, _ = _report_range(range_type)
 
     orders = Order.query.filter(Order.created_at >= start).all()
     total_revenue = sum((o.total for o in orders), Decimal("0"))
@@ -163,3 +177,65 @@ def reports():
         orders=orders,
         range_type=range_type,
     )
+
+
+@admin_bp.route("/reportes/pdf")
+@login_required
+@admin_required
+def reports_pdf():
+    range_type = request.args.get("range", "day")
+    start, title = _report_range(range_type)
+    orders = Order.query.filter(Order.created_at >= start).order_by(Order.created_at.desc()).all()
+
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    y = height - 50
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(40, y, f"{title} - Duncan Dhu")
+    y -= 24
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(40, y, f"Generado: {datetime.utcnow().strftime('%d/%m/%Y %H:%M')} UTC")
+    y -= 20
+
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(40, y, "ID")
+    pdf.drawString(90, y, "Fecha")
+    pdf.drawString(200, y, "Cliente")
+    pdf.drawString(330, y, "Total")
+    pdf.drawString(400, y, "Estado")
+    pdf.drawString(470, y, "Pago")
+    y -= 16
+    pdf.setFont("Helvetica", 9)
+
+    if not orders:
+        pdf.drawString(40, y, "Sin registros para este rango.")
+    else:
+        for order in orders:
+            if y < 60:
+                pdf.showPage()
+                y = height - 50
+                pdf.setFont("Helvetica-Bold", 10)
+                pdf.drawString(40, y, "ID")
+                pdf.drawString(90, y, "Fecha")
+                pdf.drawString(200, y, "Cliente")
+                pdf.drawString(330, y, "Total")
+                pdf.drawString(400, y, "Estado")
+                pdf.drawString(470, y, "Pago")
+                y -= 16
+                pdf.setFont("Helvetica", 9)
+            pdf.drawString(40, y, f"#{order.id}")
+            pdf.drawString(90, y, order.created_at.strftime("%d/%m/%Y %H:%M"))
+            pdf.drawString(200, y, (order.user.name if order.user else "Invitado")[:18])
+            pdf.drawString(330, y, f"${order.total:.2f}")
+            pdf.drawString(400, y, order.status)
+            pdf.drawString(470, y, order.payment_method)
+            y -= 14
+
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+
+    filename = f"reporte_{range_type}.pdf"
+    return send_file(buffer, mimetype="application/pdf", as_attachment=True, download_name=filename)

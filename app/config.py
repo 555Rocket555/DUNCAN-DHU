@@ -1,8 +1,11 @@
 import os
+from datetime import timedelta
 
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
+    REMEMBER_COOKIE_DURATION = timedelta(days=14)
+    REMEMBER_COOKIE_REFRESH_EACH_REQUEST = True
     _raw_db_url = os.getenv(
         "DATABASE_URL",
         "postgresql+psycopg://admin:12345@localhost:5432/duncan_dhu",

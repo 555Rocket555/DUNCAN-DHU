@@ -40,6 +40,8 @@ def _cart_items():
 
 @public_bp.route("/")
 def home():
+    if current_user.is_authenticated and current_user.is_admin:
+        return redirect(url_for("admin.dashboard"))
     popular_products = Product.query.filter_by(active=True).limit(4).all()
     categories = Category.query.all()
     return render_template(
@@ -103,6 +105,7 @@ def add_to_cart(product_id: int):
     cart = _get_cart()
     cart[str(product_id)] = cart.get(str(product_id), 0) + 1
     session.modified = True
+    flash("Producto agregado al carrito", "success")
     return redirect(request.referrer or url_for("public.catalog"))
 
 
@@ -131,6 +134,9 @@ def checkout():
     if not items:
         flash("Tu carrito está vacío", "error")
         return redirect(url_for("public.catalog"))
+    if not current_user.is_authenticated:
+        flash("Inicia sesión para continuar con el pago", "error")
+        return redirect(url_for("auth.login", next=url_for("public.checkout")))
     return render_template(
         "método de pago-usuarios.html",
         cart_items=items,
@@ -143,6 +149,9 @@ def checkout_cash():
     items, total = _cart_items()
     if not items:
         return redirect(url_for("public.catalog"))
+    if not current_user.is_authenticated:
+        flash("Inicia sesión para continuar con el pago", "error")
+        return redirect(url_for("auth.login", next=url_for("public.checkout")))
 
     order = Order(
         user_id=current_user.id if current_user.is_authenticated else None,
@@ -175,6 +184,9 @@ def checkout_mp():
     items, total = _cart_items()
     if not items:
         return redirect(url_for("public.catalog"))
+    if not current_user.is_authenticated:
+        flash("Inicia sesión para continuar con el pago", "error")
+        return redirect(url_for("auth.login", next=url_for("public.checkout")))
 
     order = Order(
         user_id=current_user.id if current_user.is_authenticated else None,
@@ -226,7 +238,12 @@ def mp_return():
             if status == "success":
                 order.status = "completado"
             db.session.commit()
-            return redirect(url_for("public.ticket_view", order_id=order.id))
+            if status == "success":
+                flash("Pago aprobado. Tu pedido se registro correctamente.", "success")
+            else:
+                flash("Pago pendiente o rechazado.", "error")
+            return redirect(url_for("public.catalog"))
+    flash("No se pudo validar el pago.", "error")
     return redirect(url_for("public.catalog"))
 
 
@@ -262,23 +279,25 @@ def ticket_send():
     name = request.form.get("nombre", "").strip()
     whatsapp = request.form.get("whatsapp", "").strip()
     email = request.form.get("correo", "").strip()
-
-    order = Order.query.get_or_404(order_id)
-    ticket_url = f"{current_app.config.get('BASE_URL')}/ticket/{order.id}"
-    message = f"Hola {name or 'cliente'}, tu ticket está listo: {ticket_url}"
-
     try:
         if channel == "whatsapp":
+            if not whatsapp:
+                flash("Ingresa un numero de WhatsApp valido", "error")
+                return render_template("efectivo-usuario.html", order=order, sent=False)
             TicketService.send_whatsapp(whatsapp, message)
         elif channel == "correo":
+            if not email:
+                flash("Ingresa un correo valido", "error")
+                return render_template("efectivo-usuario.html", order=order, sent=False)
             TicketService.send_email(email, "Tu ticket Duncan Dhu", message)
         else:
-            flash("Selecciona un método de envío", "error")
+            flash("Selecciona un metodo de envio", "error")
             return render_template("efectivo-usuario.html", order=order, sent=False)
     except RuntimeError as exc:
         flash(str(exc), "error")
         return render_template("efectivo-usuario.html", order=order, sent=False)
 
+    flash("Se envio el ticket correctamente", "success")
     return render_template("efectivo-usuario.html", order=order, sent=True)
 
 

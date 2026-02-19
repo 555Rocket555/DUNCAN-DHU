@@ -10,6 +10,7 @@ from app.routes.public import public_bp
 from app.routes.auth import auth_bp
 from app.routes.admin import admin_bp
 from app.routes.api import api_bp
+from flask_login import current_user
 
 
 load_dotenv()
@@ -34,6 +35,14 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(api_bp)
+
+    @app.after_request
+    def add_no_cache_headers(response):
+        if current_user.is_authenticated:
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
 
     @login_manager.user_loader
     def load_user(user_id):
