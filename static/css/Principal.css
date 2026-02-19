@@ -6,7 +6,21 @@ body {
 }
 
 .header-bg {
-    background-color: var(--rappi-surface);
+    background-color: #000000;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.1);
+}
+
+.header-bg .duncan-dhu-title {
+    color: #FFD700;
+    transition: color 0.3s ease;
+}
+
+.header-bg .duncan-dhu-title:hover {
+    color: #FFFFFF;
+}
+
+.header-bg .subtitle {
+    color: #FFFFFF;
 }
 
 .main-container {
@@ -30,13 +44,16 @@ body {
     background-color: var(--rappi-surface);
     color: var(--rappi-ink);
     border: 1px solid var(--rappi-border);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease,
+        background-color 0.3s ease;
 }
 
 /* Efecto hover para las tarjetas de menú */
 .yellow-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 20px rgba(0, 178, 92, 0.18);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+    background-color: #f9f9f9;
 }
 
 .product-image {
@@ -55,23 +72,23 @@ body {
 
 /* Efecto para las imágenes populares */
 .popular-item-card {
-    transition: all 0.3s ease-in-out;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     /* Transición para efectos de hover */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
 .popular-item-card:hover {
-    transform: scale(1.03);
+    transform: scale(1.05);
     /* Agranda la tarjeta ligeramente */
-    /* Sombra con color amarillo para un efecto brillante y de profundidad */
-    box-shadow: 0 20px 25px -5px rgba(0, 178, 92, 0.2), 0 10px 10px -5px rgba(15, 23, 42, 0.08);
+    /* Sombra con color oscuro para un efecto profesional */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
 }
 
 .button-effect:hover {
-    transform: scale(1.03);
+    transform: scale(1.05);
     /* Mismo efecto de escala para los botones */
-    /* Mismo efecto de sombra brillante que la tarjeta popular */
-    box-shadow: 0 20px 25px -5px rgba(0, 178, 92, 0.2), 0 10px 10px -5px rgba(15, 23, 42, 0.08);
+    /* Mismo efecto de sombra para consistencia */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
 }
 
 /* Estilos del menú hamburguesa */
@@ -231,6 +248,42 @@ body {
         padding-left: 1rem;
         padding-right: 1rem;
     }
+
+    .popular-item-card {
+        height: 150px;
+    }
+
+    .yellow-card {
+        height: 120px;
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .icon {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .duncan-dhu-title {
+        font-size: 2rem;
+    }
+
+    .popular-item-card {
+        height: 180px;
+    }
+
+    .yellow-card {
+        height: 140px;
+        padding: 0.85rem;
+        font-size: 0.9rem;
+    }
+
+    .icon {
+        width: 44px;
+        height: 44px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -252,6 +305,10 @@ body {
 @media (min-width: 1024px) {
     .menu-hamburger {
         display: none;
+    }
+
+    .yellow-card {
+        height: 160px;
     }
 }
 

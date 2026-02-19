@@ -23,7 +23,9 @@
 
     <header class="site-header">
         <div class="container header-container">
-            <h1 class="logo-title">Duncan Dhu</h1>
+            <a href="{{ url_for('public.home') }}" class="logo-link">
+                <h1 class="logo-title">Duncan Dhu</h1>
+            </a>
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <a href="{{ url_for('public.cart') }}" class="cart-button">
                     <span>Carrito</span>
