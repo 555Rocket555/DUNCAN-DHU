@@ -56,11 +56,51 @@
                 </div>
 
                 <!-- Admin Action -->
-                <div>
+                <div class="hidden md:block">
                     <a href="{{ url_for('auth.logout') }}"
                         class="urban-btn-secondary py-2 px-4 text-sm uppercase">Cerrar Sesión</a>
                 </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-white hover:text-urban-yellow focus:outline-none">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="mobile-menu-overlay bg-black">
+            <button id="close-mobile-menu" class="absolute top-6 right-6 text-white hover:text-urban-yellow">
+                <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <nav class="flex flex-col space-y-6 text-center w-full px-8">
+                <span class="font-oswald text-4xl text-urban-yellow uppercase mb-4">Admin Panel</span>
+
+                <a href="{{ url_for('admin.dashboard') }}"
+                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Dashboard</a>
+                <a href="{{ url_for('admin.products') }}"
+                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Productos</a>
+                <a href="{{ url_for('admin.inventory') }}"
+                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Inventario</a>
+                <a href="{{ url_for('admin.orders') }}"
+                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Órdenes</a>
+                <a href="{{ url_for('admin.reports') }}"
+                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Reportes</a>
+                <a href="{{ url_for('admin.users_list') }}"
+                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Usuarios</a>
+
+                <div class="border-t border-gray-700 w-24 mx-auto my-4"></div>
+
+                <a href="{{ url_for('auth.logout') }}"
+                    class="font-oswald text-2xl text-urban-red hover:underline uppercase">Cerrar Sesión</a>
+            </nav>
         </div>
     </header>
 
@@ -124,18 +164,83 @@
                     </svg>
                     Reportes
                 </a>
+
+                <a href="{{ url_for('admin.users_list') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-oswald uppercase tracking-wide
+                   {% if active_page == 'users' %}bg-urban-yellow text-black font-bold{% else %}text-gray-400 hover:bg-white/5 hover:text-urban-yellow{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    Usuarios
+                </a>
             </nav>
         </aside>
 
         <!-- Main Content -->
         <main class="flex-1 md:ml-64 p-6 overflow-x-hidden">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div id="flash-messages" class="mb-4">
+                {% for category, message in messages %}
+                <div
+                    class="flash-message p-4 mb-2 rounded-sm shadow-md flex justify-between items-center animate-fade-in-up
+                            {% if category == 'success' %}bg-green-600 text-white border-l-4 border-green-300{% else %}bg-urban-red text-white border-l-4 border-red-900{% endif %}">
+                    <span class="font-archivo font-medium">{{ message }}</span>
+                    <button onclick="this.parentElement.remove()"
+                        class="ml-4 text-white hover:text-gray-200 focus:outline-none">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
             <div class="max-w-7xl mx-auto">
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
 
-    <!-- Mobile Menu Overlay (Hidden logic for now or implement if needed) -->
+    <script>
+        // Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const closeMobileMenuBtn = document.getElementById('close-mobile-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            if (mobileMenu.classList.contains('active')) {
+                mobileMenu.classList.remove('active');
+                mobileMenu.style.pointerEvents = 'none';
+                document.body.style.overflow = '';
+            } else {
+                mobileMenu.classList.add('active');
+                mobileMenu.style.pointerEvents = 'auto';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleMenu);
+        if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', toggleMenu);
+
+        // Flash Messages Auto-Dismiss
+        document.addEventListener('DOMContentLoaded', () => {
+            const messages = document.querySelectorAll('.flash-message');
+            messages.forEach(msg => {
+                setTimeout(() => {
+                    msg.style.transition = 'opacity 0.5s ease';
+                    msg.style.opacity = '0';
+                    setTimeout(() => msg.remove(), 500);
+                }, 4000);
+            });
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>

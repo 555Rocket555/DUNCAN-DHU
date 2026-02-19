@@ -9,9 +9,12 @@
         <h1 class="font-oswald text-4xl font-bold text-white uppercase tracking-tighter">Inventario</h1>
         <p class="font-archivo text-gray-400">Control de insumos y materia prima.</p>
     </div>
-    <button onclick="openModal('add-modal')" class="bg-urban-yellow text-black font-oswald uppercase font-bold py-3 px-6 hover:bg-white transition-colors duration-300 flex items-center gap-2">
+    <button onclick="openModal('add-modal')"
+        class="bg-urban-yellow text-black font-oswald uppercase font-bold py-3 px-6 hover:bg-white transition-colors duration-300 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            <path fill-rule="evenodd"
+                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                clip-rule="evenodd" />
         </svg>
         Nuevo Insumo
     </button>
@@ -19,15 +22,16 @@
 
 <!-- Flash Messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="mb-8 space-y-2">
-            {% for category, message in messages %}
-                <div class="p-4 border-l-4 {{ 'border-green-500 bg-green-500/10 text-green-400' if category == 'success' else 'border-urban-red bg-urban-red/10 text-urban-red' }} font-archivo">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+{% if messages %}
+<div class="mb-8 space-y-2">
+    {% for category, message in messages %}
+    <div
+        class="p-4 border-l-4 {{ 'border-green-500 bg-green-500/10 text-green-400' if category == 'success' else 'border-urban-red bg-urban-red/10 text-urban-red' }} font-archivo">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 {% endwith %}
 
 <!-- Inventory List -->
@@ -50,13 +54,15 @@
                     <td class="p-4">
                         <div class="font-bold text-white text-lg">{{ item.name }}</div>
                         <div class="text-xs text-gray-500">
-                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ 'bg-green-100 text-green-800' if item.active else 'bg-gray-100 text-gray-800' }}">
+                            <span
+                                class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ 'bg-green-100 text-green-800' if item.active else 'bg-gray-100 text-gray-800' }}">
                                 {{ 'Activo' if item.active else 'Inactivo' }}
                             </span>
                         </div>
                     </td>
                     <td class="p-4">
-                        <span class="inline-block px-3 py-1 bg-white/10 rounded-full font-bold {{ 'text-urban-red' if item.stock_current <= item.stock_min else 'text-white' }}">
+                        <span
+                            class="inline-block px-3 py-1 bg-white/10 rounded-full font-bold {{ 'text-urban-red' if item.stock_current <= item.stock_min else 'text-white' }}">
                             {{ item.stock_current }}
                         </span>
                     </td>
@@ -65,15 +71,44 @@
                     <td class="p-4">{{ item.provider }}</td>
                     <td class="p-4 text-right">
                         <div class="flex justify-end gap-2">
-                             <form action="{{ url_for('admin.inventory_toggle', item_id=item.id) }}" method="post" class="inline">
-                                <button type="submit" class="p-2 {{ 'text-red-400 hover:text-red-200' if item.active else 'text-green-400 hover:text-green-200' }} transition-colors" title="{{ 'Desactivar' if item.active else 'Activar' }}">
+                            <button type="button"
+                                onclick="openEditModal('{{ item.id }}', '{{ item.name }}', {{ item.stock_current }}, {{ item.stock_min }}, {{ item.price }}, '{{ item.provider }}')"
+                                class="p-2 text-blue-400 hover:text-white transition-colors" title="Editar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+
+                            <form action="{{ url_for('admin.inventory_delete', item_id=item.id) }}" method="post"
+                                class="inline" onsubmit="return confirm('¿Eliminar insumo permanentemente?');">
+                                <button type="submit" class="p-2 text-red-500 hover:text-red-300 transition-colors"
+                                    title="Eliminar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+
+                            <form action="{{ url_for('admin.inventory_toggle', item_id=item.id) }}" method="post"
+                                class="inline">
+                                <button type="submit"
+                                    class="p-2 {{ 'text-red-400 hover:text-red-200' if item.active else 'text-green-400 hover:text-green-200' }} transition-colors"
+                                    title="{{ 'Desactivar' if item.active else 'Activar' }}">
                                     {% if item.active %}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                     {% else %}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
                                     {% endif %}
                                 </button>
@@ -97,42 +132,56 @@
 <div id="add-modal" class="fixed inset-0 z-50 hidden">
     <!-- Overlay -->
     <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeModal('add-modal')"></div>
-    
+
     <!-- Modal Content -->
-    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-urban-black border border-urban-yellow p-8 shadow-2xl">
+    <div
+        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-urban-black border border-urban-yellow p-8 shadow-2xl">
         <h3 class="font-oswald text-2xl text-urban-yellow uppercase mb-6">Agregar Insumo</h3>
-        
+
         <form action="{{ url_for('admin.inventory') }}" method="post" class="space-y-4">
             <div>
                 <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del Insumo</label>
-                <input type="text" name="name" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="Ej. Carne de Res" required>
+                <input type="text" name="name"
+                    class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo"
+                    placeholder="Ej. Carne de Res" required>
             </div>
-            
+
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                     <label class="block font-oswald text-white uppercase text-sm mb-1">Stock Actual</label>
-                    <input type="number" name="stock_current" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="0" required>
+                    <label class="block font-oswald text-white uppercase text-sm mb-1">Stock Actual</label>
+                    <input type="number" name="stock_current"
+                        class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo"
+                        placeholder="0" required>
                 </div>
-                 <div>
-                     <label class="block font-oswald text-white uppercase text-sm mb-1">Stock Mínimo</label>
-                    <input type="number" name="stock_min" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="5" required>
+                <div>
+                    <label class="block font-oswald text-white uppercase text-sm mb-1">Stock Mínimo</label>
+                    <input type="number" name="stock_min"
+                        class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo"
+                        placeholder="5" required>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block font-oswald text-white uppercase text-sm mb-1">Precio Unitario</label>
-                    <input type="number" step="0.01" name="price" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="0.00" required>
+                    <input type="number" step="0.01" name="price"
+                        class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo"
+                        placeholder="0.00" required>
                 </div>
-                 <div>
+                <div>
                     <label class="block font-oswald text-white uppercase text-sm mb-1">Proveedor</label>
-                    <input type="text" name="provider" class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo" placeholder="Nombre Proveedor" required>
+                    <input type="text" name="provider"
+                        class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo"
+                        placeholder="Nombre Proveedor" required>
                 </div>
             </div>
-            
+
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" onclick="closeModal('add-modal')" class="px-6 py-2 border border-white/20 text-white font-oswald uppercase hover:bg-white/10 transition-colors">Cancelar</button>
-                <button type="submit" class="px-6 py-2 bg-urban-yellow text-black font-oswald uppercase font-bold hover:bg-white transition-colors">Guardar Insumo</button>
+                <button type="button" onclick="closeModal('add-modal')"
+                    class="px-6 py-2 border border-white/20 text-white font-oswald uppercase hover:bg-white/10 transition-colors">Cancelar</button>
+                <button type="submit"
+                    class="px-6 py-2 bg-urban-yellow text-black font-oswald uppercase font-bold hover:bg-white transition-colors">Guardar
+                    Insumo</button>
             </div>
         </form>
     </div>
@@ -142,9 +191,82 @@
     function openModal(id) {
         document.getElementById(id).classList.remove('hidden');
     }
-    
+
     function closeModal(id) {
         document.getElementById(id).classList.add('hidden');
     }
+
+    function openEditModal(id, name, stock_curr, stock_min, price, provider) {
+        const modal = document.getElementById('edit-modal');
+        const form = modal.querySelector('form');
+        form.action = `/admin/inventario/${id}/editar`;
+
+        form.querySelector('[name=name]').value = name;
+        form.querySelector('[name=stock_current]').value = stock_curr;
+        form.querySelector('[name=stock_min]').value = stock_min;
+        form.querySelector('[name=price]').value = price;
+        form.querySelector('[name=provider]').value = provider;
+
+        modal.classList.remove('hidden');
+    }
 </script>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="fixed inset-0 z-50 hidden">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeModal('edit-modal')"></div>
+
+    <!-- Modal Content -->
+    <div
+        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-urban-black border border-blue-500 p-8 shadow-2xl">
+        <h3 class="font-oswald text-2xl text-blue-500 uppercase mb-6">Editar Insumo</h3>
+
+        <form action="" method="post" class="space-y-4">
+            <div>
+                <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del Insumo</label>
+                <input type="text" name="name"
+                    class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-blue-500 font-archivo"
+                    required>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-oswald text-white uppercase text-sm mb-1">Stock Actual</label>
+                    <input type="number" name="stock_current"
+                        class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-blue-500 font-archivo"
+                        required>
+                </div>
+                <div>
+                    <label class="block font-oswald text-white uppercase text-sm mb-1">Stock Mínimo</label>
+                    <input type="number" name="stock_min"
+                        class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-blue-500 font-archivo"
+                        required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-oswald text-white uppercase text-sm mb-1">Precio Unitario</label>
+                    <input type="number" step="0.01" name="price"
+                        class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-blue-500 font-archivo"
+                        required>
+                </div>
+                <div>
+                    <label class="block font-oswald text-white uppercase text-sm mb-1">Proveedor</label>
+                    <input type="text" name="provider"
+                        class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-blue-500 font-archivo"
+                        required>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeModal('edit-modal')"
+                    class="px-6 py-2 border border-white/20 text-white font-oswald uppercase hover:bg-white/10 transition-colors">Cancelar</button>
+                <button type="submit"
+                    class="px-6 py-2 bg-blue-600 text-white font-oswald uppercase font-bold hover:bg-blue-700 transition-colors">Actualizar
+                    Insumo</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

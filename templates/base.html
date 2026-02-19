@@ -106,8 +106,23 @@
                     </a>
                 </nav>
 
-                <!-- Mobile Menu Button -->
-                <div class="md:hidden flex items-center">
+                <!-- Mobile Menu Button & Cart -->
+                <div class="md:hidden flex items-center gap-4">
+                    <a href="{{ url_for('public.cart') }}"
+                        class="relative text-white hover:text-urban-yellow transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        {% set cart_count = session.get('cart', {}).values() | sum %}
+                        {% if cart_count > 0 %}
+                        <span
+                            class="absolute -top-2 -right-2 bg-urban-red text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border border-black animate-pulse">
+                            {{ cart_count }}
+                        </span>
+                        {% endif %}
+                    </a>
                     <button id="mobile-menu-btn" class="text-white hover:text-urban-yellow focus:outline-none">
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -151,6 +166,46 @@
 
     <!-- Main Content -->
     <main class="flex-grow pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div id="flash-messages" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
+            {% for category, message in messages %}
+            <div
+                class="flash-message mb-4 p-4 rounded-sm shadow-lg flex justify-between items-center opacity-0 translate-y-2 animate-fade-in-up
+                        {% if category == 'success' %}bg-green-600 text-white border-l-4 border-green-300{% else %}bg-urban-red text-white border-l-4 border-red-900{% endif %}">
+                <span class="font-archivo font-medium">{{ message }}</span>
+                <button onclick="this.parentElement.remove()"
+                    class="ml-4 text-white hover:text-gray-200 focus:outline-none">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        <script>
+            // Auto-dismiss flush messages
+            document.addEventListener('DOMContentLoaded', () => {
+                const messages = document.querySelectorAll('.flash-message');
+                messages.forEach(msg => {
+                    // Animation in
+                    setTimeout(() => {
+                        msg.classList.remove('opacity-0', 'translate-y-2');
+                    }, 100);
+
+                    // Auto remove after 4 seconds
+                    setTimeout(() => {
+                        msg.classList.add('opacity-0', 'translate-y-2', 'transition-all', 'duration-500');
+                        setTimeout(() => msg.remove(), 500);
+                    }, 4000);
+                });
+            });
+        </script>
+        {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
     </main>
 
