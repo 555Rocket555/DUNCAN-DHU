@@ -299,8 +299,3 @@ def ticket_send():
 
     flash("Se envio el ticket correctamente", "success")
     return render_template("efectivo-usuario.html", order=order, sent=True)
-    except RuntimeError as exc:
-        flash(str(exc), "error")
-        return render_template("efectivo-usuario.html", order=order, sent=False)
-
-    return render_template("efectivo-usuario.html", order=order, sent=True)
