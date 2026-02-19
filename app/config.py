@@ -33,7 +33,9 @@ class Config:
     SOCIAL_FACEBOOK = os.getenv("SOCIAL_FACEBOOK", "https://www.facebook.com/")
     SOCIAL_INSTAGRAM = os.getenv("SOCIAL_INSTAGRAM", "https://www.instagram.com/")
     SOCIAL_TIKTOK = os.getenv("SOCIAL_TIKTOK", "https://www.tiktok.com/")
-    GOOGLE_MAPS_URL = os.getenv("GOOGLE_MAPS_URL", "https://maps.google.com/")
+    GOOGLE_MAPS_URL = os.getenv("GOOGLE_MAPS_URL", "https://maps.app.goo.gl/fErsqZBaaoDWjkDs7")
+    
+    
 
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")

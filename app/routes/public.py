@@ -280,3 +280,23 @@ def ticket_send():
         return render_template("efectivo-usuario.html", order=order, sent=False)
 
     return render_template("efectivo-usuario.html", order=order, sent=True)
+
+
+@public_bp.route("/contactanos", methods=["GET", "POST"])
+def contact():
+    if request.method == "POST":
+        flash(
+            "Se ha enviado correctamente, atenderemos tu solicitud lo mas pronto posible",
+            "success",
+        )
+        return redirect(url_for("public.contact"))
+    return render_template(
+        "contactanos.html",
+        social={
+            "facebook": current_app.config.get("SOCIAL_FACEBOOK"),
+            "instagram": current_app.config.get("SOCIAL_INSTAGRAM"),
+            "tiktok": current_app.config.get("SOCIAL_TIKTOK"),
+            "maps": current_app.config.get("GOOGLE_MAPS_URL"),
+        },
+    )
+
