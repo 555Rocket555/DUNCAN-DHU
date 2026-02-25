@@ -10,3 +10,7 @@ instance/
 .DS_Store
 node_modules/
 .vscode/
+
+ngrok
+ngrok.tgz
+ngrok.log
