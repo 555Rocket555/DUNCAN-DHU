@@ -13,6 +13,7 @@
 
     <div class="bg-urban-surface border border-gray-800 p-8 urban-shadow">
         <form action="{{ url_for('public.ticket_send') }}" method="post" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="order_id" value="{{ order.id }}">
 
             <div>

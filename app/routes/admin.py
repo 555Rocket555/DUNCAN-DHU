@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import io
 
@@ -9,7 +9,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from app.extensions import db
-from app.models import Product, Category, InventoryItem, Order, User
+from app.models import Product, Category, InventoryItem, ProductRecipe, Order, User
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -32,7 +32,7 @@ def admin_required(func):
 @login_required
 @admin_required
 def dashboard():
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     orders_today = Order.query.filter(db.func.date(Order.created_at) == today).count()
     revenue_today = (
         db.session.query(db.func.coalesce(db.func.sum(Order.total), 0))
@@ -138,8 +138,69 @@ def product_toggle(product_id: int):
     return redirect(url_for("admin.products"))
 
 
+# ---------------------------------------------------------------------------
+# Recetas de producto
+# ---------------------------------------------------------------------------
+@admin_bp.route("/productos/<int:product_id>/receta", methods=["GET", "POST"])
+@login_required
+@admin_required
+def product_recipe(product_id: int):
+    product = Product.query.get_or_404(product_id)
+    if request.method == "POST":
+        inventory_item_id = request.form.get("inventory_item_id")
+        quantity = request.form.get("quantity_required")
+        try:
+            recipe = ProductRecipe(
+                product_id=product.id,
+                inventory_item_id=int(inventory_item_id),
+                quantity_required=float(quantity or 1),
+            )
+            db.session.add(recipe)
+            db.session.commit()
+            flash("Ingrediente agregado a la receta", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error al agregar ingrediente: {str(e)}", "error")
+        return redirect(url_for("admin.product_recipe", product_id=product.id))
+
+    recipes = ProductRecipe.query.filter_by(product_id=product.id).all()
+    inventory_items = InventoryItem.query.filter_by(active=True).all()
+    return render_template(
+        "admin-receta.html",
+        product=product,
+        recipes=recipes,
+        inventory_items=inventory_items,
+    )
+
+
+@admin_bp.route("/productos/<int:product_id>/receta/<int:recipe_id>/editar", methods=["POST"])
+@login_required
+@admin_required
+def recipe_edit(product_id: int, recipe_id: int):
+    recipe = ProductRecipe.query.get_or_404(recipe_id)
+    try:
+        recipe.quantity_required = float(request.form.get("quantity_required") or 1)
+        db.session.commit()
+        flash("Cantidad actualizada", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error: {str(e)}", "error")
+    return redirect(url_for("admin.product_recipe", product_id=product_id))
+
+
+@admin_bp.route("/productos/<int:product_id>/receta/<int:recipe_id>/eliminar", methods=["POST"])
+@login_required
+@admin_required
+def recipe_delete(product_id: int, recipe_id: int):
+    recipe = ProductRecipe.query.get_or_404(recipe_id)
+    db.session.delete(recipe)
+    db.session.commit()
+    flash("Ingrediente eliminado de la receta", "success")
+    return redirect(url_for("admin.product_recipe", product_id=product_id))
+
+
 def _report_range(range_type: str) -> tuple[datetime, str]:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     if range_type == "week":
         return now - timedelta(days=7), "Reporte semanal"
     if range_type == "month":
@@ -227,23 +288,7 @@ def inventory_toggle(item_id: int):
 @login_required
 @admin_required
 def orders():
-    # Auto-eliminar ordenes antiguas (mas de 3 minutos de antiguedad si estan completadas o canceladas)
-    try:
-        cutoff = datetime.utcnow() - timedelta(minutes=3)
-        # Solo eliminamos las completadas o canceladas para no borrar pedidos recientes pendientes
-        deleted_count = Order.query.filter(
-            Order.status.in_(['completado', 'cancelado']),
-            Order.created_at < cutoff
-        ).delete(synchronize_session=False)
-        
-        if deleted_count > 0:
-            db.session.commit()
-            # Opcional: flash(f"Se limpiaron {deleted_count} ordenes antiguas.", "info")
-    except Exception as e:
-        db.session.rollback()
-        # print(f"Error limpiando ordenes: {e}")
-
-    orders = Order.query.order_by(Order.created_at.desc()).all()
+    orders = Order.query.filter_by(archived=False).order_by(Order.created_at.desc()).all()
     stats = {
         "total": len(orders),
         "pendientes": len([o for o in orders if o.status == "pendiente"]),
@@ -252,6 +297,17 @@ def orders():
         "completados": len([o for o in orders if o.status == "completado"]),
     }
     return render_template("admin-órdenes.html", orders=orders, stats=stats)
+
+
+@admin_bp.route("/ordenes/<int:order_id>/eliminar", methods=["POST"])
+@login_required
+@admin_required
+def order_delete(order_id: int):
+    order = Order.query.get_or_404(order_id)
+    order.archived = True
+    db.session.commit()
+    flash("Orden archivada correctamente", "success")
+    return redirect(url_for("admin.orders"))
 
 
 @admin_bp.route("/reportes")
@@ -315,7 +371,7 @@ def reports_pdf():
     pdf.drawString(40, y, f"{title} - Duncan Dhu")
     y -= 24
     pdf.setFont("Helvetica", 10)
-    pdf.drawString(40, y, f"Generado: {datetime.utcnow().strftime('%d/%m/%Y %H:%M')} UTC")
+    pdf.drawString(40, y, f"Generado: {datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')} UTC")
     y -= 20
 
     pdf.setFont("Helvetica-Bold", 10)
@@ -388,3 +444,47 @@ def user_delete(user_id: int):
         flash("Error al eliminar usuario (posiblemente tenga ordenes asociadas).", "error")
             
     return redirect(url_for("admin.users_list"))
+
+
+@admin_bp.route("/usuarios/crear", methods=["POST"])
+@login_required
+@admin_required
+def user_create():
+    name = request.form.get("nombre", "").strip()
+    email = request.form.get("email", "").strip()
+    phone = request.form.get("telefono", "").strip()
+    username = request.form.get("username", "").strip()
+    password = request.form.get("contrasena", "")
+    is_admin = request.form.get("is_admin") == "1"
+
+    if not name or not email or not password:
+        flash("Nombre, correo y contraseña son obligatorios", "error")
+        return redirect(url_for("admin.users_list"))
+
+    if User.query.filter_by(email=email).first():
+        flash("Ese correo ya está registrado", "error")
+        return redirect(url_for("admin.users_list"))
+
+    # Validar teléfono
+    if phone and (not phone.isdigit() or len(phone) != 10):
+        flash("El teléfono debe tener exactamente 10 dígitos", "error")
+        return redirect(url_for("admin.users_list"))
+
+    final_username = username or email
+    if final_username != email and User.query.filter_by(username=final_username).first():
+        flash("Ese nombre de usuario ya está en uso", "error")
+        return redirect(url_for("admin.users_list"))
+
+    user = User(
+        name=name,
+        email=email,
+        phone=phone or None,
+        username=final_username,
+        is_admin=is_admin,
+    )
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    flash(f"Usuario '{name}' creado exitosamente", "success")
+    return redirect(url_for("admin.users_list"))
+

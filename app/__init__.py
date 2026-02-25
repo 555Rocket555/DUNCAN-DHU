@@ -1,19 +1,20 @@
 import os
 
-from flask import Flask
 from dotenv import load_dotenv
-
-from app.config import Config
-from app.extensions import db, migrate, login_manager
-from app.models import User, seed_defaults
-from app.routes.public import public_bp
-from app.routes.auth import auth_bp
-from app.routes.admin import admin_bp
-from app.routes.api import api_bp
 from flask_login import current_user
 
-
+# Cargar .env ANTES de importar Config, que ahora exige SECRET_KEY y DATABASE_URL.
 load_dotenv()
+
+from flask import Flask  # noqa: E402
+
+from app.config import Config  # noqa: E402
+from app.extensions import db, migrate, login_manager, csrf  # noqa: E402
+from app.models import User, seed_defaults, seed_recipes  # noqa: E402
+from app.routes.public import public_bp  # noqa: E402
+from app.routes.auth import auth_bp  # noqa: E402
+from app.routes.admin import admin_bp  # noqa: E402
+from app.routes.api import api_bp  # noqa: E402
 
 
 def create_app():
@@ -30,6 +31,7 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
+    csrf.init_app(app)
 
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
@@ -52,6 +54,12 @@ def create_app():
     def init_db():
         db.create_all()
         seed_defaults(app.config.get("ADMIN_USERNAME"), app.config.get("ADMIN_PASSWORD"))
+
+    @app.cli.command("seed-recipes")
+    def cli_seed_recipes():
+        """Populate product_recipes with default seed data."""
+        seed_recipes()
+        print("✅ Seed de recetas completado.")
 
     return app
 

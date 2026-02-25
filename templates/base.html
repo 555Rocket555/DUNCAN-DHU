@@ -23,6 +23,7 @@
                         'urban-black': '#121212',
                         'urban-yellow': '#FFDD00',
                         'urban-red': '#FF3333',
+                        'urban-surface': '#1E1E1E',
                     },
                     fontFamily: {
                         'oswald': ['Oswald', 'sans-serif'],
@@ -34,7 +35,7 @@
     </script>
 
     <!-- Global Styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/urban-theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -62,12 +63,13 @@
                 <!-- Desktop Menu -->
                 <nav class="hidden md:flex space-x-8 items-center">
                     <a href="{{ url_for('public.home') }}#quienes-somos"
-                        class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Quiénes Somos</a>
+                        class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Quiénes
+                        Somos</a>
                     <a href="{{ url_for('public.home') }}#ubicacion"
                         class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Ubicación</a>
                     <a href="{{ url_for('public.home') }}#contactanos"
                         class="font-oswald text-lg text-white hover:text-urban-yellow transition-colors uppercase">Contáctanos</a>
-                    
+
                     <div class="h-6 w-px bg-white/20 mx-2"></div>
 
                     <a href="{{ url_for('public.catalog') }}"
@@ -89,6 +91,9 @@
                         </button>
                         <div
                             class="absolute right-0 mt-2 w-48 bg-black border border-urban-yellow rounded-none shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-50">
+                            <a href="{{ url_for('public.profile') }}"
+                                class="block px-4 py-3 text-sm text-white hover:bg-urban-yellow hover:text-black font-archivo font-bold border-b border-gray-800">MI
+                                PERFIL</a>
                             <a href="{{ url_for('auth.logout') }}"
                                 class="block px-4 py-3 text-sm text-white hover:bg-urban-yellow hover:text-black font-archivo font-bold">CERRAR
                                 SESIÓN</a>
@@ -163,6 +168,8 @@
 
                 {% if current_user.is_authenticated %}
                 <span class="font-archivo text-xl text-urban-yellow">Hola, {{ current_user.name }}</span>
+                <a href="{{ url_for('public.profile') }}"
+                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Mi Perfil</a>
                 <a href="{{ url_for('auth.logout') }}"
                     class="font-oswald text-2xl text-urban-red hover:underline uppercase">Cerrar Sesión</a>
                 {% else %}
@@ -227,7 +234,8 @@
             <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                     <div>
-                        <h2 class="font-oswald text-3xl sm:text-4xl font-bold uppercase tracking-tighter text-white mb-4">
+                        <h2
+                            class="font-oswald text-3xl sm:text-4xl font-bold uppercase tracking-tighter text-white mb-4">
                             Quiénes <span class="text-urban-yellow">Somos</span>
                         </h2>
                         <div class="h-1 w-16 bg-urban-red mb-6"></div>

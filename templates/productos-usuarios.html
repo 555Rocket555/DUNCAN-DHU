@@ -19,33 +19,33 @@
 <!-- Category Filter (Sticker Style) -->
 <nav class="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-16">
     <a href="{{ url_for('public.catalog') }}"
-        class="urban-btn bg-urban-yellow text-black transform -rotate-2 text-sm md:text-lg py-2 px-4 w-auto">
+        class="category-filter-btn urban-btn bg-urban-yellow text-black transform -rotate-2 text-sm md:text-lg py-2 px-4 w-auto">
         TODO
     </a>
     <a href="{{ url_for('public.category', slug='hamburguesas') }}"
-        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-1 border-white text-sm md:text-lg py-2 px-4 w-auto">
+        class="category-filter-btn urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-1 border-white text-sm md:text-lg py-2 px-4 w-auto">
         HAMBURGUESAS
     </a>
     <a href="{{ url_for('public.category', slug='snacks') }}"
-        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform -rotate-1 border-white text-sm md:text-lg py-2 px-4 w-auto">
+        class="category-filter-btn urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform -rotate-1 border-white text-sm md:text-lg py-2 px-4 w-auto">
         SNACKS
     </a>
     <a href="{{ url_for('public.category', slug='postres') }}"
-        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-2 border-white text-sm md:text-lg py-2 px-4 w-auto">
+        class="category-filter-btn urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-2 border-white text-sm md:text-lg py-2 px-4 w-auto">
         POSTRES
     </a>
     <a href="{{ url_for('public.category', slug='bebidas') }}"
-        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform -rotate-1 border-white text-sm md:text-lg py-2 px-4 w-auto">
+        class="category-filter-btn urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform -rotate-1 border-white text-sm md:text-lg py-2 px-4 w-auto">
         BEBIDAS
     </a>
     <a href="{{ url_for('public.category', slug='combos') }}"
-        class="urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-1 border-white text-sm md:text-lg py-2 px-4 w-auto">
+        class="category-filter-btn urban-btn-secondary bg-black text-white hover:bg-white hover:text-black transform rotate-1 border-white text-sm md:text-lg py-2 px-4 w-auto">
         COMBOS
     </a>
 </nav>
 
 <!-- Product Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+<div class="product-grid-urban">
     {% for product in products %}
     <div class="urban-card group relative flex flex-col h-full bg-urban-surface p-4">
         <!-- Price Tag (Rotated) -->
@@ -61,10 +61,16 @@
             <!-- Overlay Action (Hidden on mobile generally, but keep for desktop hover) -->
             <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post"
                 class="absolute inset-x-0 bottom-0 hidden lg:block">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% if product.is_available() %}
                 <button type="submit"
                     class="w-full bg-urban-red text-white py-3 font-oswald uppercase tracking-widest text-sm hover:bg-red-600 transition-colors translate-y-full group-hover:translate-y-0 duration-300">
                     Añadir al Carrito
                 </button>
+                {% else %}
+                <span
+                    class="block w-full bg-gray-800 text-urban-red py-3 font-oswald uppercase tracking-widest text-sm text-center">AGOTADO</span>
+                {% endif %}
             </form>
         </div>
 
@@ -72,12 +78,20 @@
             class="font-oswald text-xl md:text-2xl text-white uppercase mb-2 group-hover:text-urban-yellow transition-colors leading-tight">
             {{ product.name }}</h3>
 
+        {% if product.is_available() %}
         <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post" class="mt-auto">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit"
                 class="w-full urban-btn-secondary text-center text-sm py-3 border-urban-yellow text-urban-yellow hover:bg-urban-yellow hover:text-black">
                 Pedir
             </button>
         </form>
+        {% else %}
+        <div class="mt-auto">
+            <span
+                class="block w-full text-center text-sm py-3 border border-gray-700 text-gray-500 font-oswald uppercase cursor-not-allowed">AGOTADO</span>
+        </div>
+        {% endif %}
     </div>
     {% else %}
     <div class="col-span-full text-center py-20 border-2 border-dashed border-gray-800 rounded-lg">

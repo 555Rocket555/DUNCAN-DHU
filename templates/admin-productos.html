@@ -64,6 +64,15 @@
                     </td>
                     <td class="p-4 text-right">
                         <div class="flex justify-end gap-2">
+                            <a href="{{ url_for('admin.product_recipe', product_id=product.id) }}"
+                                class="p-2 text-green-400 hover:text-green-200 transition-colors" title="Receta">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                </svg>
+                            </a>
+
                             <button type="button"
                                 onclick="openEditModal('{{ product.id }}', '{{ product.name }}', '{{ product.category_id }}', '{{ product.price }}', `{{ product.description or '' }}`)"
                                 class="p-2 text-blue-400 hover:text-white transition-colors" title="Editar">
@@ -76,6 +85,7 @@
 
                             <form action="{{ url_for('admin.product_delete', product_id=product.id) }}" method="post"
                                 class="inline" onsubmit="return confirm('¿Eliminar producto permanentemente?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="p-2 text-red-500 hover:text-red-300 transition-colors"
                                     title="Eliminar">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -89,6 +99,7 @@
                             <!-- Toggle Status Button -->
                             <form action="{{ url_for('admin.product_toggle', product_id=product.id) }}" method="post"
                                 class="inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit"
                                     class="p-2 {{ 'text-yellow-400 hover:text-yellow-200' if product.active else 'text-gray-400 hover:text-gray-200' }} transition-colors"
                                     title="{{ 'Desactivar' if product.active else 'Activar' }}">
@@ -135,6 +146,7 @@
         <h3 class="font-oswald text-2xl text-urban-yellow uppercase mb-6">Agregar Nuevo Producto</h3>
 
         <form action="{{ url_for('admin.products') }}" method="post" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del producto</label>
                 <input type="text" name="name"
@@ -227,6 +239,7 @@
         <h3 class="font-oswald text-2xl text-blue-500 uppercase mb-6">Editar Producto</h3>
 
         <form action="" method="post" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del producto</label>
                 <input type="text" name="name"

@@ -35,6 +35,7 @@
                     class="flex items-center justify-between w-full sm:w-auto gap-4 sm:gap-6 mt-2 sm:mt-0 pl-20 sm:pl-0">
                     <div class="flex items-center border border-gray-600">
                         <form action="{{ url_for('public.update_cart') }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="product_id" value="{{ item.product.id }}">
                             <input type="hidden" name="action" value="minus">
                             <button type="submit"
@@ -43,6 +44,7 @@
                         <span class="w-10 sm:w-12 text-center font-archivo text-white font-bold text-sm sm:text-base">{{
                             item.quantity }}</span>
                         <form action="{{ url_for('public.update_cart') }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="product_id" value="{{ item.product.id }}">
                             <input type="hidden" name="action" value="plus">
                             <button type="submit"

@@ -11,7 +11,7 @@
 
 <!-- Stats Grid - Orders -->
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-     <div class="bg-urban-black border border-white/10 p-4 text-center">
+    <div class="bg-urban-black border border-white/10 p-4 text-center">
         <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-1">Total</p>
         <span class="font-oswald text-2xl font-bold text-white">{{ stats.total }}</span>
     </div>
@@ -27,14 +27,15 @@
         <p class="font-archivo text-blue-400 text-xs uppercase tracking-wider mb-1">Listos</p>
         <span class="font-oswald text-2xl font-bold text-blue-500">{{ stats.listos }}</span>
     </div>
-      <div class="bg-green-900/30 border border-green-600 p-4 text-center">
+    <div class="bg-green-900/30 border border-green-600 p-4 text-center">
         <p class="font-archivo text-green-400 text-xs uppercase tracking-wider mb-1">Completados</p>
         <span class="font-oswald text-2xl font-bold text-green-500">{{ stats.completados }}</span>
     </div>
-     <div class="bg-red-900/30 border border-red-600 p-4 text-center">
+    <div class="bg-red-900/30 border border-red-600 p-4 text-center">
         <p class="font-archivo text-red-400 text-xs uppercase tracking-wider mb-1">Cancelados</p>
         <!-- Assuming cancelled stat exists or calculating it -->
-        <span class="font-oswald text-2xl font-bold text-red-500">{{ stats.total - (stats.pendientes + stats.preparando + stats.listos + stats.completados) }}</span>
+        <span class="font-oswald text-2xl font-bold text-red-500">{{ stats.total - (stats.pendientes + stats.preparando
+            + stats.listos + stats.completados) }}</span>
     </div>
 </div>
 
@@ -44,7 +45,7 @@
         <h3 class="font-oswald text-xl text-urban-yellow uppercase">Historial de Pedidos ({{ orders|length }})</h3>
         <!-- Filter/Search could go here -->
     </div>
-    
+
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
@@ -52,10 +53,11 @@
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">ID</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Fecha</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Cliente/Mesa</th>
-                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Productos</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Productos</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Total</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Estado</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Pago</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider text-right">Acciones</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-white/10 font-archivo text-gray-300">
@@ -68,18 +70,33 @@
                     <td class="p-4 font-oswald font-bold text-white">${{ "%.2f"|format(order.total) }}</td>
                     <td class="p-4">
                         {% set status_colors = {
-                            'pendiente': 'bg-gray-700 text-gray-300',
-                            'preparando': 'bg-yellow-900 text-yellow-300',
-                            'listo': 'bg-blue-900 text-blue-300',
-                            'completado': 'bg-green-900 text-green-300',
-                            'cancelado': 'bg-red-900 text-red-300'
+                        'pendiente': 'bg-gray-700 text-gray-300',
+                        'preparando': 'bg-yellow-900 text-yellow-300',
+                        'listo': 'bg-blue-900 text-blue-300',
+                        'completado': 'bg-green-900 text-green-300',
+                        'cancelado': 'bg-red-900 text-red-300'
                         } %}
                         {% set color_class = status_colors.get(order.status|lower, 'bg-gray-800 text-gray-400') %}
-                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase {{ color_class }}">
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase {{ color_class }}">
                             {{ order.status }}
                         </span>
                     </td>
                     <td class="p-4 text-sm opacity-80">{{ order.payment_method }}</td>
+                    <td class="p-4 text-right">
+                        <form action="{{ url_for('admin.order_delete', order_id=order.id) }}" method="post"
+                            class="inline" onsubmit="return confirm('¿Archivar esta orden?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="p-2 text-urban-red hover:text-red-400 transition-colors"
+                                title="Archivar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 {% else %}
                 <tr>

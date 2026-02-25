@@ -9,6 +9,72 @@
         <h1 class="font-oswald text-4xl font-bold text-white uppercase tracking-tighter">Usuarios</h1>
         <p class="font-archivo text-gray-400">Gestiona los usuarios registrados en la plataforma.</p>
     </div>
+    <button onclick="document.getElementById('new-user-form').classList.toggle('hidden')"
+        class="bg-urban-yellow text-black font-oswald font-bold uppercase px-6 py-3 hover:bg-yellow-300 transition-colors tracking-wider flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Nuevo Usuario
+    </button>
+</div>
+
+<!-- New User Form (hidden by default) -->
+<div id="new-user-form" class="hidden mb-8 bg-urban-surface border border-gray-800 p-6">
+    <h2 class="font-oswald text-2xl text-urban-yellow uppercase mb-6 border-b border-gray-700 pb-2">Crear Usuario</h2>
+    <form action="{{ url_for('admin.user_create') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-1">Nombre
+                    *</label>
+                <input type="text" name="nombre" required
+                    class="w-full bg-urban-black border border-gray-700 text-white font-archivo px-4 py-2 focus:border-urban-yellow focus:outline-none">
+            </div>
+            <div>
+                <label class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-1">Correo
+                    *</label>
+                <input type="email" name="email" required
+                    class="w-full bg-urban-black border border-gray-700 text-white font-archivo px-4 py-2 focus:border-urban-yellow focus:outline-none">
+            </div>
+            <div>
+                <label
+                    class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-1">Username</label>
+                <input type="text" name="username"
+                    class="w-full bg-urban-black border border-gray-700 text-white font-archivo px-4 py-2 focus:border-urban-yellow focus:outline-none"
+                    placeholder="Opcional (se usa el correo)">
+            </div>
+            <div>
+                <label
+                    class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-1">Teléfono</label>
+                <input type="tel" name="telefono" pattern="[0-9]{10}" maxlength="10"
+                    class="w-full bg-urban-black border border-gray-700 text-white font-archivo px-4 py-2 focus:border-urban-yellow focus:outline-none"
+                    placeholder="10 dígitos">
+            </div>
+            <div>
+                <label class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-1">Contraseña
+                    *</label>
+                <input type="password" name="contrasena" required minlength="6"
+                    class="w-full bg-urban-black border border-gray-700 text-white font-archivo px-4 py-2 focus:border-urban-yellow focus:outline-none">
+            </div>
+            <div class="flex items-end pb-1">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="is_admin" value="1"
+                        class="w-5 h-5 bg-urban-black border-gray-700 accent-urban-yellow">
+                    <span class="font-oswald text-sm text-white uppercase tracking-wider">Administrador</span>
+                </label>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-4">
+            <button type="button" onclick="document.getElementById('new-user-form').classList.add('hidden')"
+                class="px-6 py-2 border border-gray-700 text-gray-400 font-oswald uppercase hover:text-white hover:border-white transition-colors">
+                Cancelar
+            </button>
+            <button type="submit"
+                class="bg-urban-yellow text-black font-oswald font-bold uppercase px-6 py-2 hover:bg-yellow-300 transition-colors">
+                Crear Usuario
+            </button>
+        </div>
+    </form>
 </div>
 
 <!-- Flash Messages -->
@@ -56,6 +122,7 @@
                         {% if not user.is_admin %}
                         <form action="{{ url_for('admin.user_delete', user_id=user.id) }}" method="post" class="inline"
                             onsubmit="return confirm('¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="p-2 text-urban-red hover:text-red-400 transition-colors"
                                 title="Eliminar Usuario">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"

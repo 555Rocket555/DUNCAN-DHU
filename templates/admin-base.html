@@ -23,6 +23,7 @@
                         'urban-black': '#121212',
                         'urban-yellow': '#FFDD00',
                         'urban-red': '#FF3333',
+                        'urban-surface': '#1E1E1E',
                     },
                     fontFamily: {
                         'oswald': ['Oswald', 'sans-serif'],
@@ -34,7 +35,7 @@
     </script>
 
     <!-- Global Styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/urban-theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -74,7 +75,8 @@
         </div>
 
         <!-- Mobile Menu Overlay -->
-        <div id="mobile-menu" class="mobile-menu-overlay bg-black">
+        <div id="mobile-menu"
+            class="fixed inset-0 z-50 bg-zinc-900 bg-opacity-[0.97] backdrop-blur-sm flex flex-col justify-center items-center hidden">
             <button id="close-mobile-menu" class="absolute top-6 right-6 text-white hover:text-urban-yellow">
                 <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -104,9 +106,10 @@
         </div>
     </header>
 
-    <div class="pt-20 flex min-h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-urban-black border-r border-white/10 hidden md:block fixed h-full overflow-y-auto">
+    <div class="flex h-screen overflow-hidden pt-20">
+        <!-- Sidebar (persistent desktop, hidden mobile) -->
+        <aside
+            class="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:pt-20 w-64 bg-urban-black border-r border-white/10 z-30 overflow-y-auto">
             <nav class="p-6 space-y-2">
                 {% set active_page = active_page|default('dashboard') %}
 
@@ -179,7 +182,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 md:ml-64 p-6 overflow-x-hidden">
+        <main class="flex-1 md:ml-64 p-6 overflow-y-auto overflow-x-hidden">
             <!-- Flash Messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -215,14 +218,12 @@
         const mobileMenu = document.getElementById('mobile-menu');
 
         function toggleMenu() {
-            if (mobileMenu.classList.contains('active')) {
-                mobileMenu.classList.remove('active');
-                mobileMenu.style.pointerEvents = 'none';
-                document.body.style.overflow = '';
-            } else {
-                mobileMenu.classList.add('active');
-                mobileMenu.style.pointerEvents = 'auto';
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
+            } else {
+                mobileMenu.classList.add('hidden');
+                document.body.style.overflow = '';
             }
         }
 

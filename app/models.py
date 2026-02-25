@@ -1,4 +1,7 @@
-from datetime import datetime
+import logging
+from datetime import datetime, timezone
+from typing import List
+
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from werkzeug.security import check_password_hash
@@ -6,9 +9,13 @@ from flask_login import UserMixin
 from app.extensions import db
 
 
+logger = logging.getLogger(__name__)
 _password_hasher = PasswordHasher()
 
 
+# ---------------------------------------------------------------------------
+# Usuarios
+# ---------------------------------------------------------------------------
 class User(UserMixin, db.Model):
     __tablename__ = "users"
 
@@ -19,7 +26,7 @@ class User(UserMixin, db.Model):
     phone = db.Column(db.String(40), nullable=True)
     password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     orders = db.relationship("Order", backref="user", lazy=True)
 
@@ -39,6 +46,9 @@ class User(UserMixin, db.Model):
         return False
 
 
+# ---------------------------------------------------------------------------
+# Catálogo
+# ---------------------------------------------------------------------------
 class Category(db.Model):
     __tablename__ = "categories"
 
@@ -59,9 +69,47 @@ class Product(db.Model):
     image_url = db.Column(db.String(255), default="")
     active = db.Column(db.Boolean, default=True)
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relación con la receta (ingredientes necesarios)
+    recipe_items = db.relationship("ProductRecipe", backref="product", lazy=True)
+
+    def is_available(self) -> bool:
+        """Retorna False si algún ingrediente de la receta tiene stock insuficiente."""
+        if not self.recipe_items:
+            return True  # Sin receta → siempre disponible
+        for recipe in self.recipe_items:
+            item = recipe.inventory_item
+            if item.stock_current < recipe.quantity_required:
+                return False
+        return True
 
 
+# ---------------------------------------------------------------------------
+# Receta (tabla de asociación Product ↔ InventoryItem)
+# ---------------------------------------------------------------------------
+class ProductRecipe(db.Model):
+    __tablename__ = "product_recipes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey("products.id"), nullable=False
+    )
+    inventory_item_id = db.Column(
+        db.Integer, db.ForeignKey("inventory_items.id"), nullable=False
+    )
+    quantity_required = db.Column(db.Float, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "product_id", "inventory_item_id", name="uq_product_inventory"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Inventario
+# ---------------------------------------------------------------------------
 class InventoryItem(db.Model):
     __tablename__ = "inventory_items"
 
@@ -73,7 +121,13 @@ class InventoryItem(db.Model):
     provider = db.Column(db.String(120), default="")
     active = db.Column(db.Boolean, default=True)
 
+    # Relación inversa: en qué recetas participa este insumo
+    recipe_usages = db.relationship("ProductRecipe", backref="inventory_item", lazy=True)
 
+
+# ---------------------------------------------------------------------------
+# Órdenes
+# ---------------------------------------------------------------------------
 class Order(db.Model):
     __tablename__ = "orders"
 
@@ -85,9 +139,13 @@ class Order(db.Model):
     total = db.Column(db.Numeric(10, 2), default=0)
     mp_preference_id = db.Column(db.String(120), nullable=True)
     mp_payment_id = db.Column(db.String(120), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    stock_processed = db.Column(db.Boolean, default=False)
+    archived = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    items = db.relationship("OrderItem", backref="order", lazy=True, cascade="all, delete-orphan")
+    items = db.relationship(
+        "OrderItem", backref="order", lazy=True, cascade="all, delete-orphan"
+    )
 
 
 class OrderItem(db.Model):
@@ -103,6 +161,9 @@ class OrderItem(db.Model):
     product = db.relationship("Product")
 
 
+# ---------------------------------------------------------------------------
+# Seed de datos iniciales
+# ---------------------------------------------------------------------------
 def seed_defaults(admin_username: str, admin_password: str) -> None:
     categories = [
         ("Hamburguesas", "hamburguesas"),
@@ -160,5 +221,56 @@ def seed_defaults(admin_username: str, admin_password: str) -> None:
                     category_id=category.id,
                 )
             )
+
+    db.session.commit()
+
+
+def seed_recipes() -> None:
+    """Popula product_recipes con datos predeterminados.
+
+    Crea InventoryItems faltantes con stock_current=50.
+    Es idempotente: no duplica registros existentes.
+    """
+    recipe_map = {
+        "Hamburguesa clásica": [("Pan", 1), ("Carne de Res", 1)],
+        "Hamburguesa triple": [("Pan", 1), ("Carne de Res", 3)],
+        "Hamburguesa hawaiana": [("Pan", 1), ("Carne de Res", 1), ("Piña", 1), ("Jamón", 1)],
+        "Papas a la francesa": [("Porción de Papas", 1)],
+        "Alitas buffalo": [("Pieza de Pollo", 6), ("Salsa Buffalo", 1)],
+        "Pay de limón": [("Rebanada de Pay", 1)],
+        "Pay de moras": [("Rebanada de Pay", 1)],
+        "Coca-cola": [("Unidad de Refresco", 1)],
+        "Sprite": [("Unidad de Refresco", 1)],
+        "Combo clásico": [("Pan", 1), ("Carne de Res", 1), ("Porción de Papas", 1), ("Unidad de Refresco", 1)],
+    }
+
+    for product_name, ingredients in recipe_map.items():
+        product = Product.query.filter_by(name=product_name).first()
+        if not product:
+            continue
+
+        for inv_name, qty in ingredients:
+            inv_item = InventoryItem.query.filter_by(name=inv_name).first()
+            if not inv_item:
+                inv_item = InventoryItem(
+                    name=inv_name,
+                    stock_current=50,
+                    stock_min=5,
+                    active=True,
+                )
+                db.session.add(inv_item)
+                db.session.flush()  # obtener id
+
+            exists = ProductRecipe.query.filter_by(
+                product_id=product.id, inventory_item_id=inv_item.id
+            ).first()
+            if not exists:
+                db.session.add(
+                    ProductRecipe(
+                        product_id=product.id,
+                        inventory_item_id=inv_item.id,
+                        quantity_required=qty,
+                    )
+                )
 
     db.session.commit()

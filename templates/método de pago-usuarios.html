@@ -51,6 +51,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <!-- Efectivo -->
             <form action="{{ url_for('public.checkout_cash') }}" method="post" class="h-full">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit"
                     class="w-full h-full urban-card p-6 flex flex-col items-center justify-center gap-4 hover:border-urban-yellow group text-left">
                     <div
@@ -67,6 +68,7 @@
 
             <!-- Card / MP -->
             <form action="{{ url_for('public.checkout_mp') }}" method="post" class="h-full">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit"
                     class="w-full h-full urban-card p-6 flex flex-col items-center justify-center gap-4 hover:border-urban-yellow group text-left">
                     <div
@@ -83,6 +85,7 @@
 
             <!-- MP Logo -->
             <form action="{{ url_for('public.checkout_mp') }}" method="post" class="h-full">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit"
                     class="w-full h-full urban-card p-6 flex flex-col items-center justify-center gap-4 hover:border-urban-yellow group text-left">
                     <div
