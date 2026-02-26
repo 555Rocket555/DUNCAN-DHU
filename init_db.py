@@ -33,9 +33,8 @@ def init_db():
         print(f"✗ Error al inicializar la base de datos: {e}")
         import traceback
         traceback.print_exc()
-        # No fallar el deploy si hay error en init-db
-        # ya que puede ser que la BD ya esté inicializada
-        sys.exit(0)
+        # Fallar el deploy evita dejar la app arriba con esquema inconsistente.
+        sys.exit(1)
 
 if __name__ == "__main__":
     init_db()
