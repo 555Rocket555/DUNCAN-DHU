@@ -14,6 +14,7 @@
 
         <div class="bg-urban-surface border border-gray-800 p-8 urban-shadow">
             <form action="{{ url_for('auth.register') }}" method="post" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div>
                     <label for="nombre"
                         class="block font-oswald text-white uppercase tracking-wider mb-1 text-sm">Nombre

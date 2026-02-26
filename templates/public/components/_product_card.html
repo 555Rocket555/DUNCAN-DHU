@@ -1,0 +1,50 @@
+{# _product_card.html — Componente reutilizable de tarjeta de producto
+Requiere: product (modelo Product), macros render_product_image ya importado #}
+
+<div class="urban-card group relative flex flex-col h-full bg-urban-surface p-4">
+    <!-- Price Tag (Rotated) -->
+    <div
+        class="absolute -top-3 -right-3 bg-urban-yellow text-black font-oswald font-bold text-lg md:text-xl px-3 py-1 transform rotate-3 z-10 shadow-lg border border-black">
+        ${{ "%.2f"|format(product.price) if product.price else '0.00' }}
+    </div>
+
+    <div class="relative overflow-hidden border border-gray-800 mb-4 bg-black aspect-square">
+        {{ render_product_image(product, 'w-full h-full object-cover transition-transform duration-500
+        group-hover:scale-110') }}
+
+        <!-- Overlay Action -->
+        <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post"
+            class="absolute inset-x-0 bottom-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% if product.is_available() %}
+            <button type="submit"
+                class="w-full bg-urban-red text-white py-3 font-oswald uppercase tracking-widest text-sm hover:bg-red-600 transition-colors translate-y-full group-hover:translate-y-0 duration-300">
+                Añadir al Carrito
+            </button>
+            {% else %}
+            <span
+                class="block w-full bg-gray-800 text-urban-red py-3 font-oswald uppercase tracking-widest text-sm text-center">AGOTADO</span>
+            {% endif %}
+        </form>
+    </div>
+
+    <h3
+        class="font-oswald text-xl md:text-2xl text-white uppercase mb-2 group-hover:text-urban-yellow transition-colors leading-tight">
+        {{ product.name }}</h3>
+
+    {% if product.is_available() %}
+    <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post" class="mt-auto">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="redirect_to" value="cart">
+        <button type="submit"
+            class="w-full urban-btn-secondary text-center text-sm py-2 border-urban-yellow text-urban-yellow hover:bg-urban-yellow hover:text-black">
+            Pedir
+        </button>
+    </form>
+    {% else %}
+    <div class="mt-auto">
+        <span
+            class="block w-full text-center text-sm py-2 border border-gray-700 text-gray-500 font-oswald uppercase cursor-not-allowed">AGOTADO</span>
+    </div>
+    {% endif %}
+</div>

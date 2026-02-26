@@ -83,6 +83,7 @@
 
                             <form action="{{ url_for('admin.inventory_delete', item_id=item.id) }}" method="post"
                                 class="inline" onsubmit="return confirm('¿Eliminar insumo permanentemente?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="p-2 text-red-500 hover:text-red-300 transition-colors"
                                     title="Eliminar">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -95,6 +96,7 @@
 
                             <form action="{{ url_for('admin.inventory_toggle', item_id=item.id) }}" method="post"
                                 class="inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit"
                                     class="p-2 {{ 'text-red-400 hover:text-red-200' if item.active else 'text-green-400 hover:text-green-200' }} transition-colors"
                                     title="{{ 'Desactivar' if item.active else 'Activar' }}">
@@ -139,6 +141,7 @@
         <h3 class="font-oswald text-2xl text-urban-yellow uppercase mb-6">Agregar Insumo</h3>
 
         <form action="{{ url_for('admin.inventory') }}" method="post" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del Insumo</label>
                 <input type="text" name="name"
@@ -222,6 +225,7 @@
         <h3 class="font-oswald text-2xl text-blue-500 uppercase mb-6">Editar Insumo</h3>
 
         <form action="" method="post" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del Insumo</label>
                 <input type="text" name="name"

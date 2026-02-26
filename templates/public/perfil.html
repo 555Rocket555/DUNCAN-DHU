@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Duncan Dhu - Mi Perfil{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+    <h1 class="font-oswald text-4xl sm:text-5xl uppercase text-white mb-2 text-center">
+        Mi <span class="text-urban-yellow">Perfil</span>
+    </h1>
+    <p class="font-archivo text-gray-400 text-center mb-10 border-b border-urban-yellow pb-4 inline-block w-full">
+        Actualiza tu información personal
+    </p>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for category, message in messages %}
+        <div
+            class="p-4 border-l-4 {{ 'border-green-500 bg-green-500/10 text-green-400' if category == 'success' else 'border-urban-red bg-urban-red/10 text-urban-red' }} font-archivo">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('public.profile') }}" class="space-y-6">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Nombre -->
+        <div>
+            <label for="nombre"
+                class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-2">Nombre</label>
+            <input type="text" id="nombre" name="nombre" value="{{ current_user.name }}" required
+                class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600">
+        </div>
+
+        <!-- Email -->
+        <div>
+            <label for="email" class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-2">Correo
+                Electrónico</label>
+            <input type="email" id="email" name="email" value="{{ current_user.email }}" required
+                class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600">
+        </div>
+
+        <!-- Username -->
+        <div>
+            <label for="username"
+                class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-2">Nombre de
+                Usuario</label>
+            <input type="text" id="username" name="username" value="{{ current_user.username or '' }}"
+                class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600"
+                placeholder="Opcional">
+        </div>
+
+        <!-- Teléfono -->
+        <div>
+            <label for="telefono"
+                class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-2">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" value="{{ current_user.phone or '' }}" pattern="[0-9]{10}"
+                maxlength="10"
+                class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600"
+                placeholder="10 dígitos">
+        </div>
+
+        <!-- Submit -->
+        <div class="pt-4">
+            <button type="submit" class="urban-btn w-full text-center">Guardar Cambios</button>
+        </div>
+    </form>
+
+    <!-- Order History Link -->
+    <div class="mt-10 text-center">
+        <a href="{{ url_for('public.catalog') }}"
+            class="font-archivo text-gray-500 hover:text-urban-yellow underline uppercase text-xs tracking-widest transition-colors">
+            ← Volver al menú
+        </a>
+    </div>
+</div>
+
+{% endblock %}

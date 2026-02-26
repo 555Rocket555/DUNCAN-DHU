@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify
+from flask_login import login_required
 
 from app.models import Product, Order
 
@@ -18,6 +19,7 @@ def api_products():
                 "price": float(p.price),
                 "image_url": p.image_url,
                 "category": p.category.name if p.category else None,
+                "available": p.is_available(),
             }
             for p in products
         ]
@@ -25,6 +27,7 @@ def api_products():
 
 
 @api_bp.get("/orders/<int:order_id>")
+@login_required
 def api_order(order_id: int):
     order = Order.query.get_or_404(order_id)
     return jsonify(

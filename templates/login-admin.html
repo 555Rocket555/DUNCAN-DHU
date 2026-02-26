@@ -35,18 +35,24 @@
 </head>
 
 <body class="bg-black min-h-screen flex items-center justify-center relative overflow-hidden font-archivo">
-    
+
     <!-- Background Decor -->
     <div class="absolute inset-0 z-0 pointer-events-none">
-        <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-urban-yellow/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-        <div class="absolute bottom-0 left-0 w-1/2 h-1/2 bg-urban-red/5 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+        <div
+            class="absolute top-0 right-0 w-1/2 h-1/2 bg-urban-yellow/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2">
+        </div>
+        <div
+            class="absolute bottom-0 left-0 w-1/2 h-1/2 bg-urban-red/5 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2">
+        </div>
     </div>
 
     <!-- Login Container -->
     <div class="relative z-10 w-full max-w-md px-4">
         <div class="bg-urban-black border border-white/10 p-8 md:p-10 shadow-2xl relative group">
             <!-- Border Glow Effect on Hover -->
-            <div class="absolute inset-0 border border-transparent group-hover:border-urban-yellow/50 transition-colors duration-500 pointer-events-none"></div>
+            <div
+                class="absolute inset-0 border border-transparent group-hover:border-urban-yellow/50 transition-colors duration-500 pointer-events-none">
+            </div>
 
             <div class="text-center mb-8">
                 <h1 class="font-oswald text-4xl font-bold text-white uppercase tracking-tighter mb-2">
@@ -57,44 +63,51 @@
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                <div class="mb-6 space-y-2">
-                    {% for category, message in messages %}
-                    <div class="p-3 bg-red-900/20 border border-urban-red/50 text-red-200 text-sm text-center">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for category, message in messages %}
+                <div class="p-3 bg-red-900/20 border border-urban-red/50 text-red-200 text-sm text-center">
+                    {{ message }}
                 </div>
-                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
             {% endwith %}
 
             <form action="{{ url_for('auth.admin_login') }}" method="post" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div>
-                    <label for="usuario" class="block text-urban-yellow text-xs font-bold uppercase tracking-widest mb-2 font-oswald">Usuario</label>
-                    <input type="text" id="usuario" name="usuario" 
+                    <label for="usuario"
+                        class="block text-urban-yellow text-xs font-bold uppercase tracking-widest mb-2 font-oswald">Usuario</label>
+                    <input type="text" id="usuario" name="usuario"
                         class="w-full bg-white/5 border border-white/10 text-white px-4 py-3 focus:outline-none focus:border-urban-yellow focus:bg-white/10 transition-all placeholder-gray-600"
                         placeholder="ADMIN USER" autocomplete="off" required>
                 </div>
 
                 <div>
-                    <label for="contrasena" class="block text-urban-yellow text-xs font-bold uppercase tracking-widest mb-2 font-oswald">Contraseña</label>
-                    <input type="password" id="contrasena" name="contrasena" 
+                    <label for="contrasena"
+                        class="block text-urban-yellow text-xs font-bold uppercase tracking-widest mb-2 font-oswald">Contraseña</label>
+                    <input type="password" id="contrasena" name="contrasena"
                         class="w-full bg-white/5 border border-white/10 text-white px-4 py-3 focus:outline-none focus:border-urban-yellow focus:bg-white/10 transition-all placeholder-gray-600"
                         placeholder="••••••••" required>
                 </div>
 
                 <div class="pt-4">
-                    <button type="submit" class="w-full bg-urban-yellow text-black font-oswald font-bold uppercase text-lg py-3 hover:bg-white hover:tracking-widest transition-all duration-300">
+                    <button type="submit"
+                        class="w-full bg-urban-yellow text-black font-oswald font-bold uppercase text-lg py-3 hover:bg-white hover:tracking-widest transition-all duration-300">
                         Entrar al Sistema
                     </button>
                 </div>
             </form>
-            
+
             <div class="mt-8 text-center">
-                 <a href="{{ url_for('public.home') }}" class="text-gray-500 text-xs hover:text-urban-yellow underline transition-colors">Volver al sitio público</a>
+                <a href="{{ url_for('public.home') }}"
+                    class="text-gray-500 text-xs hover:text-urban-yellow underline transition-colors">Volver al sitio
+                    público</a>
             </div>
         </div>
     </div>
 
 </body>
+
 </html>

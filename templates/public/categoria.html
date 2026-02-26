@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import render_product_image %}
+
+{% block title %}Duncan Dhu - {{ category_highlight }}{% endblock %}
+
+{% block content %}
+
+<!-- Header Title -->
+<div class="text-center mb-8 md:mb-12">
+    <h1 class="font-oswald text-4xl sm:text-5xl md:text-7xl uppercase text-white tracking-tighter leading-tight">
+        {{ category_title }} <span class="text-stroke text-transparent" style="-webkit-text-stroke: 2px #FFDD00;">{{
+            category_highlight }}</span>
+    </h1>
+    <p
+        class="font-archivo text-gray-400 mt-2 md:mt-4 max-w-2xl mx-auto border-b border-urban-yellow pb-4 inline-block text-sm md:text-base">
+        {{ category_subtitle }}
+    </p>
+</div>
+
+<!-- Category Filter (Sticker Style) -->
+<nav class="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-16">
+    <a href="{{ url_for('public.catalog') }}"
+        class="category-filter-btn {% if active_slug == 'todos' %}urban-btn bg-urban-yellow text-black{% else %}urban-btn-secondary bg-black text-white hover:bg-white hover:text-black border-white{% endif %} transform -rotate-2 text-sm md:text-lg py-2 px-4 w-auto">
+        TODO
+    </a>
+    {% for cat in categories %}
+    <a href="{{ url_for('public.category', slug=cat.slug) }}"
+        class="category-filter-btn {% if active_slug == cat.slug %}urban-btn bg-urban-yellow text-black{% else %}urban-btn-secondary bg-black text-white hover:bg-white hover:text-black border-white{% endif %} transform {% if loop.index is odd %}rotate-1{% else %}-rotate-1{% endif %} text-sm md:text-lg py-2 px-4 w-auto">
+        {{ cat.name | upper }}
+    </a>
+    {% endfor %}
+</nav>
+
+<!-- Product Grid -->
+<div class="product-grid-urban">
+    {% for product in products %}
+    {% include 'public/components/_product_card.html' %}
+    {% else %}
+    <div class="col-span-full text-center py-20 border-2 border-dashed border-gray-800 rounded-lg">
+        <h3 class="font-oswald text-3xl text-gray-500 uppercase">No hay {{ category_highlight | lower }} disponibles.
+        </h3>
+        <p class="font-archivo text-gray-600 mt-2">Intenta volver más tarde.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
