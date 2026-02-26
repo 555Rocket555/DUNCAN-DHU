@@ -226,6 +226,7 @@
     </main>
 
     <!-- FooterSections -->
+    {% if request.endpoint == 'public.home' %}
     <div class="bg-black border-t border-white/10">
         <!-- Quienes Somos Section -->
         <section id="quienes-somos" class="py-12 bg-urban-black border-b border-white/10 relative overflow-hidden">
@@ -329,6 +330,7 @@
             </div>
         </section>
     </div>
+    {% endif %}
 
     <!-- Footer -->
     <footer class="bg-black border-t border-white/10 py-12">

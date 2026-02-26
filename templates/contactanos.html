@@ -1,117 +1,89 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacto - Duncan Dhu</title>
-    <link rel="stylesheet" href="../static/css/contacto.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-</head>
+{% block title %}Contacto - Duncan Dhu{% endblock %}
 
-<body>
+{% block content %}
+<div class="bg-urban-surface border-b border-white/10 py-16 mb-12">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h1 class="font-oswald text-4xl sm:text-5xl font-bold uppercase tracking-tighter text-white mb-4">
+            <span class="text-urban-yellow">CONTACTO</span>
+        </h1>
+        <p class="font-archivo text-gray-400 text-lg">
+            Escríbenos y nos pondremos en contacto contigo lo antes posible.
+        </p>
+    </div>
+</div>
 
-    <header class="header-bg">
-        <div class="main-container header-content">
-            <div style="position: absolute; top: 20px; left: 20px;">
-                <a href="{{ url_for('public.home') }}"
-                    style="color: white; text-decoration: none; font-weight: bold; font-family: 'Inter', sans-serif; font-size: 1.1rem; text-shadow: 1px 1px 2px black; display: flex; align-items: center; gap: 5px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" width="20" height="20" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                    </svg>
-                    Volver al Inicio
-                </a>
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
+    <div class="bg-black border border-white/10 p-8 sm:p-12 shadow-2xl relative">
+        <div class="absolute top-0 left-0 w-16 h-1 bg-urban-yellow"></div>
+        <div class="absolute top-0 left-0 w-1 h-16 bg-urban-yellow"></div>
+
+        <form action="{{ url_for('public.contact') }}" method="POST" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="nombre" class="font-oswald text-gray-300 uppercase tracking-wide">Nombre
+                        Completo</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Tu nombre..." required
+                        class="w-full bg-zinc-900 border border-gray-700 text-white px-4 py-3 focus:outline-none focus:border-urban-yellow focus:ring-1 focus:ring-urban-yellow transition-colors font-archivo placeholder-gray-600">
+                </div>
+
+                <div class="space-y-2">
+                    <label for="email" class="font-oswald text-gray-300 uppercase tracking-wide">Correo
+                        Electrónico</label>
+                    <input type="email" id="email" name="email" placeholder="correo@ejemplo.com" required
+                        class="w-full bg-zinc-900 border border-gray-700 text-white px-4 py-3 focus:outline-none focus:border-urban-yellow focus:ring-1 focus:ring-urban-yellow transition-colors font-archivo placeholder-gray-600">
+                </div>
             </div>
-            <h1 class="duncan-dhu-title">CONTACTO</h1>
-            <p class="subtitle">Escríbenos y nos pondremos en contacto contigo</p>
+
+            <div class="space-y-2">
+                <label for="asunto" class="font-oswald text-gray-300 uppercase tracking-wide">Asunto</label>
+                <select id="asunto" name="asunto"
+                    class="w-full bg-zinc-900 border border-gray-700 text-white px-4 py-3 focus:outline-none focus:border-urban-yellow focus:ring-1 focus:ring-urban-yellow transition-colors font-archivo appearance-none">
+                    <option value="reservacion">Reservación</option>
+                    <option value="evento">Eventos Especiales</option>
+                    <option value="queja">Sugerencias o Quejas</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+
+            <div class="space-y-2">
+                <label for="mensaje" class="font-oswald text-gray-300 uppercase tracking-wide">Mensaje</label>
+                <textarea id="mensaje" name="mensaje" rows="5" placeholder="¿En qué podemos ayudarte?" required
+                    class="w-full bg-zinc-900 border border-gray-700 text-white px-4 py-3 focus:outline-none focus:border-urban-yellow focus:ring-1 focus:ring-urban-yellow transition-colors font-archivo placeholder-gray-600 resize-none"></textarea>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-urban-yellow text-black font-oswald font-bold text-xl uppercase py-4 hover:bg-yellow-400 hover:shadow-[0_0_15px_rgba(255,221,0,0.5)] transition-all duration-300 mt-4">
+                Enviar Mensaje
+            </button>
+        </form>
+
+        <div class="mt-12 pt-8 border-t border-gray-800 flex justify-center gap-4">
+            <a href="{{ social.facebook }}" target="_blank"
+                class="w-12 h-12 border border-gray-700 flex items-center justify-center text-gray-400 hover:bg-urban-yellow hover:text-black hover:border-urban-yellow transition-all duration-300">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 8h2V6h-2c-1.66 0-3 1.34-3 3v2H9v2h2v6h2v-6h2l1-2h-3V9c0-.55.45-1 1-1z" />
+                </svg>
+            </a>
+            <a href="{{ social.instagram }}" target="_blank"
+                class="w-12 h-12 border border-gray-700 flex items-center justify-center text-gray-400 hover:bg-urban-yellow hover:text-black hover:border-urban-yellow transition-all duration-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="4" y="4" width="16" height="16" rx="4"></rect>
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <line x1="16.5" y1="7.5" x2="16.5" y2="7.5"></line>
+                </svg>
+            </a>
+            <a href="{{ social.tiktok }}" target="_blank"
+                class="w-12 h-12 border border-gray-700 flex items-center justify-center text-gray-400 hover:bg-urban-yellow hover:text-black hover:border-urban-yellow transition-all duration-300">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M16 3c.4 2.3 1.9 3.8 4 4v3c-1.7-.1-3.2-.7-4-1.6v6.6a5 5 0 1 1-5-5c.3 0 .7 0 1 .1v3.1a2 2 0 1 0 2 2V3h2z" />
+                </svg>
+            </a>
         </div>
-    </header>
-
-    <main class="main-container contact-section">
-        <div class="contact-card">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="message {{ category }}"
-                style="background-color: #fca311; color: black; padding: 15px; margin-bottom: 20px; text-align: center; border-radius: 5px; font-weight: bold;">
-                {{ message }}
-            </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-            <form action="{{ url_for('public.contact') }}" method="POST" class="contact-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="form-group">
-                    <label for="nombre">Nombre Completo</label>
-                    <input type="text" id="nombre" name="nombre" placeholder="Tu nombre..." required>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Correo Electrónico</label>
-                    <input type="email" id="email" name="email" placeholder="correo@ejemplo.com" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="asunto">Asunto</label>
-                    <select id="asunto" name="asunto">
-                        <option value="reservacion">Reservación</option>
-                        <option value="evento">Eventos Especiales</option>
-                        <option value="queja">Sugerencias o Quejas</option>
-                        <option value="otro">Otro</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="mensaje">Mensaje</label>
-                    <textarea id="mensaje" name="mensaje" rows="5" placeholder="¿En qué podemos ayudarte?"
-                        required></textarea>
-                </div>
-
-                <button type="submit" class="submit-button button-effect">
-                    ENVIAR MENSAJE
-                </button>
-            </form>
-
-            <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
-                <a href="{{ social.facebook }}" target="_blank"
-                    style="width: 40px; height: 40px; border: 1px solid #4b5563; display: flex; align-items: center; justify-content: center; color: #9ca3af; transition: all 0.3s;"
-                    onmouseover="this.style.backgroundColor='#fca311'; this.style.color='black'; this.style.borderColor='#fca311';"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#9ca3af'; this.style.borderColor='#4b5563';">
-                    <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M14 8h2V6h-2c-1.66 0-3 1.34-3 3v2H9v2h2v6h2v-6h2l1-2h-3V9c0-.55.45-1 1-1z" />
-                    </svg>
-                </a>
-                <a href="{{ social.instagram }}" target="_blank"
-                    style="width: 40px; height: 40px; border: 1px solid #4b5563; display: flex; align-items: center; justify-content: center; color: #9ca3af; transition: all 0.3s;"
-                    onmouseover="this.style.backgroundColor='#fca311'; this.style.color='black'; this.style.borderColor='#fca311';"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#9ca3af'; this.style.borderColor='#4b5563';">
-                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="4" y="4" width="16" height="16" rx="4"></rect>
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <line x1="16.5" y1="7.5" x2="16.5" y2="7.5"></line>
-                    </svg>
-                </a>
-                <a href="{{ social.tiktok }}" target="_blank"
-                    style="width: 40px; height: 40px; border: 1px solid #4b5563; display: flex; align-items: center; justify-content: center; color: #9ca3af; transition: all 0.3s;"
-                    onmouseover="this.style.backgroundColor='#fca311'; this.style.color='black'; this.style.borderColor='#fca311';"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#9ca3af'; this.style.borderColor='#4b5563';">
-                    <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M16 3c.4 2.3 1.9 3.8 4 4v3c-1.7-.1-3.2-.7-4-1.6v6.6a5 5 0 1 1-5-5c.3 0 .7 0 1 .1v3.1a2 2 0 1 0 2 2V3h2z" />
-                    </svg>
-                </a>
-                <a href="{{ social.maps }}" target="_blank"
-                    style="width: 90px; height: 40px; border: 1px solid #4b5563; display: flex; align-items: center; justify-content: center; color: #9ca3af; transition: all 0.3s;"
-                    class="text-white hover:text-urban-yellow underline font-bold uppercase text-sm">
-                    Ubicación
-                </a>
-            </div>
-        </div>
-    </main>
-
-</body>
-
-</html>
+    </div>
+</div>
+{% endblock %}
