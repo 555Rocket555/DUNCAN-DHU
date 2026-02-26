@@ -9,10 +9,15 @@ def init_db():
     try:
         from app import create_app, db
         from app.models import seed_defaults
+        from flask_migrate import upgrade as flask_db_upgrade
         
         app = create_app()
         
         with app.app_context():
+            # Aplicar migraciones pendientes (altera tablas existentes)
+            flask_db_upgrade(directory="migrations")
+            print("✓ Migraciones aplicadas")
+
             # Crear todas las tablas
             db.create_all()
             print("✓ Tablas de base de datos creadas/verificadas")
