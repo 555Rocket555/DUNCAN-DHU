@@ -8,7 +8,7 @@ with app.app_context():
 
     # Crear usuario admin si no existe
     if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', email='admin@duncandhu.com', name='Administrador', role='admin')
+        admin = User(username='admin', email='admin@duncandhu.com', name='Administrador', isadmin=True)
         admin.set_password('admin123') # Cambia esto después en el panel
         db.session.add(admin)
         db.session.commit()
