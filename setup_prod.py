@@ -1,17 +1,33 @@
+import sys
+import os
+
+# Asegura que Python encuentre la carpeta 'app'
+sys.path.append(os.getcwd())
+
 from app import create_app, db
-from app.models import User
+from app.models import User, seed_defaults, seed_recipes
 
 app = create_app()
-with app.app_context():
-    print("Iniciando configuración de base de datos...")
-    db.create_all()  # Crea todas las tablas basadas en tus modelos
 
-    # Crear usuario admin si no existe
-    if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', email='admin@duncandhu.com', name='Administrador', isadmin=True)
-        admin.set_password('admin123') # Cambia esto después en el panel
-        db.session.add(admin)
-        db.session.commit()
-        print("¡Usuario Administrador creado con éxito!")
-    else:
-        print("El usuario administrador ya existe.")
+with app.app_context():
+    try:
+        print("--- Iniciando Configuración Duncan Dhu ---")
+        
+        # 1. Crea las tablas físicamente en la base de datos de Render
+        print("Creando tablas...")
+        db.create_all() 
+        
+        # 2. Usamos tus funciones de models.py para poblar todo
+        print("Poblando categorías, administrador y productos iniciales...")
+        # Esto usa 'is_admin' correctamente como lo definiste en models.py
+        seed_defaults("admin", "admin123") 
+        
+        print("Configurando recetas e inventario...")
+        seed_recipes()
+        
+        print("--- ¡Despliegue Exitoso! ---")
+        print("Puedes entrar con: admin / admin123")
+        
+    except Exception as e:
+        print(f"ERROR DURANTE EL SETUP: {e}")
+        sys.exit(1)
