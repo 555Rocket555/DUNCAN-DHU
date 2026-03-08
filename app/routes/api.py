@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
-from app.models import Product, Order
+from app.models import Product, Category, InventoryItem, Order
+from app.services import chat_service
 
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
@@ -48,3 +49,17 @@ def api_order(order_id: int):
             ],
         }
     )
+
+
+@api_bp.post("/chat")
+@login_required
+def api_chat():
+    """Endpoint para el chatbot. Recibe un JSON ``{"message": "..."}``."""
+    data = request.get_json(silent=True) or {}
+    user_message = data.get("message", "")
+
+    if not user_message.strip():
+        return jsonify({"error": "El mensaje no puede estar vacío"}), 400
+
+    result = chat_service.process_message(user_message)
+    return jsonify(result)

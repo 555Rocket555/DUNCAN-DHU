@@ -115,6 +115,7 @@ class InventoryItem(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
+    unit = db.Column(db.String(20), default="unidades")
     stock_min = db.Column(db.Integer, default=0)
     stock_current = db.Column(db.Integer, default=0)
     price = db.Column(db.Numeric(10, 2), default=0)
@@ -167,6 +168,7 @@ class OrderItem(db.Model):
 def seed_defaults(admin_username: str, admin_password: str) -> None:
     categories = [
         ("Hamburguesas", "hamburguesas"),
+        ("Hot Dogs", "hot-dogs"),
         ("Snacks", "snacks"),
         ("Postres", "postres"),
         ("Bebidas", "bebidas"),
@@ -192,20 +194,82 @@ def seed_defaults(admin_username: str, admin_password: str) -> None:
 
     db.session.commit()
 
+    # (slug, nombre, descripción, precio, image_url)
     products = [
-        ("hamburguesas", "Hamburguesa clásica", "Carne 100% res, queso y vegetales", 60),
-        ("hamburguesas", "Hamburguesa triple", "Triple carne, queso y tocino", 90),
-        ("hamburguesas", "Hamburguesa hawaiana", "Piña, jamón y queso", 85),
-        ("snacks", "Papas a la francesa", "Porción mediana", 40),
-        ("snacks", "Alitas buffalo", "6 piezas con salsa", 75),
-        ("postres", "Pay de limón", "Rebanada", 45),
-        ("postres", "Pay de moras", "Rebanada", 45),
-        ("bebidas", "Coca-cola", "355 ml", 30),
-        ("bebidas", "Sprite", "355 ml", 30),
-        ("combos", "Combo clásico", "Hamburguesa + papas + bebida", 120),
+        ("hamburguesas", "Hamburguesa clásica", "Carne 100% res, queso y vegetales", 60,
+         "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80"),
+        ("hamburguesas", "Hamburguesa triple", "Triple carne, queso y tocino", 90,
+         "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80"),
+        ("hamburguesas", "Hamburguesa hawaiana", "Piña, jamón y queso", 85,
+         "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=600&q=80"),
+        ("snacks", "Papas a la francesa", "Porción mediana", 40,
+         "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=600&q=80"),
+        ("snacks", "Alitas buffalo", "6 piezas con salsa", 75,
+         "https://images.unsplash.com/photo-1608039829572-25e8182a7554?auto=format&fit=crop&w=600&q=80"),
+        ("postres", "Pay de limón", "Rebanada", 45,
+         "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?auto=format&fit=crop&w=600&q=80"),
+        ("postres", "Pay de moras", "Rebanada", 45,
+         "https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?auto=format&fit=crop&w=600&q=80"),
+        ("bebidas", "Coca-cola", "355 ml", 30,
+         "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80"),
+        ("bebidas", "Sprite", "355 ml", 30,
+         "https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?auto=format&fit=crop&w=600&q=80"),
+        ("combos", "Combo clásico", "Hamburguesa + papas + bebida", 120,
+         "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=600&q=80"),
     ]
 
-    for slug, name, description, price in products:
+    for slug, name, description, price, image_url in products:
+        category = Category.query.filter_by(slug=slug).first()
+        if not category:
+            continue
+        existing = Product.query.filter_by(name=name, category_id=category.id).first()
+        if existing:
+            # Actualiza imagen si estaba vacía
+            if not existing.image_url:
+                existing.image_url = image_url
+        else:
+            db.session.add(
+                Product(
+                    name=name,
+                    description=description,
+                    price=price,
+                    image_url=image_url,
+                    active=True,
+                    category_id=category.id,
+                )
+            )
+
+    db.session.commit()
+
+
+def seed_extended() -> None:
+    """Añade productos gourmet extendidos. Idempotente por nombre."""
+    extended_products = [
+        # Burgers
+        ("hamburguesas", "Truffle Street", "Hamburguesa premium con aceite de trufa y rúcula", 120,
+         "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=600&q=80"),
+        ("hamburguesas", "Blue Cheese Burger", "Carne angus con queso azul y cebolla caramelizada", 115,
+         "https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=600&q=80"),
+        ("hamburguesas", "Veggie Urban", "Medallón de quinoa, aguacate y brotes frescos", 95,
+         "https://images.unsplash.com/photo-1520072959219-c595e6cdc07e?auto=format&fit=crop&w=600&q=80"),
+        # Hot Dogs
+        ("hot-dogs", "Classic Dog", "Salchicha artesanal, mostaza y cebolla crujiente", 55,
+         "https://images.unsplash.com/photo-1612392062631-94dd85fa2ddb?auto=format&fit=crop&w=600&q=80"),
+        ("hot-dogs", "Chili Cheese Dog", "Salchicha con chili con carne y queso derretido", 85,
+         "https://images.unsplash.com/photo-1619740455993-9d701c8bb7c7?auto=format&fit=crop&w=600&q=80"),
+        # Sides (Snacks)
+        ("snacks", "Truffle Fries", "Papas con aceite de trufa y parmesano", 70,
+         "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=600&q=80"),
+        ("snacks", "Onion Rings Urban", "Aros de cebolla en tempura crujiente", 65,
+         "https://images.unsplash.com/photo-1639024471283-03518883512d?auto=format&fit=crop&w=600&q=80"),
+        # Drinks
+        ("bebidas", "Limonada de Coco", "Limonada fresca con leche de coco y hierbabuena", 45,
+         "https://images.unsplash.com/photo-1621263764928-df1444c5e859?auto=format&fit=crop&w=600&q=80"),
+        ("bebidas", "Té Helado Artesanal", "Té negro con melocotón y jengibre", 40,
+         "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=600&q=80"),
+    ]
+
+    for slug, name, description, price, image_url in extended_products:
         category = Category.query.filter_by(slug=slug).first()
         if not category:
             continue
@@ -216,7 +280,7 @@ def seed_defaults(admin_username: str, admin_password: str) -> None:
                     name=name,
                     description=description,
                     price=price,
-                    image_url="",
+                    image_url=image_url,
                     active=True,
                     category_id=category.id,
                 )
@@ -231,17 +295,34 @@ def seed_recipes() -> None:
     Crea InventoryItems faltantes con stock_current=50.
     Es idempotente: no duplica registros existentes.
     """
+    # (nombre_insumo, cantidad, unidad)
     recipe_map = {
-        "Hamburguesa clásica": [("Pan", 1), ("Carne de Res", 1)],
-        "Hamburguesa triple": [("Pan", 1), ("Carne de Res", 3)],
-        "Hamburguesa hawaiana": [("Pan", 1), ("Carne de Res", 1), ("Piña", 1), ("Jamón", 1)],
-        "Papas a la francesa": [("Porción de Papas", 1)],
-        "Alitas buffalo": [("Pieza de Pollo", 6), ("Salsa Buffalo", 1)],
-        "Pay de limón": [("Rebanada de Pay", 1)],
-        "Pay de moras": [("Rebanada de Pay", 1)],
-        "Coca-cola": [("Unidad de Refresco", 1)],
-        "Sprite": [("Unidad de Refresco", 1)],
-        "Combo clásico": [("Pan", 1), ("Carne de Res", 1), ("Porción de Papas", 1), ("Unidad de Refresco", 1)],
+        # Burgers originales
+        "Hamburguesa clásica": [("Pan", 1, "pza"), ("Carne de Res", 1, "pza")],
+        "Hamburguesa triple": [("Pan", 1, "pza"), ("Carne de Res", 3, "pza")],
+        "Hamburguesa hawaiana": [("Pan", 1, "pza"), ("Carne de Res", 1, "pza"), ("Piña", 1, "rodaja"), ("Jamón", 1, "rebanada")],
+        # Burgers gourmet
+        "Truffle Street": [("Pan", 1, "pza"), ("Carne de Res", 1, "pza"), ("Trufa", 1, "g"), ("Rúcula", 1, "porción")],
+        "Blue Cheese Burger": [("Pan", 1, "pza"), ("Carne Angus", 1, "pza"), ("Queso Azul", 1, "porción"), ("Cebolla Caramelizada", 1, "porción")],
+        "Veggie Urban": [("Pan", 1, "pza"), ("Medallón de Quinoa", 1, "pza"), ("Aguacate", 1, "pza")],
+        # Hot Dogs
+        "Classic Dog": [("Pan para Hot Dog", 1, "pza"), ("Salchicha Artesanal", 1, "pza")],
+        "Chili Cheese Dog": [("Pan para Hot Dog", 1, "pza"), ("Salchicha Artesanal", 1, "pza"), ("Chili con Carne", 1, "porción"), ("Queso Cheddar", 1, "porción")],
+        # Snacks
+        "Papas a la francesa": [("Porción de Papas", 1, "porción")],
+        "Alitas buffalo": [("Pieza de Pollo", 6, "pza"), ("Salsa Buffalo", 1, "porción")],
+        "Truffle Fries": [("Porción de Papas", 1, "porción"), ("Trufa", 1, "g"), ("Parmesano", 1, "porción")],
+        "Onion Rings Urban": [("Cebolla", 2, "pza"), ("Tempura", 1, "porción")],
+        # Postres
+        "Pay de limón": [("Rebanada de Pay", 1, "pza")],
+        "Pay de moras": [("Rebanada de Pay", 1, "pza")],
+        # Bebidas
+        "Coca-cola": [("Unidad de Refresco", 1, "pza")],
+        "Sprite": [("Unidad de Refresco", 1, "pza")],
+        "Limonada de Coco": [("Limón", 2, "pza"), ("Leche de Coco", 1, "ml"), ("Hierbabuena", 1, "porción")],
+        "Té Helado Artesanal": [("Té Negro", 1, "porción"), ("Melocotón", 1, "pza"), ("Jengibre", 1, "g")],
+        # Combos
+        "Combo clásico": [("Pan", 1, "pza"), ("Carne de Res", 1, "pza"), ("Porción de Papas", 1, "porción"), ("Unidad de Refresco", 1, "pza")],
     }
 
     for product_name, ingredients in recipe_map.items():
@@ -249,11 +330,12 @@ def seed_recipes() -> None:
         if not product:
             continue
 
-        for inv_name, qty in ingredients:
+        for inv_name, qty, unit in ingredients:
             inv_item = InventoryItem.query.filter_by(name=inv_name).first()
             if not inv_item:
                 inv_item = InventoryItem(
                     name=inv_name,
+                    unit=unit,
                     stock_current=50,
                     stock_min=5,
                     active=True,

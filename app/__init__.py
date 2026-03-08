@@ -10,7 +10,7 @@ from flask import Flask  # noqa: E402
 
 from app.config import Config  # noqa: E402
 from app.extensions import db, migrate, login_manager, csrf  # noqa: E402
-from app.models import User, seed_defaults, seed_recipes  # noqa: E402
+from app.models import User, seed_defaults, seed_extended, seed_recipes  # noqa: E402
 from app.routes.public import public_bp  # noqa: E402
 from app.routes.auth import auth_bp  # noqa: E402
 from app.routes.admin import admin_bp  # noqa: E402
@@ -61,7 +61,10 @@ def create_app():
         seed_recipes()
         print("✅ Seed de recetas completado.")
 
+    @app.cli.command("seed-extended")
+    def cli_seed_extended():
+        """Add gourmet extended products to the catalog."""
+        seed_extended()
+        print("✅ Catálogo gourmet extendido completado.")
+
     return app
-
-
-app = create_app()

@@ -11,3 +11,4 @@ twilio==9.2.3
 argon2-cffi==23.1.0
 reportlab==4.2.2
 Flask-WTF==1.2.1
+cloudinary==1.40.0

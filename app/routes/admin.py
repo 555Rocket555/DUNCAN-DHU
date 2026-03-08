@@ -10,6 +10,7 @@ from reportlab.pdfgen import canvas
 
 from app.extensions import db
 from app.models import Product, Category, InventoryItem, ProductRecipe, Order, User
+import cloudinary.uploader
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -62,7 +63,19 @@ def products():
         category_id = request.form.get("category_id")
         price = request.form.get("price")
         description = request.form.get("description", "")
-        # Note: 'active' defaults to True for new products
+
+        # Detección y subida de imagen a Cloudinary
+        file = request.files.get("image_file")
+        image_url = ""
+        if file and file.filename:
+            print(f"📸 Archivo detectado: {file.filename}")
+            try:
+                upload_result = cloudinary.uploader.upload(file)
+                image_url = upload_result.get("secure_url", "")
+                print(f"✅ Imagen subida: {image_url}")
+            except Exception as e:
+                print(f"❌ Error al subir imagen: {e}")
+                flash(f"Error al subir imagen: {str(e)}", "error")
         
         try:
             product = Product(
@@ -70,6 +83,7 @@ def products():
                 category_id=category_id if category_id else None,
                 price=Decimal(price or 0),
                 description=description,
+                image_url=image_url,
                 active=True,
             )
             db.session.add(product)
@@ -100,6 +114,18 @@ def product_edit(product_id: int):
         product.category_id = category_id if category_id else None
         product.price = Decimal(request.form.get("price") or 0)
         product.description = request.form.get("description", "")
+
+        # Detección y subida de imagen a Cloudinary
+        file = request.files.get("image_file")
+        if file and file.filename:
+            print(f"📸 Archivo detectado (edición): {file.filename}")
+            try:
+                upload_result = cloudinary.uploader.upload(file)
+                product.image_url = upload_result.get("secure_url", "")
+                print(f"✅ Imagen actualizada: {product.image_url}")
+            except Exception as e:
+                print(f"❌ Error al subir imagen: {e}")
+                flash(f"Error al subir imagen: {str(e)}", "error")
         
         db.session.commit()
         flash("Producto actualizado correctamente", "success")
@@ -296,7 +322,7 @@ def orders():
         "listos": len([o for o in orders if o.status == "listo"]),
         "completados": len([o for o in orders if o.status == "completado"]),
     }
-    return render_template("admin-órdenes.html", orders=orders, stats=stats)
+    return render_template("admin-ordenes.html", orders=orders, stats=stats)
 
 
 @admin_bp.route("/ordenes/<int:order_id>/eliminar", methods=["POST"])

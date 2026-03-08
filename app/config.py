@@ -1,6 +1,8 @@
 import os
 from datetime import timedelta
 
+import cloudinary
+
 
 class Config:
     # ── Seguridad ──────────────────────────────────────────────────────────
@@ -20,11 +22,16 @@ class Config:
     REMEMBER_COOKIE_REFRESH_EACH_REQUEST = True
 
     # ── MercadoPago ────────────────────────────────────────────────────────
-    MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN", "")
+    MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "")
     MP_PUBLIC_KEY = os.getenv("MP_PUBLIC_KEY", "")
     MP_WEBHOOK_SECRET = os.getenv("MP_WEBHOOK_SECRET", "")
 
     BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")
+
+    # ── Cloudinary ─────────────────────────────────────────────────────────
+    CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME", "ddxqkjdnp")
+    CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY", "661358564123437")
+    CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET", "")
 
     # ── Email / SMTP ──────────────────────────────────────────────────────
     SMTP_HOST = os.getenv("SMTP_HOST", "")
@@ -54,3 +61,12 @@ class Config:
     # ── Admin seed ────────────────────────────────────────────────────────
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+
+
+# ── Inicialización global de Cloudinary ───────────────────────────────────
+cloudinary.config(
+    cloud_name=Config.CLOUDINARY_CLOUD_NAME,
+    api_key=Config.CLOUDINARY_API_KEY,
+    api_secret=Config.CLOUDINARY_API_SECRET,
+    secure=True,
+)

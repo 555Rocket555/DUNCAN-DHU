@@ -145,7 +145,7 @@
         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-urban-black border border-urban-yellow p-8 shadow-2xl">
         <h3 class="font-oswald text-2xl text-urban-yellow uppercase mb-6">Agregar Nuevo Producto</h3>
 
-        <form action="{{ url_for('admin.products') }}" method="post" class="space-y-4">
+        <form action="{{ url_for('admin.products') }}" method="post" enctype="multipart/form-data" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del producto</label>
@@ -174,10 +174,10 @@
             </div>
 
             <div>
-                <label class="block font-oswald text-white uppercase text-sm mb-1">Stock Inicial</label>
-                <input type="number" name="stock"
-                    class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo"
-                    placeholder="0" required>
+                <label class="block font-oswald text-white uppercase text-sm mb-1">Imagen del Producto</label>
+                <input type="file" name="image_file" id="image_file" accept="image/*"
+                    class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-urban-yellow font-archivo file:mr-4 file:py-1 file:px-3 file:border-0 file:bg-urban-yellow file:text-black file:font-oswald file:uppercase file:text-xs file:cursor-pointer hover:file:bg-white">
+                <p class="text-gray-500 text-xs mt-1 font-archivo">Formatos permitidos: JPG, PNG. Máx 2MB</p>
             </div>
 
             <div>
@@ -238,7 +238,7 @@
         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-urban-black border border-blue-500 p-8 shadow-2xl">
         <h3 class="font-oswald text-2xl text-blue-500 uppercase mb-6">Editar Producto</h3>
 
-        <form action="" method="post" class="space-y-4">
+        <form action="" method="post" enctype="multipart/form-data" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block font-oswald text-white uppercase text-sm mb-1">Nombre del producto</label>
@@ -270,6 +270,13 @@
                 <label class="block font-oswald text-white uppercase text-sm mb-1">Descripción</label>
                 <textarea name="description" rows="3"
                     class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-blue-500 font-archivo"></textarea>
+            </div>
+
+            <div>
+                <label class="block font-oswald text-white uppercase text-sm mb-1">Imagen del Producto</label>
+                <input type="file" name="image_file" accept="image/*"
+                    class="w-full bg-white/5 border border-white/20 text-white px-4 py-2 focus:outline-none focus:border-blue-500 font-archivo file:mr-4 file:py-1 file:px-3 file:border-0 file:bg-blue-600 file:text-white file:font-oswald file:uppercase file:text-xs file:cursor-pointer hover:file:bg-blue-700">
+                <p class="text-gray-500 text-xs mt-1 font-archivo">Formatos permitidos: JPG, PNG. Máx 2MB</p>
             </div>
 
             <div class="flex justify-end gap-3 mt-6">

@@ -146,7 +146,7 @@ def category(slug: str):
 def cart():
     items, total = _cart_items()
     return render_template(
-        "carrito de compras-usuarios.html",
+        "carrito-compras-usuarios.html",
         cart_items=items,
         total=total,
     )
@@ -200,13 +200,13 @@ def checkout():
         flash("Inicia sesión para continuar con el pago", "error")
         return redirect(url_for("auth.login", next=url_for("public.checkout")))
     return render_template(
-        "método de pago-usuarios.html",
+        "metodo-pago-usuarios.html",
         cart_items=items,
         total=total,
     )
 
 
-@public_bp.route("/checkout/efectivo", methods=["POST", "GET"])
+@public_bp.route("/checkout/efectivo", methods=["POST"])
 def checkout_cash():
     items, total = _cart_items()
     if not items:
