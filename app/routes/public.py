@@ -59,8 +59,6 @@ def _cart_items():
 # ---------------------------------------------------------------------------
 @public_bp.route("/")
 def home():
-    if current_user.is_authenticated and current_user.is_admin:
-        return redirect(url_for("admin.dashboard"))
     popular_products = Product.query.filter_by(active=True).limit(4).all()
     categories = Category.query.all()
     return render_template(

@@ -57,7 +57,11 @@
                 </div>
 
                 <!-- Admin Action -->
-                <div class="hidden md:block">
+                <div class="hidden md:flex items-center gap-3">
+                    <a href="{{ url_for('public.home') }}"
+                        class="font-oswald py-2 px-4 text-sm uppercase bg-urban-yellow/10 border border-urban-yellow/40 text-urban-yellow hover:bg-urban-yellow hover:text-black transition-colors duration-300">
+                        🌐 Ver Sitio Público
+                    </a>
                     <a href="{{ url_for('auth.logout') }}"
                         class="urban-btn-secondary py-2 px-4 text-sm uppercase">Cerrar Sesión</a>
                 </div>
@@ -99,6 +103,9 @@
                     class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Usuarios</a>
 
                 <div class="border-t border-gray-700 w-24 mx-auto my-4"></div>
+
+                <a href="{{ url_for('public.home') }}"
+                    class="font-oswald text-2xl text-urban-yellow hover:text-white uppercase">🌐 Ver Sitio Público</a>
 
                 <a href="{{ url_for('auth.logout') }}"
                     class="font-oswald text-2xl text-urban-red hover:underline uppercase">Cerrar Sesión</a>
@@ -177,6 +184,18 @@
                             d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                     Usuarios
+                </a>
+
+                <div class="border-t border-white/10 my-4"></div>
+
+                <a href="{{ url_for('public.home') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-oswald uppercase tracking-wide text-urban-yellow hover:bg-urban-yellow/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    Ver Sitio Público
                 </a>
             </nav>
         </aside>

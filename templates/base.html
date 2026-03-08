@@ -39,6 +39,39 @@
 
 <body class="flex flex-col min-h-screen bg-black text-white">
 
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    <!-- Admin Bar -->
+    <div id="admin-bar" class="fixed top-0 w-full z-50 bg-black border-b border-urban-yellow/40" style="height: 36px;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            <span
+                class="font-oswald text-xs sm:text-sm text-urban-yellow uppercase tracking-wider flex items-center gap-1 sm:gap-2">
+                📍 <span class="hidden sm:inline">Modo Administrador</span><span class="sm:hidden">Admin</span>
+            </span>
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('admin.dashboard') }}"
+                    class="font-archivo text-xs text-urban-yellow hover:text-white transition-colors uppercase tracking-wider">
+                    🏠 <span class="hidden sm:inline">Ir al Dashboard Admin</span><span
+                        class="sm:hidden">Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <style>
+        /* Offset header and content when admin bar is present */
+        #admin-bar~header {
+            top: 36px !important;
+        }
+
+        #admin-bar~main {
+            padding-top: calc(6rem + 36px) !important;
+        }
+
+        #admin-bar~main #flash-messages {
+            top: calc(6rem + 36px) !important;
+        }
+    </style>
+    {% endif %}
+
     <header class="fixed w-full z-40 bg-black/90 backdrop-blur-md border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
@@ -140,39 +173,59 @@
                 </div>
             </div>
         </div>
+    </header>
 
-        <div id="mobile-menu"
-            class="mobile-menu-overlay bg-black bg-opacity-95 backdrop-blur-md hidden fixed inset-0 z-50 flex flex-col justify-center items-center">
-            <button id="close-mobile-menu" class="absolute top-6 right-6 text-white hover:text-urban-yellow">
-                <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <!-- Mobile Menu: MUST be outside <header> to avoid its stacking context / opacity -->
+    <style>
+        #mobile-menu {
+            background-color: #000000 !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: 9999 !important;
+            opacity: 1 !important;
+        }
+    </style>
+    <div id="mobile-menu" style="display:none;">
+        <div
+            style="position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button id="close-mobile-menu"
+                style="position:absolute; top:1.5rem; right:1.5rem; padding:0.75rem; border:2px solid #FFDD00; border-radius:2px; background:#000000; cursor:pointer; color:#FFDD00;">
+                <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-            <nav class="flex flex-col space-y-6 text-center">
+            <nav
+                style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.5rem; width:100%; padding:0 2rem;">
                 <a href="{{ url_for('public.home') }}"
-                    class="font-oswald text-4xl text-white hover:text-urban-yellow uppercase">Inicio</a>
+                    class="font-oswald text-3xl font-bold text-white hover:text-urban-yellow uppercase transition-colors">Inicio</a>
                 <a href="{{ url_for('public.catalog') }}"
-                    class="font-oswald text-4xl text-white hover:text-urban-yellow uppercase">Menú Completo</a>
+                    class="font-oswald text-3xl font-bold text-white hover:text-urban-yellow uppercase transition-colors">Menú
+                    Completo</a>
                 <a href="{{ url_for('public.category', slug='hamburguesas') }}"
-                    class="font-oswald text-3xl text-gray-300 hover:text-urban-yellow uppercase">Hamburguesas</a>
+                    class="font-oswald text-2xl font-bold text-gray-300 hover:text-urban-yellow uppercase transition-colors">Hamburguesas</a>
                 <a href="{{ url_for('public.category', slug='combos') }}"
-                    class="font-oswald text-3xl text-gray-300 hover:text-urban-yellow uppercase">Combos</a>
+                    class="font-oswald text-2xl font-bold text-gray-300 hover:text-urban-yellow uppercase transition-colors">Combos</a>
 
-                <div class="border-t border-gray-700 w-24 mx-auto my-4"></div>
+                <div style="width:3rem; border-top:2px solid #FFDD00;"></div>
 
                 {% if current_user.is_authenticated %}
-                <span class="font-archivo text-xl text-urban-yellow">Hola, {{ current_user.name }}</span>
+                <span class="font-archivo text-lg" style="color:#FFDD00;">Hola, {{ current_user.name }}</span>
                 <a href="{{ url_for('public.profile') }}"
-                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Mi Perfil</a>
+                    class="font-oswald text-2xl font-bold text-white hover:text-urban-yellow uppercase transition-colors">Mi
+                    Perfil</a>
                 <a href="{{ url_for('auth.logout') }}"
-                    class="font-oswald text-2xl text-urban-red hover:underline uppercase">Cerrar Sesión</a>
+                    class="font-oswald text-2xl font-bold uppercase transition-colors" style="color:#FF3333;">Cerrar
+                    Sesión</a>
                 {% else %}
-                <a href="{{ url_for('auth.login') }}"
-                    class="font-oswald text-3xl text-white hover:text-urban-yellow uppercase">Iniciar Sesión</a>
+                <a href="{{ url_for('auth.login') }}" class="font-oswald text-3xl font-bold uppercase transition-colors"
+                    style="color:#FFDD00;">Iniciar Sesión</a>
                 {% endif %}
             </nav>
         </div>
-    </header>
+    </div>
 
     <main class="flex-grow pt-24 pb-12 w-full">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -257,61 +310,83 @@
     </footer>
 
     <script>
-        // Mobile menu toggle logic
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const closeMobileMenuBtn = document.getElementById('close-mobile-menu');
-        const mobileMenu = document.getElementById('mobile-menu');
+        // ─── Mobile Menu ─────────────────────────────────────────────────
+        (function () {
+            const openBtn = document.getElementById('mobile-menu-btn');
+            const closeBtn = document.getElementById('close-mobile-menu');
+            const menu = document.getElementById('mobile-menu');
+            if (!openBtn || !menu) return;
 
-        function toggleMenu() {
-            mobileMenu.classList.toggle('hidden');
-            if (!mobileMenu.classList.contains('hidden')) {
+            function openMenu() {
+                menu.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = 'auto';
+                // Swap hamburger → X
+                const icon = openBtn.querySelector('svg');
+                if (icon) {
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                }
             }
-        }
 
-        mobileMenuBtn.addEventListener('click', toggleMenu);
-        closeMobileMenuBtn.addEventListener('click', toggleMenu);
+            function closeMenu() {
+                menu.style.display = 'none';
+                document.body.style.overflow = '';
+                // Restore hamburger icon
+                const icon = openBtn.querySelector('svg');
+                if (icon) {
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />';
+                }
+            }
 
-        // User dropdown toggle (click-based)
-        const userMenuBtn = document.getElementById('user-menu-button');
-        const userMenuDropdown = document.getElementById('user-menu-dropdown');
+            openBtn.addEventListener('click', openMenu);
+            if (closeBtn) closeBtn.addEventListener('click', closeMenu);
 
-        if (userMenuBtn && userMenuDropdown) {
-            userMenuBtn.addEventListener('click', function (e) {
+            // Close when tapping a nav link inside the overlay
+            menu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && menu.style.display !== 'none') closeMenu();
+            });
+        })();
+
+        // ─── User Dropdown (Desktop) ───────────────────────────────────
+        (function () {
+            const btn = document.getElementById('user-menu-button');
+            const dropdown = document.getElementById('user-menu-dropdown');
+            if (!btn || !dropdown) return;
+
+            btn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                const isOpen = !userMenuDropdown.classList.contains('hidden');
-                userMenuDropdown.classList.toggle('hidden');
-                userMenuBtn.setAttribute('aria-expanded', !isOpen);
-                // Rotate the chevron
-                const chevron = userMenuBtn.querySelector('svg');
+                const isOpen = !dropdown.classList.contains('hidden');
+                dropdown.classList.toggle('hidden');
+                btn.setAttribute('aria-expanded', !isOpen);
+                const chevron = btn.querySelector('svg');
                 if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
             });
 
-            // Close on click outside
             document.addEventListener('click', function () {
-                userMenuDropdown.classList.add('hidden');
-                userMenuBtn.setAttribute('aria-expanded', 'false');
-                const chevron = userMenuBtn.querySelector('svg');
+                dropdown.classList.add('hidden');
+                btn.setAttribute('aria-expanded', 'false');
+                const chevron = btn.querySelector('svg');
                 if (chevron) chevron.style.transform = '';
             });
 
-            // Close on Escape
             document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && !userMenuDropdown.classList.contains('hidden')) {
-                    userMenuDropdown.classList.add('hidden');
-                    userMenuBtn.setAttribute('aria-expanded', 'false');
-                    userMenuBtn.focus();
-                    const chevron = userMenuBtn.querySelector('svg');
+                if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                    btn.setAttribute('aria-expanded', 'false');
+                    btn.focus();
+                    const chevron = btn.querySelector('svg');
                     if (chevron) chevron.style.transform = '';
                 }
             });
 
-            userMenuDropdown.addEventListener('click', function (e) {
+            dropdown.addEventListener('click', function (e) {
                 e.stopPropagation();
             });
-        }
+        })();
     </script>
 
     {% block extra_scripts %}{% endblock %}
