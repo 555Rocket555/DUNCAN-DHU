@@ -7,9 +7,12 @@
 <div class="min-h-[60vh] flex items-center justify-center">
     <div class="w-full max-w-md">
         <div class="text-center mb-8">
-            <h1 class="font-oswald text-4xl text-white uppercase tracking-wider">
-                Bienvenido <span class="text-urban-yellow">Back</span>
-            </h1>
+            <h1 class="font-oswald text-4xl text-urban-yellow uppercase tracking-wider">Inicia Sesión</h1>
+            <span class="urban-white"> ó </span><br>
+            <a href=" {{ url_for('auth.register') }}"
+                class="inline-block border-b-2 border-urban-yellow text-white font-oswald uppercase hover:text-urban-yellow transition-colors">
+                Regístrate Aquí.
+            </a>
         </div>
 
         <div class="bg-urban-surface border border-gray-800 p-8 urban-shadow relative overflow-hidden group">
@@ -40,10 +43,10 @@
             </form>
 
             <div class="mt-8 text-center border-t border-gray-800 pt-6">
-                <p class="font-archivo text-gray-400 text-sm mb-4">¿No tienes cuenta?</p>
-                <a href="{{ url_for('auth.register') }}"
+                <p class="font-archivo text-gray-400 text-sm mb-4">¿No recuerdas tu contraseña?</p>
+                <a href="{{ url_for('auth.forgot_password') }}"
                     class="inline-block border-b-2 border-urban-yellow text-white font-oswald uppercase hover:text-urban-yellow transition-colors">
-                    Regístrate Aquí
+                    Recuperar Contraseña.
                 </a>
             </div>
         </div>

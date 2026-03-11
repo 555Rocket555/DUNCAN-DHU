@@ -34,11 +34,14 @@ class Config:
     CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET", "")
 
     # ── Email / SMTP ──────────────────────────────────────────────────────
-    SMTP_HOST = os.getenv("SMTP_HOST", "")
+    SMTP_HOST = os.getenv("SMTP_HOST") or os.getenv("SMTP_SERVER", "")
     SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-    SMTP_USER = os.getenv("SMTP_USER", "")
+    SMTP_USER = os.getenv("SMTP_USER") or os.getenv("SMTP_USERNAME", "")
     SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-    SMTP_FROM = os.getenv("SMTP_FROM", "no-reply@duncandhu.local")
+    SMTP_FROM = (
+        os.getenv("SMTP_FROM")
+        or os.getenv("MAIL_DEFAULT_SENDER", "no-reply@duncandhu.local")
+    )
 
     # ── Twilio / WhatsApp ─────────────────────────────────────────────────
     TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")

@@ -14,7 +14,7 @@ Requiere: product (modelo Product), macros render_product_image ya importado #}
 
         <!-- Overlay Action -->
         <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post"
-            class="absolute inset-x-0 bottom-0">
+            class="absolute inset-x-0 bottom-0 ajax-add-to-cart">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             {% if product.is_available() %}
             <button type="submit"

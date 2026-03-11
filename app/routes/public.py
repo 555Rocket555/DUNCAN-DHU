@@ -7,6 +7,7 @@ import mercadopago
 from flask import (
     Blueprint,
     current_app,
+    jsonify,
     render_template,
     request,
     redirect,
@@ -152,13 +153,34 @@ def cart():
 
 @public_bp.route("/carrito/agregar/<int:product_id>", methods=["POST"])
 def add_to_cart(product_id: int):
-    product = Product.query.get_or_404(product_id)
+    # Strict AJAX detection: only the header our JS explicitly sets
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    product = Product.query.get(product_id)
+    if product is None:
+        if is_ajax:
+            return jsonify(success=False, message="Producto no encontrado"), 404
+        flash("Producto no encontrado", "error")
+        return redirect(request.referrer or url_for("public.catalog"))
+
     if not product.is_available():
+        if is_ajax:
+            return jsonify(success=False, message="Producto sin stock disponible"), 409
         flash("Producto sin stock disponible", "error")
         return redirect(request.referrer or url_for("public.catalog"))
+
     cart = _get_cart()
     cart[str(product_id)] = cart.get(str(product_id), 0) + 1
     session.modified = True
+    cart_total = sum(int(v) for v in cart.values())
+
+    if is_ajax:
+        return jsonify(
+            success=True,
+            message=f"{product.name} agregado al carrito",
+            cart_total_items=cart_total,
+        )
+
     flash("Producto agregado al carrito", "success")
     # "Pedir" button sends redirect_to=cart to go straight to cart
     if request.form.get("redirect_to") == "cart":
@@ -184,6 +206,15 @@ def update_cart():
         session.modified = True
     return redirect(url_for("public.cart"))
 
+
+@public_bp.route("/carrito/eliminar", methods=["POST"])
+def remove_from_cart():
+    product_id = request.form.get("product_id")
+    cart = _get_cart()
+    cart.pop(str(product_id), None)
+    session.modified = True
+    flash("Producto eliminado del carrito", "success")
+    return redirect(url_for("public.cart"))
 
 # ---------------------------------------------------------------------------
 # Checkout
@@ -496,41 +527,72 @@ def contact():
 def profile():
     if request.method == "POST":
         name = request.form.get("nombre", "").strip()
-        email = request.form.get("email", "").strip()
         phone = request.form.get("telefono", "").strip()
-        username = request.form.get("username", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
 
-        if not name or not email:
-            flash("Nombre y correo son obligatorios", "error")
+        if not name:
+            flash("El nombre es obligatorio", "error")
             return render_template("public/perfil.html")
-
-        # Verificar email único (si cambió)
-        if email != current_user.email:
-            from app.models import User as UserModel
-            existing = UserModel.query.filter_by(email=email).first()
-            if existing:
-                flash("Ese correo ya está registrado por otro usuario", "error")
-                return render_template("public/perfil.html")
-
-        # Verificar username único (si cambió y no está vacío)
-        if username and username != (current_user.username or ""):
-            from app.models import User as UserModel
-            existing = UserModel.query.filter_by(username=username).first()
-            if existing:
-                flash("Ese nombre de usuario ya está en uso", "error")
-                return render_template("public/perfil.html")
 
         # Validar teléfono
         if phone and (not phone.isdigit() or len(phone) != 10):
             flash("El teléfono debe tener exactamente 10 dígitos", "error")
             return render_template("public/perfil.html")
 
+        # Validar contraseña (solo si se proporcionó)
+        if new_password:
+            if len(new_password) < 6:
+                flash("La contraseña debe tener al menos 6 caracteres", "error")
+                return render_template("public/perfil.html")
+            if new_password != confirm_password:
+                flash("Las contraseñas no coinciden", "error")
+                return render_template("public/perfil.html")
+
+        # Detectar qué cambió para la notificación
+        changes = []
+        old_phone = current_user.phone or ""
+        new_phone = phone or ""
+        if old_phone != new_phone:
+            changes.append("teléfono")
+
+        # Aplicar cambios
         current_user.name = name
-        current_user.email = email
         current_user.phone = phone or None
-        current_user.username = username or current_user.email
+
+        if new_password:
+            current_user.set_password(new_password)
+            changes.append("contraseña")
+
         db.session.commit()
+
+        # Enviar correo de notificación si hubo cambios sensibles
+        if changes and current_user.email:
+            _send_profile_change_notification(
+                current_user.email, current_user.name, changes
+            )
+
         flash("Perfil actualizado correctamente", "success")
 
     return render_template("public/perfil.html")
+
+
+def _send_profile_change_notification(
+    email: str, name: str, changes: list
+) -> None:
+    """Envía un correo informativo cuando se modifican datos sensibles."""
+    campos = " y ".join(changes)
+    body = (
+        f"Hola {name},\n\n"
+        f"Te informamos que, por tu seguridad, tu perfil en Duncan Dhu "
+        f"ha sido actualizado.\n\n"
+        f"Se ha modificado tu {campos} exitosamente.\n\n"
+        f"Si tú no realizaste este cambio, contacta a soporte de inmediato.\n\n"
+        f"— Equipo Duncan Dhu 🍔"
+    )
+    try:
+        TicketService.send_email(email, "Actualización de perfil — Duncan Dhu", body)
+        logger.info("Notificación de cambio de perfil enviada a %s", email)
+    except Exception as exc:
+        logger.warning("No se pudo enviar notificación de perfil a %s: %s", email, exc)
 

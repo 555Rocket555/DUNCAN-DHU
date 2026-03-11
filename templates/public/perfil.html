@@ -37,22 +37,25 @@
                 class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600">
         </div>
 
-        <!-- Email -->
+        <!-- Email (readonly) -->
         <div>
             <label for="email" class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-2">Correo
-                Electrónico</label>
-            <input type="email" id="email" name="email" value="{{ current_user.email }}" required
-                class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600">
+                Electrónico
+                <span class="text-gray-500 text-xs normal-case ml-1">(no editable)</span>
+            </label>
+            <input type="email" id="email" name="email" value="{{ current_user.email }}" readonly
+                class="w-full bg-gray-800 border border-gray-700 text-gray-500 font-archivo px-4 py-3 cursor-not-allowed opacity-75">
         </div>
 
-        <!-- Username -->
+        <!-- Username (readonly) -->
         <div>
             <label for="username"
                 class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-2">Nombre de
-                Usuario</label>
-            <input type="text" id="username" name="username" value="{{ current_user.username or '' }}"
-                class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600"
-                placeholder="Opcional">
+                Usuario
+                <span class="text-gray-500 text-xs normal-case ml-1">(no editable)</span>
+            </label>
+            <input type="text" id="username" name="username" value="{{ current_user.username or '' }}" readonly
+                class="w-full bg-gray-800 border border-gray-700 text-gray-500 font-archivo px-4 py-3 cursor-not-allowed opacity-75">
         </div>
 
         <!-- Teléfono -->
@@ -65,6 +68,38 @@
                 placeholder="10 dígitos">
         </div>
 
+        <!-- Separador: Seguridad -->
+        <hr class="border-gray-700 my-6">
+        <h2 class="font-oswald text-xl text-urban-yellow uppercase tracking-wider">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1 -mt-1" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Seguridad
+        </h2>
+        <p class="font-archivo text-gray-500 text-sm -mt-4">Deja en blanco si no deseas cambiar tu contraseña.</p>
+
+        <!-- Nueva Contraseña -->
+        <div>
+            <label for="new_password"
+                class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-2">Nueva
+                Contraseña</label>
+            <input type="password" id="new_password" name="new_password" autocomplete="new-password"
+                class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600"
+                placeholder="Mínimo 6 caracteres">
+        </div>
+
+        <!-- Confirmar Contraseña -->
+        <div>
+            <label for="confirm_password"
+                class="block font-oswald text-sm text-urban-yellow uppercase tracking-wider mb-2">Confirmar Nueva
+                Contraseña</label>
+            <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password"
+                class="w-full bg-urban-surface border border-gray-700 text-white font-archivo px-4 py-3 focus:border-urban-yellow focus:outline-none transition-colors placeholder-gray-600"
+                placeholder="Repite la contraseña">
+        </div>
+
         <!-- Submit -->
         <div class="pt-4">
             <button type="submit" class="urban-btn w-full text-center">Guardar Cambios</button>
@@ -73,9 +108,9 @@
 
     <!-- Order History Link -->
     <div class="mt-10 text-center">
-        <a href="{{ url_for('public.catalog') }}"
+        <a href="{{ url_for('public.home') }}"
             class="font-archivo text-gray-500 hover:text-urban-yellow underline uppercase text-xs tracking-widest transition-colors">
-            ← Volver al menú
+            ← Volver al inicio
         </a>
     </div>
 </div>

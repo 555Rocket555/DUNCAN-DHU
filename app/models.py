@@ -36,11 +36,16 @@ class User(UserMixin, db.Model):
     def check_password(self, password: str) -> bool:
         try:
             return _password_hasher.verify(self.password_hash, password)
-        except VerifyMismatchError:
-            if check_password_hash(self.password_hash, password):
-                self.set_password(password)
-                db.session.commit()
-                return True
+        except (VerifyMismatchError, ValueError):
+            # Fallback: hash may be legacy werkzeug format
+            try:
+                if check_password_hash(self.password_hash, password):
+                    # Auto-migrate to argon2
+                    self.set_password(password)
+                    db.session.commit()
+                    return True
+            except (ValueError, Exception):
+                pass
         except Exception:
             return False
         return False
