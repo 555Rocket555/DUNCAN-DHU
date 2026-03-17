@@ -1,0 +1,679 @@
+<!-- =========================================================================
+     DuncanBot — Chatbot Híbrido FSM + Texto Libre
+     Arquitectura: FSM estática + Action Hooks AJAX + entrada de texto libre
+     que puente hacia ChatService en /api/chat.
+     Sync. reactiva del carrito via: window.updateBadges() de base.html.
+     ========================================================================= -->
+<div id="duncan-chatbot-widget"
+    class="fixed bottom-6 right-6 z-[9999] font-sans"
+    data-is-admin="{{ 'true' if current_user.is_authenticated and current_user.is_admin else 'false' }}"
+    data-csrf-token="{{ csrf_token() if csrf_token is defined else '' }}">
+
+    <!-- ── Ventana del Chat ─────────────────────────────────────────────── -->
+    <!--
+        FIX DEFINITIVO DE SCROLL:
+        En lugar de usar clases Tailwind que pueden tener conflictos de
+        especificidad, la ventana usa un style inline + variables CSS para
+        garantizar un contenedor flex column de altura fija.
+        El contenedor de mensajes usa height:0 + flex-grow:1 que es la
+        fórmula a prueba de fallos para activar overflow-y:auto en flex.
+    -->
+    <div id="chatbot-window"
+        class="hidden flex-col w-80 sm:w-96 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto"
+        style="display:none; flex-direction:column; height:520px; max-height:calc(100vh - 6rem); background:#ffffff;">
+
+        <!-- ── Header ── -->
+        <div class="bg-urban-black text-urban-yellow p-4 flex justify-between items-center shadow-md border-b border-urban-yellow/20"
+            style="flex-shrink:0;">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-full bg-urban-surface flex items-center justify-center border border-urban-yellow/30 shadow-inner">
+                    <svg class="w-6 h-6 text-urban-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-oswald tracking-wide font-bold text-lg leading-tight uppercase">DuncanBot</h3>
+                    <p class="text-gray-300 text-xs flex items-center gap-1 font-archivo">
+                        <span id="chatbot-status-dot"
+                            class="w-2 h-2 rounded-full bg-green-500 inline-block animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                        <span id="chatbot-role-indicator">Asistente Virtual</span>
+                    </p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="chatbot-restart-btn"
+                    class="p-1.5 rounded-lg hover:bg-urban-surface transition-colors text-gray-300 hover:text-white"
+                    title="Reiniciar chat">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                        </path>
+                    </svg>
+                </button>
+                <button id="chatbot-close-btn"
+                    class="p-1.5 rounded-lg hover:bg-urban-surface transition-colors text-gray-300 hover:text-white"
+                    title="Cerrar chat">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Área de Conversación (Scrollable) ── -->
+        <!--
+            height:0 + flex-grow:1 es LA fórmula correcta para scroll en flex:
+            - flex-grow:1  → el nodo ocupa todo el espacio restante del padre
+            - height:0     → anula min-height:auto implícita de flex, permitiendo
+                             que overflow-y:auto active el scroll real.
+            - -webkit-overflow-scrolling:touch → momentum scroll en iOS Safari
+            - touch-action:pan-y → el navegador maneja el gesto vertical aquí,
+                                   sin propagar al documento padre.
+        -->
+        <div id="chatbot-messages" class="p-4 overflow-x-hidden bg-gray-50 flex flex-col gap-4 scroll-smooth"
+            style="flex-grow:1; height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior-y:contain;">
+            <!-- Mensajes inyectados dinámicamente -->
+        </div>
+
+        <!-- ── Footer: Solo campo de texto libre ── -->
+        <!-- Los botones FSM ya NO están aquí; se inyectan inline en el
+             flujo de mensajes (messagesContainer) tras cada burbuja del bot. -->
+        <div class="bg-white border-t border-gray-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]" style="flex-shrink:0;">
+
+            <!-- Campo de Texto Libre → ChatService (/api/chat) -->
+            <form id="chatbot-text-form" class="flex items-center gap-2 px-3 py-2.5">
+                <input id="chatbot-text-input" type="text" placeholder="Escribe algo…" autocomplete="off"
+                    class="flex-1 text-sm bg-gray-100 text-gray-800 placeholder-gray-400 rounded-full px-4 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-urban-yellow/60 focus:border-urban-yellow transition-all font-archivo"
+                    style="min-width:0;" />
+                <button type="submit" id="chatbot-send-btn" title="Enviar mensaje"
+                    class="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-urban-black text-urban-yellow rounded-full border border-urban-yellow hover:bg-urban-surface transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-urban-yellow/40 disabled:opacity-40 disabled:cursor-not-allowed">
+                    <!-- Misión C: rotate-90 hace que el avión apunte a la derecha (UX estándar de chat) -->
+                    <svg class="w-4 h-4 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div><!-- /chatbot-window -->
+
+    <!-- ── Botón Toggle Flotante ─────────────────────────────────────────── -->
+    <button id="chatbot-toggle-btn"
+        class="mt-4 ml-auto flex items-center justify-center w-14 h-14 bg-urban-black text-urban-yellow border-2 border-urban-yellow rounded-full shadow-lg hover:bg-urban-surface hover:scale-105 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-urban-yellow/30 z-[9999]">
+        <svg id="chatbot-toggle-icon-open" class="w-6 h-6 absolute transition-all duration-300 rotate-0 scale-100"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+            </path>
+        </svg>
+        <svg id="chatbot-toggle-icon-close"
+            class="w-6 h-6 absolute transition-all duration-300 -rotate-90 scale-0 opacity-0" fill="none"
+            stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+
+</div><!-- /duncan-chatbot-widget -->
+
+
+<script>
+    /**
+     * =========================================================================
+     * DuncanBot — Motor Híbrido FSM + Texto Libre
+     * =========================================================================
+     * Contexto de Seguridad (inyectado por Jinja2 en el servidor):
+     *   IS_ADMIN   → determina qué flow de la FSM cargar
+     *   CSRF_TOKEN → incluido en todos los POSTs
+     */
+    // Contexto de servidor leído desde data-attributes del widget (evita
+    // Jinja2 dentro de <script>, lo que confunde al linter JS del IDE).
+    const _widget    = document.getElementById('duncan-chatbot-widget');
+    const IS_ADMIN   = _widget.dataset.isAdmin === 'true';
+    const CSRF_TOKEN = _widget.dataset.csrfToken || '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // =====================================================================
+        // 1. DICCIONARIO FSM
+        // =====================================================================
+        /**
+         * Nodos estáticos → tienen `message` + `options`.
+         * Nodos dinámicos → tienen `actionHook` (AJAX). El backend devuelve
+         *   { message, options } al igual que un nodo estático.
+         */
+
+        // ── Flujo Usuario (Customer Workflow) ─────────────────────────────────
+        const userFlow = {
+            'start': {
+                message: '¡Hola! Bienvenido a Duncan Dhu 🍔 ¿En qué te puedo ayudar hoy?',
+                options: [
+                    { text: 'Ver Menú Rápido', next: 'bot_menu_hook', style: 'primary' },
+                    { text: 'Estado de mi Pedido', next: 'order_status_hook', style: 'primary' },
+                    { text: 'Información y Horarios', next: 'info_general', style: 'secondary' },
+                    { text: 'Soporte / Ayuda', next: 'help_order', style: 'outline' }
+                ]
+            },
+            'bot_menu_hook': {
+                actionHook: { url: '/api/bot/products', method: 'GET' }
+            },
+            'order_status_hook': {
+                actionHook: { url: '/api/bot/order_status', method: 'GET' }
+            },
+            'info_general': {
+                message: '🕒 **Horarios:**<br>Lunes a Domingo: 12:00 PM - 10:00 PM<br><br>📍 **Ubicación:**<br>Calle Principal #123, Centro.<br><br>¿Necesitas algo más?',
+                options: [
+                    { text: 'Regresar al Menú Principal', next: 'start', style: 'primary' },
+                    { text: 'Terminar Chat', next: 'end', style: 'outline' }
+                ]
+            },
+            'help_order': {
+                message: 'Si necesitas ayuda con un pedido u otro tema, envía un ticket de soporte.',
+                options: [
+                    { text: '🎫 Ir a Centro de Contacto', action: () => window.location.href = '/contactanos', style: 'primary', isLink: true },
+                    { text: 'Volver', next: 'start', style: 'outline' }
+                ]
+            },
+            'end': {
+                message: '¡Excelente! Quedo a tus órdenes. ¡Que disfrutes tu comida! 👋',
+                options: [
+                    { text: 'Reiniciar Conversación', next: 'start', style: 'outline' }
+                ]
+            },
+            // ── Nodos de confirmación del carrito ──
+            'cart_success': {
+                message: '¡Listo! He actualizado tu carrito. 🛒',
+                options: [
+                    { text: 'Ver más del menú', next: 'bot_menu_hook', style: 'primary' },
+                    { text: 'Volver al inicio', next: 'start', style: 'outline' }
+                ]
+            },
+            'cart_error': {
+                message: 'Hubo un problema al actualizar tu carrito. ⚠️',
+                options: [
+                    { text: 'Intentar nuevamente', next: 'bot_menu_hook', style: 'primary' },
+                    { text: 'Volver al menú', next: 'start', style: 'outline' }
+                ]
+            }
+        };
+
+        // ── Flujo Administrador (Command Center Workflow) ─────────────────────
+        const adminFlow = {
+            'start': {
+                message: '👋 **Command Center Listo**.\nBienvenido Admin, ¿Qué métricas o tareas revisarás hoy?',
+                options: [
+                    { text: '📦 Ver Pedidos Activos', next: 'admin_active_orders_hook', style: 'primary' },
+                    { text: '🔄 Cambiar Estados', next: 'admin_mutate_orders_hook', style: 'primary' },
+                    { text: '📈 Ventas del Día', next: 'admin_sales_hook', style: 'secondary' }
+                ]
+            },
+            'admin_active_orders_hook': {
+                actionHook: { url: '/admin/api/bot/admin/orders_active', method: 'GET' }
+            },
+            'admin_mutate_orders_hook': {
+                actionHook: { url: '/admin/api/bot/admin/orders_pending', method: 'GET' }
+            },
+            'admin_sales_hook': {
+                actionHook: { url: '/admin/api/bot/admin/sales_today', method: 'GET' }
+            },
+            // Alias doble para compatibilidad con backends que usen cualquier nombre
+            'admin_mutate_success': {
+                message: '✅ Estado del pedido actualizado correctamente.',
+                options: [
+                    { text: '📦 Ver Pedidos Activos', next: 'admin_active_orders_hook', style: 'primary' },
+                    { text: 'Inicio Command Center', next: 'start', style: 'outline' }
+                ]
+            },
+            'admin_mutation_success': {
+                message: '✅ Estado del pedido actualizado correctamente.',
+                options: [
+                    { text: '📦 Ver Pedidos Activos', next: 'admin_active_orders_hook', style: 'primary' },
+                    { text: 'Inicio Command Center', next: 'start', style: 'outline' }
+                ]
+            }
+        };
+
+        // =====================================================================
+        // 2. ESTADO Y REFERENCIAS DOM
+        // =====================================================================
+        const activeFlow = IS_ADMIN ? adminFlow : userFlow;
+        let currentStateId = 'start';
+        let isWindowOpen = false;
+        let currentlyRenderedOptions = [];   // Opciones visibles en pantalla
+
+        const chatWindow = document.getElementById('chatbot-window');
+        const messagesContainer = document.getElementById('chatbot-messages');
+        // actionsContainer fue eliminado del HTML (Misión A): las opciones ahora
+        // se inyectan inline dentro de messagesContainer tras cada burbuja del bot.
+        const toggleBtn = document.getElementById('chatbot-toggle-btn');
+        const closeBtn = document.getElementById('chatbot-close-btn');
+        const textForm = document.getElementById('chatbot-text-form');
+        const textInput = document.getElementById('chatbot-text-input');
+        const sendBtn = document.getElementById('chatbot-send-btn');
+
+        // Branding Admin
+        if (IS_ADMIN) {
+            document.getElementById('chatbot-role-indicator').textContent = 'Admin Protocol';
+            document.getElementById('chatbot-status-dot').classList.replace('bg-green-500', 'bg-red-500');
+            document.getElementById('chatbot-status-dot').style.boxShadow = '0 0 8px rgba(255,51,51,0.6)';
+        }
+
+        // =====================================================================
+        // 3. HELPERS DE UI
+        // =====================================================================
+        const scrollToBottom = () => {
+            // requestAnimationFrame asegura que el DOM ya pintó el nuevo mensaje
+            requestAnimationFrame(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            });
+        };
+
+        // Contener scroll de rueda dentro del área de mensajes (desktop)
+        messagesContainer.addEventListener('wheel', e => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                e.preventDefault();   // bloquear scroll horizontal
+            }
+            e.stopPropagation();
+        }, { passive: false });
+
+        // Contener scroll táctil dentro del área de mensajes (móvil / iOS)
+        messagesContainer.addEventListener('touchmove', e => {
+            e.stopPropagation();
+        }, { passive: true });
+
+        /** Añade un globo de burbuja del bot al lienzo */
+        const addBotMessage = (text) => {
+            let formatted = text.replace(/\n/g, '<br>');
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            messagesContainer.insertAdjacentHTML('beforeend', `
+                <div class="flex w-full mt-2 space-x-3 max-w-xs animate-fade-in-up">
+                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-urban-black border border-urban-yellow flex items-center justify-center">
+                        <svg class="w-5 h-5 text-urban-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="bg-white p-3 rounded-r-lg rounded-bl-lg shadow-sm border border-gray-200 text-sm text-gray-700 leading-relaxed">
+                            ${formatted}
+                        </div>
+                    </div>
+                </div>`);
+            scrollToBottom();
+        };
+
+        /** Añade un globo de burbuja del usuario al lienzo */
+        const addUserMessage = (text) => {
+            messagesContainer.insertAdjacentHTML('beforeend', `
+                <div class="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end animate-fade-in-up">
+                    <div>
+                        <div class="bg-urban-surface text-urban-yellow p-3 rounded-l-lg rounded-br-lg shadow-sm text-sm font-semibold leading-relaxed border border-urban-yellow/20">
+                            ${text}
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 border border-gray-300 flex items-center justify-center overflow-hidden">
+                        <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>`);
+            scrollToBottom();
+        };
+
+        /**
+         * Misión A: typing indicator inline en messagesContainer.
+         * Ya no usamos actionsContainer (fue eliminado del HTML).
+         * El spinner aparece como un item más del flujo de conversación.
+         */
+        let typingEl = null;
+        const setTypingIndicator = (show) => {
+            if (show) {
+                if (typingEl) return;   // evitar duplicados
+                typingEl = document.createElement('div');
+                typingEl.id = 'chatbot-typing-bubble';
+                typingEl.className = 'flex w-full mt-2 space-x-3 max-w-xs animate-fade-in-up';
+                typingEl.innerHTML = `
+                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-urban-black border border-urban-yellow flex items-center justify-center">
+                        <svg class="w-4 h-4 animate-spin text-urban-yellow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <div class="bg-white px-4 py-2.5 rounded-r-lg rounded-bl-lg shadow-sm border border-gray-200 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                    </div>`;
+                messagesContainer.appendChild(typingEl);
+                scrollToBottom();
+            } else {
+                if (typingEl) { typingEl.remove(); typingEl = null; }
+            }
+        };
+
+        /**
+         * Misión A + B: inyecta las opciones FSM directamente en el flujo de
+         * conversación, justo después del último mensaje del bot.
+         * Misión B: estilo único homogéneo Duncan Dhu para todos los botones.
+         *   – fondo blanco / borde #121212 (urban-black) / texto oscuro
+         *   – hover: fondo negro, texto amarillo (identidad de marca)
+         *   – tamaño ajustado al contenido (no ocupan todo el ancho)
+         */
+        const renderActionButtons = (optionsArray) => {
+            setTypingIndicator(false);
+            currentlyRenderedOptions = optionsArray;
+
+            // Wrapper que vivirá dentro del flujo de mensajes
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex flex-wrap gap-2 mt-3 mb-1 pl-11 animate-fade-in-up';
+            // pl-11 (44px) alinea visualmente con el texto de la burbuja del bot
+            // (evita que los botones arranquen desde el borde del avatar)
+
+            optionsArray.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                // Estilo homogéneo Duncan Dhu — Misión B
+                btn.className = [
+                    'inline-flex items-center px-3.5 py-1.5',
+                    'text-xs font-semibold font-archivo',
+                    'rounded-full border',
+                    'bg-white text-gray-800 border-gray-700',
+                    'hover:bg-urban-black hover:text-urban-yellow hover:border-urban-yellow',
+                    'transition-all duration-200 hover:scale-105',
+                    'focus:outline-none focus:ring-2 focus:ring-urban-yellow/40',
+                    'shadow-sm cursor-pointer',
+                    'animate-fade-in-up'
+                ].join(' ');
+                btn.style.animationDelay = `${index * 0.06}s`;
+                btn.textContent = opt.text;
+                btn.dataset.index = index;
+                wrapper.appendChild(btn);
+            });
+
+            messagesContainer.appendChild(wrapper);
+            scrollToBottom();
+        };
+
+        // =====================================================================
+        // 4. ACTION DISPATCHER — Motor Central de la FSM
+        // =====================================================================
+        /**
+         * Evalúa si un nodo es estático o necesita hidratación AJAX.
+         * Acepta string (id de nodo) u objeto virtual (nodo construido dinámicamente).
+         */
+        async function renderNode(nodeRef) {
+            let nodeId, nodeData;
+            if (typeof nodeRef === 'string') {
+                nodeId = nodeRef;
+                nodeData = activeFlow[nodeId];
+                currentStateId = nodeId;
+            } else {
+                nodeId = '(virtual)';
+                nodeData = nodeRef;
+                currentStateId = nodeId;
+            }
+
+            if (!nodeData) {
+                console.error(`FSM Error: Nodo '${nodeId}' inexistente.`);
+                addBotMessage('⚠️ Error interno de arquitectura FSM. Nodo no encontrado.');
+                return;
+            }
+
+            // ── Caso A: Nodo con Action Hook (AJAX) ──────────────────────────
+            if (nodeData.actionHook) {
+                setTypingIndicator(true);
+                try {
+                    const fetchOptions = {
+                        method: nodeData.actionHook.method || 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    };
+
+                    if (fetchOptions.method === 'POST') {
+                        fetchOptions.headers['Content-Type'] = 'application/json';
+                        if (CSRF_TOKEN) fetchOptions.headers['X-CSRFToken'] = CSRF_TOKEN;
+                        if (nodeData.actionHook.payload) {
+                            fetchOptions.body = JSON.stringify(nodeData.actionHook.payload);
+                        }
+                    }
+
+                    const response = await fetch(nodeData.actionHook.url, fetchOptions);
+                    if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
+
+                    const hydratedData = await response.json();
+
+                    // ── Sincronización reactiva del carrito ──────────────────
+                    // Si la respuesta incluye cart_total_items, actualizamos el
+                    // badge del navbar. updateBadges() está definida en base.html.
+                    if (hydratedData.cart_total_items !== undefined && typeof window.updateBadges === 'function') {
+                        window.updateBadges(hydratedData.cart_total_items);
+                    }
+
+                    addBotMessage(hydratedData.message || 'Respuesta del Servidor:');
+                    renderActionButtons(hydratedData.options || []);
+
+                } catch (error) {
+                    console.error('Action Hook Falló:', error);
+                    setTypingIndicator(false);
+                    addBotMessage(`🚨 **Fallo en Conexión**\nEl Action Hook del servidor falló.\nDetalle: *${error.message}*`);
+                    renderActionButtons([{ text: 'Volver a Iniciar', next: 'start', style: 'outline' }]);
+                }
+                return;
+            }
+
+            // ── Caso B: Nodo Estático (FSM pura) ─────────────────────────────
+            setTypingIndicator(true);
+            setTimeout(() => {
+                addBotMessage(nodeData.message);
+                renderActionButtons(nodeData.options || []);
+            }, 400);
+        }
+
+        // =====================================================================
+        // 5. DELEGACIÓN DE EVENTOS — Botones FSM
+        // =====================================================================
+        // Con las opciones inline, el listener escucha en messagesContainer
+        // (ancestor común de todos los wrappers de botones inyectados).
+        // El filtro por button[data-index] distingue botones FSM de otros clicks.
+        messagesContainer.addEventListener('click', async (e) => {
+            const btn = e.target.closest('button[data-index]');
+            if (!btn) return;
+
+            // Deshabilitar el wrapper completo para evitar multi-click
+            const wrapper = btn.closest('.flex.flex-wrap.gap-2');
+            if (wrapper) wrapper.querySelectorAll('button').forEach(b => b.disabled = true);
+
+            const optSelected = currentlyRenderedOptions[btn.dataset.index];
+            if (!optSelected) return;
+            addUserMessage(optSelected.text);
+
+            // ── Acción de redirección externa (isLink) ────────────────────────
+            if (optSelected.isLink && optSelected.action) {
+                if (typeof optSelected.action === 'string') {
+                    // eslint-disable-next-line no-eval
+                    eval(optSelected.action);
+                } else {
+                    optSelected.action();
+                }
+                return;
+            }
+
+            // ── Mutación rápida (POST) antes de continuar al siguiente nodo ──
+            if (optSelected.actionPayload && optSelected.mutationHookUrl) {
+                setTypingIndicator(true);
+                try {
+                    const opts = {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(optSelected.actionPayload)
+                    };
+                    if (CSRF_TOKEN) opts.headers['X-CSRFToken'] = CSRF_TOKEN;
+
+                    const resp = await fetch(optSelected.mutationHookUrl, opts);
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+
+                    const json = await resp.json();
+
+                    if (json.cart_total_items !== undefined && typeof window.updateBadges === 'function') {
+                        window.updateBadges(json.cart_total_items);
+                    }
+                    if (json.message) addBotMessage(json.message);
+
+                } catch (err) {
+                    console.error('Mutation Hook falló:', err);
+                    addBotMessage(`🚨 Error al ejecutar acción: *${err.message}*`);
+                }
+
+                if (optSelected.next) await renderNode(optSelected.next);
+
+            } else if (optSelected.next) {
+                // ── Transición clásica FSM ────────────────────────────────────
+                await renderNode(optSelected.next);
+            }
+        });
+
+        // =====================================================================
+        // 6. TEXTO LIBRE — Puente hacia ChatService (/api/chat)
+        // =====================================================================
+        /**
+         * El usuario puede escribir libremente. El mensaje va a POST /api/chat
+         * (ChatService). La respuesta { reply, status } se pinta como burbuja
+         * del bot. Esto coexiste con el FSM: los botones siguen activos mientras
+         * el usuario escribe, y el texto libre no resetea el estado FSM.
+         */
+        textForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = textInput.value.trim();
+            if (!text) return;
+
+            // 1. Pintar mensaje del usuario y limpiar input
+            addUserMessage(text);
+            textInput.value = '';
+            sendBtn.disabled = true;
+            textInput.disabled = true;
+
+            // 2. Mostrar indicador de carga en el área de acciones
+            //    (sin borrar los botones FSM para mantener el contexto)
+            const loadingEl = document.createElement('div');
+            loadingEl.id = 'chatbot-freetext-loading';
+            loadingEl.className = 'w-full flex justify-start px-2 py-1 animate-fade-in-up';
+            loadingEl.innerHTML = `
+                <div class="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-1.5 text-xs font-medium text-gray-500 border border-gray-200">
+                    <svg class="w-3 h-3 animate-spin text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>DuncanBot está escribiendo…</span>
+                </div>`;
+            messagesContainer.appendChild(loadingEl);
+            scrollToBottom();
+
+            try {
+                // 3. Llamar al ChatService con CSRF
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        ...(CSRF_TOKEN ? { 'X-CSRFToken': CSRF_TOKEN } : {})
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+
+                // 4. Quitar indicador y pintar respuesta del bot
+                const loader = document.getElementById('chatbot-freetext-loading');
+                if (loader) loader.remove();
+
+                addBotMessage(data.reply || data.message || '🤖 Sin respuesta del servidor.');
+
+            } catch (err) {
+                console.error('Free-text ChatService error:', err);
+                const loader = document.getElementById('chatbot-freetext-loading');
+                if (loader) loader.remove();
+                addBotMessage(`🚨 No pude conectar con el asistente.\n*${err.message}*`);
+            } finally {
+                sendBtn.disabled = false;
+                textInput.disabled = false;
+                textInput.focus();
+            }
+        });
+
+        // =====================================================================
+        // 7. TOGGLE DE VENTANA
+        // =====================================================================
+        const iconOpen = document.getElementById('chatbot-toggle-icon-open');
+        const iconClose = document.getElementById('chatbot-toggle-icon-close');
+
+        const toggleChat = () => {
+            isWindowOpen = !isWindowOpen;
+
+            if (isWindowOpen) {
+                // Mostrar ventana con animación
+                chatWindow.style.display = 'flex';
+                setTimeout(() => {
+                    chatWindow.classList.remove('translate-y-4', 'opacity-0');
+                    chatWindow.classList.add('translate-y-0', 'opacity-100');
+                }, 10);
+
+                iconOpen.classList.add('scale-0', 'opacity-0', 'rotate-90');
+                iconOpen.classList.remove('scale-100', 'opacity-100', 'rotate-0');
+                iconClose.classList.add('scale-100', 'opacity-100', 'rotate-0');
+                iconClose.classList.remove('scale-0', 'opacity-0', '-rotate-90');
+
+                // Arranque inicial del FSM
+                if (messagesContainer.children.length === 0) {
+                    renderNode('start');
+                }
+            } else {
+                // Ocultar ventana con animación
+                chatWindow.classList.add('translate-y-4', 'opacity-0');
+                chatWindow.classList.remove('translate-y-0', 'opacity-100');
+
+                iconOpen.classList.remove('scale-0', 'opacity-0', 'rotate-90');
+                iconOpen.classList.add('scale-100', 'opacity-100', 'rotate-0');
+                iconClose.classList.remove('scale-100', 'opacity-100', 'rotate-0');
+                iconClose.classList.add('scale-0', 'opacity-0', '-rotate-90');
+
+                setTimeout(() => {
+                    if (!isWindowOpen) chatWindow.style.display = 'none';
+                }, 300);
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleChat);
+        closeBtn.addEventListener('click', toggleChat);
+        document.getElementById('chatbot-restart-btn').addEventListener('click', () => {
+            messagesContainer.innerHTML = '';
+            renderNode('start');
+        });
+
+        // =====================================================================
+        // 8. ESTILOS AUXILIARES
+        // =====================================================================
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(12px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in-up {
+                animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+        `;
+        document.head.appendChild(style);
+
+    }); // /DOMContentLoaded
+</script>

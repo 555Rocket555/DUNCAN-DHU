@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import io
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from reportlab.lib.pagesizes import letter
@@ -513,4 +513,150 @@ def user_create():
     db.session.commit()
     flash(f"Usuario '{name}' creado exitosamente", "success")
     return redirect(url_for("admin.users_list"))
+
+
+# ---------------------------------------------------------------------------
+# API Chatbot FSM (BFF - Backend For Frontend) - Admin Command Center
+# ---------------------------------------------------------------------------
+
+@admin_bp.route("/api/bot/admin/orders_active", methods=["GET"])
+@login_required
+@admin_required
+def api_bot_admin_orders_active():
+    """
+    Action Hook FSM: Retorna un resumen de las órdenes del día que están en proceso.
+    """
+    today = datetime.now(timezone.utc).date()
+    orders = Order.query.filter(
+        db.func.date(Order.created_at) == today,
+        Order.archived == False,
+        Order.status.in_(["pendiente", "preparando", "listo"])
+    ).all()
+
+    if not orders:
+        return jsonify({
+            "message": "Actualmente no hay pedidos activos en cola. ¡Buen trabajo! 🎉",
+            "options": [
+                { "text": "Regresar al Panel", "next": "start", "style": "primary" }
+            ]
+        })
+
+    lines = []
+    for o in orders:
+        lines.append(f"• **#{o.id}** ({o.status.upper()}) - ${o.total}")
+
+    message = f"📦 Hay **{len(orders)}** pedidos activos en este momento:\n\n" + "\n".join(lines)
+
+    return jsonify({
+        "message": message,
+        "options": [
+            { "text": "Mutar Estados", "next": "admin_mutate_orders_hook", "style": "primary" },
+            { "text": "Ver en Dashboard", "action": "() => window.location.href = '/admin/ordenes'", "isLink": True, "style": "secondary" },
+            { "text": "Regresar", "next": "start", "style": "outline" }
+        ]
+    })
+
+
+@admin_bp.route("/api/bot/admin/orders_pending", methods=["GET"])
+@login_required
+@admin_required
+def api_bot_admin_orders_pending():
+    """
+    Action Hook FSM: Renderiza botones por cada orden pendiente para permitir su mutación de estado directa.
+    """
+    today = datetime.now(timezone.utc).date()
+    # Solo mostramos pedidos que pueden "avanzar" y no están terminados/listos del todo
+    orders = Order.query.filter(
+        db.func.date(Order.created_at) == today,
+        Order.archived == False,
+        Order.status.in_(["pendiente", "preparando"])
+    ).all()
+
+    if not orders:
+        return jsonify({
+            "message": "No hay pedidos pendientes de avance en este momento.",
+            "options": [
+                { "text": "Regresar", "next": "start", "style": "primary" }
+            ]
+        })
+
+    options = []
+    for o in orders:
+        next_state = "preparando" if o.status == "pendiente" else "listo"
+        options.append({
+            "text": f"Mover #{o.id} a '{next_state.upper()}'",
+            "style": "primary",
+            "mutationHookUrl": f"/admin/api/bot/admin/order/{o.id}/next_state",
+            "next": "admin_mutate_orders_hook"  # Recarga la lista para continuar mutando
+        })
+
+    options.append({ "text": "Regresar al Panel", "next": "start", "style": "outline" })
+
+    return jsonify({
+        "message": "¿Qué pedido deseas avanzar en la línea de cocina?",
+        "options": options
+    })
+
+
+@admin_bp.route("/api/bot/admin/order/<int:order_id>/next_state", methods=["POST"])
+@login_required
+@admin_required
+def api_bot_admin_order_next_state(order_id: int):
+    """
+    Action Hook Mutator: Transiciona al siguiente estado de la máquina en base de datos.
+    """
+    order = Order.query.get_or_404(order_id)
+    
+    old_status = order.status
+    if order.status == "pendiente":
+        order.status = "preparando"
+    elif order.status == "preparando":
+        order.status = "listo"
+    elif order.status == "listo":
+        order.status = "completado"
+        
+    db.session.commit()
+
+    return jsonify({
+        "message": f"✅ La orden **#{order.id}** pasó de '{old_status}' a '{order.status}'.",
+        "options": [
+            { "text": "Continuar operando", "next": "admin_mutate_orders_hook", "style": "primary" },
+            { "text": "Regresar al Panel", "next": "start", "style": "outline" }
+        ]
+    })
+
+
+@admin_bp.route("/api/bot/admin/sales_today", methods=["GET"])
+@login_required
+@admin_required
+def api_bot_admin_sales_today():
+    """
+    Action Hook FSM: Calcula las ventas del día actual.
+    """
+    today = datetime.now(timezone.utc).date()
+    revenue_today = (
+        db.session.query(db.func.coalesce(db.func.sum(Order.total), 0))
+        .filter(
+            db.func.date(Order.created_at) == today,
+            Order.status.in_(["completado", "preparando", "listo"]),
+            Order.archived == False
+        )
+        .scalar()
+    )
+    
+    orders_count = Order.query.filter(
+        db.func.date(Order.created_at) == today,
+        Order.status.in_(["completado", "preparando", "listo"]),
+        Order.archived == False
+    ).count()
+
+    message = f"📈 **Métricas Financieras del Día:**\n\nIngresos brutos: **${revenue_today}**\nTickets procesados: **{orders_count}**"
+
+    return jsonify({
+        "message": message,
+        "options": [
+            { "text": "Ir a Reportes Detallados", "action": "() => window.location.href = '/admin/reportes'", "isLink": True, "style": "primary" },
+            { "text": "Regresar al Panel", "next": "start", "style": "outline" }
+        ]
+    })
 

@@ -596,3 +596,91 @@ def _send_profile_change_notification(
     except Exception as exc:
         logger.warning("No se pudo enviar notificación de perfil a %s: %s", email, exc)
 
+# ---------------------------------------------------------------------------
+# API Chatbot FSM (BFF - Backend For Frontend)
+# ---------------------------------------------------------------------------
+
+@public_bp.route("/api/bot/products", methods=["GET"])
+def api_bot_products():
+    """
+    Action Hook FSM: Devuelve los productos activos con sus botones de 'Agregar a Carrito'.
+    """
+    products = Product.query.filter_by(active=True).limit(5).all() # Top 5 para no saturar UI
+    
+    if not products:
+        return jsonify({
+            "message": "En este momento no tenemos productos disponibles, lo siento. 😔",
+            "options": [
+                { "text": "Volver al inicio", "next": "start", "style": "outline" }
+            ]
+        })
+
+    options = []
+    for p in products:
+        options.append({
+            "text": f"🛒 {p.name} (${p.price})",
+            "style": "primary",
+            "mutationHookUrl": f"/carrito/agregar/{p.id}",
+            "actionPayload": { "redirect_to": "ajax" }, # Flag para que Backend devuelva JSON en vez de Redirect
+            "next": "bot_menu_hook" # Recarga el menú tras agregar para seguir pidiendo
+        })
+        
+    options.append({ "text": "Ver todo en el Catálogo 🍔", "action": "() => window.location.href = '/catalogo'", "isLink": True, "style": "secondary" })
+    options.append({ "text": "Volver", "next": "start", "style": "outline" })
+
+    return jsonify({
+        "message": "¡Claro! Estas son algunas de nuestras opciones más destacadas hoy:",
+        "options": options
+    })
+
+
+@public_bp.route("/api/bot/order_status", methods=["GET"])
+def api_bot_order_status():
+    """
+    Action Hook FSM: Consulta la última orden activa del current_user.
+    NO usa @login_required para evitar un redirect HTML que rompe AJAX.
+    En su lugar, hace una respuesta JSON amigable si no hay sesión.
+    """
+    if not current_user.is_authenticated:
+        return jsonify({
+            "message": "Necesitas iniciar sesión para ver el estado de tus pedidos. 🔒",
+            "options": [
+                { "text": "🔑 Iniciar Sesión", "action": "() => window.location.href = '/login'", "isLink": True, "style": "primary" },
+                { "text": "Regresar", "next": "start", "style": "outline" }
+            ]
+        }), 200
+    # Buscar última orden activa
+    order = Order.query.filter(
+        Order.user_id == current_user.id,
+        Order.archived == False,
+        Order.status != "completado",
+        Order.status != "cancelado"
+    ).order_by(Order.created_at.desc()).first()
+
+    if not order:
+        return jsonify({
+            "message": "Actualmente no tienes ningún pedido en curso con nosotros.",
+            "options": [
+                { "text": "Ver Menú Rápido", "next": "bot_menu_hook", "style": "primary" },
+                { "text": "Volver al inicio", "next": "start", "style": "outline" }
+            ]
+        })
+
+    # Mapeo visual de estados
+    status_msg = {
+        "pendiente": "Tu orden está **Pendiente de confirmación**. ⏳",
+        "preparando": "¡Estamos **Preparando** tus hamburguesas! 🔥",
+        "listo": "¡Tu pedido está **Listo** para recoger/enviar! 🚀"
+    }.get(order.status, f"Estado actual: **{order.status}**")
+
+    message = f"Encontré tu último pedido (Ticket `#{order.id}`).\nTotal: **${order.total}**\n\n{status_msg}"
+
+    return jsonify({
+        "message": message,
+        "options": [
+            { "text": "Refrescar Estado 🔄", "next": "order_status_hook", "style": "primary" },
+            { "text": "Ticket Confirmación 🧾", "action": f"() => window.location.href = '/ticket/{order.id}'", "isLink": True, "style": "secondary" },
+            { "text": "Volver", "next": "start", "style": "outline" }
+        ]
+    })
+

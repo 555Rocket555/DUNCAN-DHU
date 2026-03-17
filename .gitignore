@@ -1,16 +1,43 @@
+# Variables de Entorno y Secretos (¡CRÍTICO!)
 .env
-.venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
-instance/
+.env.local
 .env.*
-.DS_Store
-node_modules/
-.vscode/
+!.env.example
 
+# Entornos Virtuales
+venv/
+env/
+.venv/
+
+# Archivos de caché compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Base de datos local
+instance/
+*.sqlite3
+*.db
+
+# Node.js
+node_modules/
+
+# Archivos de Sistema Operativo
+.DS_Store
+Thumbs.db
+
+# Ngrok y logs
 ngrok
 ngrok.tgz
 ngrok.log
+*.log
+
+# Carpetas de Entornos IDE y Editores AI
+.vscode/
+.cursor/
+.windsurf/
+.idea/
+
+# Entorno de Reportes IA (Opcional: Descomenta si deseas versionar la documentación generada por la IA)
+# MASDO/

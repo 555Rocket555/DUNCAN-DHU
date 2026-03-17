@@ -262,6 +262,7 @@ h6 {
 }
 
 /* --- Scrollbar (Urban feel) -------------------------------- */
+/* global rules (for the whole site) */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -276,4 +277,22 @@ h6 {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #FFEE00;
+}
+
+/* chatbot-specific scrollbar so that la ventana tenga su propio scroll */
+#chatbot-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chatbot-messages::-webkit-scrollbar-track {
+    background: #f7f7f7;
+}
+
+#chatbot-messages::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+#chatbot-messages::-webkit-scrollbar-thumb:hover {
+    background: #222;
 }

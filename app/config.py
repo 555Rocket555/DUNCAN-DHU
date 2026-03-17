@@ -48,6 +48,11 @@ class Config:
     TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
     TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "")
 
+    # ── Google Gemini AI ──────────────────────────────────────────────────
+    # Obtén tu API key gratuita en: https://aistudio.google.com/app/apikey
+    # Si está vacío, ChatService cae a modo fallback sin IA.
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
     # ── Redes Sociales / Maps ─────────────────────────────────────────────
     SOCIAL_FACEBOOK = os.getenv("SOCIAL_FACEBOOK", "https://www.facebook.com/")
     SOCIAL_INSTAGRAM = os.getenv("SOCIAL_INSTAGRAM", "https://www.instagram.com/")

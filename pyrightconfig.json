@@ -1,0 +1,11 @@
+{
+  "include": ["."],
+  "extraPaths": [
+    ".",
+    "venv/Lib/site-packages"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportMissingModuleSource": false,
+  "pythonVersion": "3.11"
+}

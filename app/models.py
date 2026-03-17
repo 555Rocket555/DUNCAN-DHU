@@ -2,11 +2,11 @@ import logging
 from datetime import datetime, timezone
 from typing import List
 
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-from werkzeug.security import check_password_hash
-from flask_login import UserMixin
-from app.extensions import db
+from argon2 import PasswordHasher  # type: ignore
+from argon2.exceptions import VerifyMismatchError  # type: ignore
+from werkzeug.security import check_password_hash  # type: ignore
+from flask_login import UserMixin  # type: ignore
+from app.extensions import db  # type: ignore
 
 
 logger = logging.getLogger(__name__)
@@ -183,11 +183,11 @@ def seed_defaults(admin_username: str, admin_password: str) -> None:
     for name, slug in categories:
         exists = Category.query.filter_by(slug=slug).first()
         if not exists:
-            db.session.add(Category(name=name, slug=slug))
+            db.session.add(Category(name=name, slug=slug))  # type: ignore
 
     admin_user = User.query.filter_by(username=admin_username).first()
     if not admin_user:
-        admin_user = User(
+        admin_user = User(  # type: ignore
             username=admin_username,
             name="Administrador",
             email=f"{admin_username}@local",
@@ -234,7 +234,7 @@ def seed_defaults(admin_username: str, admin_password: str) -> None:
                 existing.image_url = image_url
         else:
             db.session.add(
-                Product(
+                Product(  # type: ignore
                     name=name,
                     description=description,
                     price=price,
@@ -281,7 +281,7 @@ def seed_extended() -> None:
         exists = Product.query.filter_by(name=name, category_id=category.id).first()
         if not exists:
             db.session.add(
-                Product(
+                Product(  # type: ignore
                     name=name,
                     description=description,
                     price=price,
@@ -338,7 +338,7 @@ def seed_recipes() -> None:
         for inv_name, qty, unit in ingredients:
             inv_item = InventoryItem.query.filter_by(name=inv_name).first()
             if not inv_item:
-                inv_item = InventoryItem(
+                inv_item = InventoryItem(  # type: ignore
                     name=inv_name,
                     unit=unit,
                     stock_current=50,
@@ -353,7 +353,7 @@ def seed_recipes() -> None:
             ).first()
             if not exists:
                 db.session.add(
-                    ProductRecipe(
+                    ProductRecipe(  # type: ignore
                         product_id=product.id,
                         inventory_item_id=inv_item.id,
                         quantity_required=qty,
