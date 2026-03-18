@@ -146,17 +146,28 @@
          *   { message, options } al igual que un nodo estático.
          */
 
-        // ── Flujo Usuario (Customer Workflow) ─────────────────────────────────
+        // ── Flujo Usuario (Customer Workflow) ──────────────────────────────────────
         const userFlow = {
             'start': {
                 message: '¡Hola! Bienvenido a Duncan Dhu 🍔 ¿En qué te puedo ayudar hoy?',
                 options: [
-                    { text: 'Ver Menú Rápido', next: 'bot_menu_hook', style: 'primary' },
+                    { text: 'Ver Menú Rápido', next: 'menu', style: 'primary' },
                     { text: 'Estado de mi Pedido', next: 'order_status_hook', style: 'primary' },
                     { text: 'Información y Horarios', next: 'info_general', style: 'secondary' },
                     { text: 'Soporte / Ayuda', next: 'help_order', style: 'outline' }
                 ]
             },
+
+            // ── Menú Rápido → categorizado Hamburguesas / Snacks / Bebidas ──
+            'menu': {
+                actionHook: { url: '/api/bot/quick_menu', method: 'GET' }
+            },
+
+            // ── Menú Post-Agregar al Carrito (¿Deseas agregar algo más?) ────
+            'post_add_menu': {
+                actionHook: { url: '/api/bot/products_post_add', method: 'GET' }
+            },
+
             'bot_menu_hook': {
                 actionHook: { url: '/api/bot/products', method: 'GET' }
             },
@@ -183,18 +194,18 @@
                     { text: 'Reiniciar Conversación', next: 'start', style: 'outline' }
                 ]
             },
-            // ── Nodos de confirmación del carrito ──
+            // ── Nodos de confirmación legacy (backup) ──
             'cart_success': {
                 message: '¡Listo! He actualizado tu carrito. 🛒',
                 options: [
-                    { text: 'Ver más del menú', next: 'bot_menu_hook', style: 'primary' },
+                    { text: 'Ver más del menú', next: 'menu', style: 'primary' },
                     { text: 'Volver al inicio', next: 'start', style: 'outline' }
                 ]
             },
             'cart_error': {
                 message: 'Hubo un problema al actualizar tu carrito. ⚠️',
                 options: [
-                    { text: 'Intentar nuevamente', next: 'bot_menu_hook', style: 'primary' },
+                    { text: 'Intentar nuevamente', next: 'menu', style: 'primary' },
                     { text: 'Volver al menú', next: 'start', style: 'outline' }
                 ]
             }
@@ -367,27 +378,27 @@
             setTypingIndicator(false);
             currentlyRenderedOptions = optionsArray;
 
-            // Wrapper que vivirá dentro del flujo de mensajes
+            // Wrapper: columna estricta (un botón por línea) en lugar de flex-wrap
             const wrapper = document.createElement('div');
-            wrapper.className = 'flex flex-wrap gap-2 mt-3 mb-1 pl-11 animate-fade-in-up';
+            wrapper.className = 'flex flex-col gap-2 w-full mt-3 mb-1 pl-11 animate-fade-in-up';
             // pl-11 (44px) alinea visualmente con el texto de la burbuja del bot
-            // (evita que los botones arranquen desde el borde del avatar)
 
             optionsArray.forEach((opt, index) => {
                 const btn = document.createElement('button');
-                // Estilo homogéneo Duncan Dhu — Misión B
+                // Estilo columna ancho completo — Duncan Dhu
                 btn.className = [
-                    'inline-flex items-center px-3.5 py-1.5',
+                    'w-full text-left justify-start',
+                    'flex items-center px-3.5 py-2',
                     'text-xs font-semibold font-archivo',
-                    'rounded-full border',
-                    'bg-white text-gray-800 border-gray-700',
+                    'rounded-lg border',
+                    'bg-white text-gray-800 border-gray-300',
                     'hover:bg-urban-black hover:text-urban-yellow hover:border-urban-yellow',
-                    'transition-all duration-200 hover:scale-105',
+                    'transition-all duration-200',
                     'focus:outline-none focus:ring-2 focus:ring-urban-yellow/40',
                     'shadow-sm cursor-pointer',
                     'animate-fade-in-up'
                 ].join(' ');
-                btn.style.animationDelay = `${index * 0.06}s`;
+                btn.style.animationDelay = `${index * 0.05}s`;
                 btn.textContent = opt.text;
                 btn.dataset.index = index;
                 wrapper.appendChild(btn);
@@ -485,7 +496,7 @@
             if (!btn) return;
 
             // Deshabilitar el wrapper completo para evitar multi-click
-            const wrapper = btn.closest('.flex.flex-wrap.gap-2');
+            const wrapper = btn.closest('.flex.flex-col.gap-2, .flex.flex-wrap.gap-2');
             if (wrapper) wrapper.querySelectorAll('button').forEach(b => b.disabled = true);
 
             const optSelected = currentlyRenderedOptions[btn.dataset.index];
@@ -493,10 +504,16 @@
             addUserMessage(optSelected.text);
 
             // ── Acción de redirección externa (isLink) ────────────────────────
+            // Los botones de nav/redirect llevan `isLink: true` y `action` como
+            // string arrow-fn proveniente del backend JSON o como función nativa.
+            // BUG FIX: eval('() => ...') crea la función pero NO la invoca.
+            // Se usa (eval(str))() para evaluarla E invocarla inmediatamente.
             if (optSelected.isLink && optSelected.action) {
                 if (typeof optSelected.action === 'string') {
-                    // eslint-disable-next-line no-eval
-                    eval(optSelected.action);
+                    try { (eval(optSelected.action))(); } catch (err) {
+                        // Fallback: si la string no era una arrow-fn, ejecutarla directamente
+                        eval(optSelected.action);
+                    }
                 } else {
                     optSelected.action();
                 }
@@ -526,6 +543,7 @@
                     if (json.cart_total_items !== undefined && typeof window.updateBadges === 'function') {
                         window.updateBadges(json.cart_total_items);
                     }
+                    // Mensaje de confirmación del producto agregado
                     if (json.message) addBotMessage(json.message);
 
                 } catch (err) {
@@ -533,7 +551,18 @@
                     addBotMessage(`🚨 Error al ejecutar acción: *${err.message}*`);
                 }
 
-                if (optSelected.next) await renderNode(optSelected.next);
+                // ── PAUSA ANTES DE POST_ADD_MENU ──────────────────────────────
+                // Tras mostrar la confirmación del bot, esperamos 1500ms con
+                // el typing indicator activo antes de mostrar el siguiente nodo.
+                // Esto evita que las opciones aparezcan instantaneamente y da
+                // un feeling más natural de conversación.
+                if (optSelected.next) {
+                    setTypingIndicator(true);
+                    setTimeout(async () => {
+                        setTypingIndicator(false);
+                        await renderNode(optSelected.next);
+                    }, 1500);
+                }
 
             } else if (optSelected.next) {
                 // ── Transición clásica FSM ────────────────────────────────────

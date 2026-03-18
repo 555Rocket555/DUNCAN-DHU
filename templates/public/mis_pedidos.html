@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Duncan Dhu - Mis Pedidos{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4">
+
+    {# ── Page Header ──────────────────────────────────────────────────── #}
+    <div class="text-center mb-10">
+        <h1 class="font-oswald text-4xl sm:text-5xl uppercase text-white">
+            Mis <span class="text-urban-yellow">Pedidos</span>
+        </h1>
+        <p class="font-archivo text-gray-400 mt-2 border-b border-urban-yellow pb-4 inline-block w-full">
+            Historial completo de tus órdenes
+        </p>
+    </div>
+
+    {% if not orders %}
+    {# ── Empty State ──────────────────────────────────────────────────── #}
+    <div class="text-center py-20 border border-dashed border-gray-700">
+        <span class="text-5xl">🍔</span>
+        <p class="font-oswald text-2xl text-gray-500 uppercase mt-4">Aún no tienes pedidos</p>
+        <p class="font-archivo text-gray-600 mt-2 mb-8">¡Anímate a ordenar algo, tenemos lo mejorrr!</p>
+        <a href="{{ url_for('public.catalog') }}" class="urban-btn">Ver el Menú</a>
+    </div>
+
+    {% else %}
+    {# ── Orders List ──────────────────────────────────────────────────── #}
+
+    {# — Desktop Table — #}
+    <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-sm font-archivo border border-gray-800">
+            <thead>
+                <tr class="bg-urban-yellow text-black font-oswald text-left uppercase tracking-wider">
+                    <th class="px-6 py-4"># Pedido</th>
+                    <th class="px-6 py-4">Fecha</th>
+                    <th class="px-6 py-4">Método de Pago</th>
+                    <th class="px-6 py-4 text-right">Total</th>
+                    <th class="px-6 py-4 text-center">Estado</th>
+                    <th class="px-6 py-4 text-center">Detalle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="border-t border-gray-800 hover:bg-urban-surface transition-colors">
+                    <td class="px-6 py-4 text-urban-yellow font-bold">#{{ order.id }}</td>
+                    <td class="px-6 py-4 text-gray-300">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="px-6 py-4 text-gray-400 capitalize">{{ order.payment_method or '—' }}</td>
+                    <td class="px-6 py-4 text-right text-white font-bold">${{ "%.2f"|format(order.total) }}</td>
+                    <td class="px-6 py-4 text-center">
+                        {% set status_classes = {
+                            'pendiente':   'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40',
+                            'preparando':  'bg-blue-500/20  text-blue-400  border border-blue-500/40',
+                            'listo':       'bg-green-500/20 text-green-400  border border-green-500/40',
+                            'completado':  'bg-gray-600/40  text-gray-300   border border-gray-600/40',
+                            'cancelado':   'bg-red-500/20   text-urban-red  border border-red-500/40',
+                        } %}
+                        <span class="px-3 py-1 rounded-full text-xs font-oswald uppercase {{ status_classes.get(order.status, 'bg-gray-700 text-gray-400') }}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <a href="{{ url_for('public.ticket_view', order_id=order.id) }}"
+                           class="text-urban-yellow hover:underline font-bold text-xs uppercase tracking-wider">
+                            Ver Ticket →
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# — Mobile Cards — #}
+    <div class="md:hidden space-y-4">
+        {% for order in orders %}
+        <div class="bg-urban-surface border border-gray-800 p-5">
+            <div class="flex justify-between items-start mb-3">
+                <span class="font-oswald text-urban-yellow text-xl">#{{ order.id }}</span>
+                {% set status_classes = {
+                    'pendiente':   'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40',
+                    'preparando':  'bg-blue-500/20  text-blue-400  border border-blue-500/40',
+                    'listo':       'bg-green-500/20 text-green-400  border border-green-500/40',
+                    'completado':  'bg-gray-600/40  text-gray-300   border border-gray-600/40',
+                    'cancelado':   'bg-red-500/20   text-urban-red  border border-red-500/40',
+                } %}
+                <span class="px-3 py-1 rounded-full text-xs font-oswald uppercase {{ status_classes.get(order.status, 'bg-gray-700 text-gray-400') }}">
+                    {{ order.status }}
+                </span>
+            </div>
+            <p class="font-archivo text-gray-400 text-sm">{{ order.created_at.strftime('%d/%m/%Y a las %H:%M') }}</p>
+            <p class="font-archivo text-gray-500 text-sm capitalize">Pago: {{ order.payment_method or '—' }}</p>
+            <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-700">
+                <span class="font-oswald text-white text-xl">${{ "%.2f"|format(order.total) }}</span>
+                <a href="{{ url_for('public.ticket_view', order_id=order.id) }}"
+                   class="text-urban-yellow hover:underline font-bold text-xs uppercase tracking-wider">
+                    Ver Ticket →
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {# — Summary Footer — #}
+    <div class="mt-8 text-right font-archivo text-gray-500 text-sm">
+        {{ orders|length }} pedido{{ 's' if orders|length != 1 else '' }} en total
+    </div>
+
+    {% endif %}
+
+    {# ── Navigation ───────────────────────────────────────────────────── #}
+    <div class="mt-10 flex justify-between items-center text-xs font-archivo uppercase tracking-widest">
+        <a href="{{ url_for('public.home') }}"
+           class="text-gray-500 hover:text-urban-yellow transition-colors">
+            ← Inicio
+        </a>
+        <a href="{{ url_for('public.catalog') }}"
+           class="text-urban-yellow hover:text-white transition-colors">
+            Hacer un nuevo pedido →
+        </a>
+    </div>
+
+</div>
+{% endblock %}

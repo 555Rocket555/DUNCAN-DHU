@@ -13,7 +13,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     
     <!-- Stat Card: Orders Today -->
-    <div class="bg-urban-black border border-white/10 p-6 relative group hover:border-urban-yellow transition-all duration-300">
+    <a href="{{ url_for('admin.orders') }}" class="bg-urban-black border border-white/10 p-6 relative group hover:border-urban-yellow transition-all duration-300 block cursor-pointer">
         <div class="flex justify-between items-start mb-4">
             <div>
                 <p class="font-archivo text-gray-400 text-sm uppercase tracking-wider">Órdenes Hoy</p>
@@ -28,10 +28,11 @@
         <div class="w-full bg-white/10 h-1 mt-2">
             <div class="bg-urban-yellow h-1" style="width: 70%"></div>
         </div>
-    </div>
+        <span class="absolute bottom-2 right-3 font-archivo text-xs text-urban-yellow opacity-0 group-hover:opacity-100 transition-opacity">Ver órdenes →</span>
+    </a>
 
     <!-- Stat Card: Revenue Today -->
-    <div class="bg-urban-black border border-white/10 p-6 relative group hover:border-urban-yellow transition-all duration-300">
+    <a href="{{ url_for('admin.reports') }}" class="bg-urban-black border border-white/10 p-6 relative group hover:border-green-500 transition-all duration-300 block cursor-pointer">
         <div class="flex justify-between items-start mb-4">
             <div>
                 <p class="font-archivo text-gray-400 text-sm uppercase tracking-wider">Ingresos Hoy</p>
@@ -46,10 +47,11 @@
         <div class="w-full bg-white/10 h-1 mt-2">
             <div class="bg-green-500 h-1" style="width: 55%"></div>
         </div>
-    </div>
+        <span class="absolute bottom-2 right-3 font-archivo text-xs text-green-400 opacity-0 group-hover:opacity-100 transition-opacity">Ver reportes →</span>
+    </a>
 
     <!-- Stat Card: Products -->
-    <div class="bg-urban-black border border-white/10 p-6 relative group hover:border-urban-yellow transition-all duration-300">
+    <a href="{{ url_for('admin.products') }}" class="bg-urban-black border border-white/10 p-6 relative group hover:border-blue-500 transition-all duration-300 block cursor-pointer">
         <div class="flex justify-between items-start mb-4">
             <div>
                 <p class="font-archivo text-gray-400 text-sm uppercase tracking-wider">Productos</p>
@@ -64,10 +66,11 @@
         <div class="w-full bg-white/10 h-1 mt-2">
             <div class="bg-blue-500 h-1" style="width: 100%"></div>
         </div>
-    </div>
+        <span class="absolute bottom-2 right-3 font-archivo text-xs text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">Gestionar →</span>
+    </a>
 
     <!-- Stat Card: Low Stock -->
-    <div class="bg-urban-black border border-white/10 p-6 relative group hover:border-urban-red transition-all duration-300">
+    <a href="{{ url_for('admin.inventory') }}" class="bg-urban-black border border-white/10 p-6 relative group hover:border-urban-red transition-all duration-300 block cursor-pointer">
         <div class="flex justify-between items-start mb-4">
             <div>
                 <p class="font-archivo text-gray-400 text-sm uppercase tracking-wider">Stock Bajo</p>
@@ -82,7 +85,8 @@
         <div class="w-full bg-white/10 h-1 mt-2">
             <div class="bg-urban-red h-1" style="width: {{ '100' if low_stock > 0 else '0' }}%"></div>
         </div>
-    </div>
+        <span class="absolute bottom-2 right-3 font-archivo text-xs text-urban-red opacity-0 group-hover:opacity-100 transition-opacity">Ver inventario →</span>
+    </a>
 </div>
 
 <!-- Recent Activity / Placeholder -->

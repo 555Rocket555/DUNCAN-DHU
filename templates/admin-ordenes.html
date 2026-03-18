@@ -6,44 +6,52 @@
 {% block content %}
 <div class="mb-8">
     <h1 class="font-oswald text-4xl font-bold text-white uppercase tracking-tighter mb-2">Órdenes</h1>
-    <p class="font-archivo text-gray-400">Monitoreo de pedidos en tiempo real.</p>
+    <p class="font-archivo text-gray-400">Monitoreo de pedidos en tiempo real.
+        {% if active_filter %}
+        <span class="ml-2 text-urban-yellow">— Filtrando: <strong>{{ active_filter|upper }}</strong></span>
+        <a href="{{ url_for('admin.orders') }}" class="ml-2 text-gray-500 hover:text-white text-xs underline">Limpiar filtro ✕</a>
+        {% endif %}
+    </p>
 </div>
 
-<!-- Stats Grid - Orders -->
+<!-- Stats Grid - Orders (ahora son botones de filtro) -->
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-    <div class="bg-urban-black border border-white/10 p-4 text-center">
+    <a href="{{ url_for('admin.orders') }}"
+        class="p-4 text-center transition-all border {{ 'bg-white/20 border-white' if not active_filter else 'bg-urban-black border-white/10 hover:border-white/40' }}">
         <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-1">Total</p>
         <span class="font-oswald text-2xl font-bold text-white">{{ stats.total }}</span>
-    </div>
-    <div class="bg-gray-800 border border-gray-600 p-4 text-center">
+    </a>
+    <a href="{{ url_for('admin.orders', estado='pendiente') }}"
+        class="p-4 text-center transition-all border {{ 'bg-gray-800/80 border-gray-300' if active_filter == 'pendiente' else 'bg-gray-800 border-gray-600 hover:border-gray-400' }}">
         <p class="font-archivo text-gray-400 text-xs uppercase tracking-wider mb-1">Pendientes</p>
         <span class="font-oswald text-2xl font-bold text-gray-100">{{ stats.pendientes }}</span>
-    </div>
-    <div class="bg-yellow-900/30 border border-yellow-600 p-4 text-center">
+    </a>
+    <a href="{{ url_for('admin.orders', estado='preparando') }}"
+        class="p-4 text-center transition-all border {{ 'bg-yellow-900/60 border-yellow-400' if active_filter == 'preparando' else 'bg-yellow-900/30 border-yellow-600 hover:border-yellow-400' }}">
         <p class="font-archivo text-yellow-400 text-xs uppercase tracking-wider mb-1">Preparando</p>
         <span class="font-oswald text-2xl font-bold text-yellow-500">{{ stats.preparando }}</span>
-    </div>
-    <div class="bg-blue-900/30 border border-blue-600 p-4 text-center">
+    </a>
+    <a href="{{ url_for('admin.orders', estado='listo') }}"
+        class="p-4 text-center transition-all border {{ 'bg-blue-900/60 border-blue-400' if active_filter == 'listo' else 'bg-blue-900/30 border-blue-600 hover:border-blue-400' }}">
         <p class="font-archivo text-blue-400 text-xs uppercase tracking-wider mb-1">Listos</p>
         <span class="font-oswald text-2xl font-bold text-blue-500">{{ stats.listos }}</span>
-    </div>
-    <div class="bg-green-900/30 border border-green-600 p-4 text-center">
+    </a>
+    <a href="{{ url_for('admin.orders', estado='completado') }}"
+        class="p-4 text-center transition-all border {{ 'bg-green-900/60 border-green-400' if active_filter == 'completado' else 'bg-green-900/30 border-green-600 hover:border-green-400' }}">
         <p class="font-archivo text-green-400 text-xs uppercase tracking-wider mb-1">Completados</p>
         <span class="font-oswald text-2xl font-bold text-green-500">{{ stats.completados }}</span>
-    </div>
-    <div class="bg-red-900/30 border border-red-600 p-4 text-center">
+    </a>
+    <a href="{{ url_for('admin.orders', estado='cancelado') }}"
+        class="p-4 text-center transition-all border {{ 'bg-red-900/60 border-red-400' if active_filter == 'cancelado' else 'bg-red-900/30 border-red-600 hover:border-red-400' }}">
         <p class="font-archivo text-red-400 text-xs uppercase tracking-wider mb-1">Cancelados</p>
-        <!-- Assuming cancelled stat exists or calculating it -->
-        <span class="font-oswald text-2xl font-bold text-red-500">{{ stats.total - (stats.pendientes + stats.preparando
-            + stats.listos + stats.completados) }}</span>
-    </div>
+        <span class="font-oswald text-2xl font-bold text-red-500">{{ stats.cancelados }}</span>
+    </a>
 </div>
 
 <!-- Orders History -->
 <div class="bg-urban-black border border-white/10 overflow-hidden">
     <div class="p-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
         <h3 class="font-oswald text-xl text-urban-yellow uppercase">Historial de Pedidos ({{ orders|length }})</h3>
-        <!-- Filter/Search could go here -->
     </div>
 
     <div class="overflow-x-auto">
@@ -52,8 +60,8 @@
                 <tr class="border-b border-white/10 bg-white/5">
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">ID</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Fecha</th>
-                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Cliente/Mesa</th>
-                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Productos</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Cliente</th>
+                    <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Items</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Total</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Estado</th>
                     <th class="p-4 font-oswald text-gray-400 uppercase text-sm tracking-wider">Pago</th>
@@ -66,42 +74,89 @@
                     <td class="p-4 font-mono text-urban-yellow">#{{ order.id }}</td>
                     <td class="p-4 text-sm">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td class="p-4 font-bold text-white">{{ order.user.name if order.user else 'Invitado' }}</td>
-                    <td class="p-4 text-sm">{{ order.items|length }} productos</td>
+                    <td class="p-4 text-sm">{{ order.items|length }} producto{{ 's' if order.items|length != 1 }}</td>
                     <td class="p-4 font-oswald font-bold text-white">${{ "%.2f"|format(order.total) }}</td>
+                    
+                    {# ── Inline Status Selector ──────────────────────────────── #}
                     <td class="p-4">
-                        {% set status_colors = {
-                        'pendiente': 'bg-gray-700 text-gray-300',
-                        'preparando': 'bg-yellow-900 text-yellow-300',
-                        'listo': 'bg-blue-900 text-blue-300',
-                        'completado': 'bg-green-900 text-green-300',
-                        'cancelado': 'bg-red-900 text-red-300'
-                        } %}
-                        {% set color_class = status_colors.get(order.status|lower, 'bg-gray-800 text-gray-400') %}
-                        <span
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase {{ color_class }}">
-                            {{ order.status }}
-                        </span>
+                        {% if order.status in ('completado', 'cancelado') %}
+                            {# Órdenes terminadas: solo muestra el badge estático #}
+                            {% set status_colors = {
+                                'completado': 'bg-green-900 text-green-300',
+                                'cancelado': 'bg-red-900 text-red-300'
+                            } %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase {{ status_colors.get(order.status, 'bg-gray-800 text-gray-400') }}">
+                                {{ order.status }}
+                            </span>
+                        {% else %}
+                            {# Órdenes activas: select para cambio inline #}
+                            <form action="{{ url_for('admin.order_update_status', order_id=order.id) }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <select name="status" onchange="this.form.submit()"
+                                    class="bg-urban-surface border border-gray-600 text-white text-xs font-archivo uppercase rounded px-2 py-1 focus:border-urban-yellow focus:outline-none cursor-pointer hover:border-gray-400 transition-colors">
+                                    <option value="pendiente" {{ 'selected' if order.status == 'pendiente' }}>⏳ Pendiente</option>
+                                    <option value="preparando" {{ 'selected' if order.status == 'preparando' }}>🔥 Preparando</option>
+                                    <option value="listo" {{ 'selected' if order.status == 'listo' }}>✅ Listo</option>
+                                </select>
+                            </form>
+                        {% endif %}
                     </td>
+
                     <td class="p-4 text-sm opacity-80">{{ order.payment_method }}</td>
+
+                    {# ── Action Buttons ──────────────────────────────────────── #}
                     <td class="p-4 text-right">
-                        <form action="{{ url_for('admin.order_delete', order_id=order.id) }}" method="post"
-                            class="inline" onsubmit="return confirm('¿Archivar esta orden?');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="p-2 text-urban-red hover:text-red-400 transition-colors"
-                                title="Archivar">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                </svg>
-                            </button>
-                        </form>
+                        <div class="flex items-center justify-end gap-2">
+
+                            {# Botón Completar (verde) — solo si no está terminado #}
+                            {% if order.status not in ('completado', 'cancelado') %}
+                            <form action="{{ url_for('admin.order_update_status', order_id=order.id) }}" method="post"
+                                class="inline" onsubmit="return confirm('¿Marcar orden #{{ order.id }} como COMPLETADA?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="status" value="completado">
+                                <button type="submit" title="Completar"
+                                    class="p-2 text-green-400 hover:text-green-300 hover:bg-green-900/40 rounded transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {# Botón Cancelar (rojo) — solo si no está terminado #}
+                            {% if order.status not in ('completado', 'cancelado') %}
+                            <form action="{{ url_for('admin.order_update_status', order_id=order.id) }}" method="post"
+                                class="inline" onsubmit="return confirm('¿Cancelar la orden #{{ order.id }}? Esta acción no se puede deshacer.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="status" value="cancelado">
+                                <button type="submit" title="Cancelar"
+                                    class="p-2 text-urban-red hover:text-red-400 hover:bg-red-900/40 rounded transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {# Botón Archivar (siempre visible) #}
+                            <form action="{{ url_for('admin.order_delete', order_id=order.id) }}" method="post"
+                                class="inline" onsubmit="return confirm('¿Archivar la orden #{{ order.id }}?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" title="Archivar"
+                                    class="p-2 text-gray-500 hover:text-gray-300 hover:bg-white/10 rounded transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                </button>
+                            </form>
+
+                        </div>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="p-8 text-center text-gray-500">
-                        No hay pedidos registrados en el historial.
+                    <td colspan="8" class="p-8 text-center text-gray-500">
+                        No hay pedidos {% if active_filter %}con estado "{{ active_filter }}"{% else %}registrados{% endif %}.
                     </td>
                 </tr>
                 {% endfor %}

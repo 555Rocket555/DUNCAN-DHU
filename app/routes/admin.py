@@ -314,15 +314,27 @@ def inventory_toggle(item_id: int):
 @login_required
 @admin_required
 def orders():
-    orders = Order.query.filter_by(archived=False).order_by(Order.created_at.desc()).all()
+    # Leer filtro de estado opcional
+    active_filter = request.args.get("estado", "").strip().lower() or None
+
+    # Always get ALL orders for computing stats (unarchived)
+    all_orders = Order.query.filter_by(archived=False).all()
     stats = {
-        "total": len(orders),
-        "pendientes": len([o for o in orders if o.status == "pendiente"]),
-        "preparando": len([o for o in orders if o.status == "preparando"]),
-        "listos": len([o for o in orders if o.status == "listo"]),
-        "completados": len([o for o in orders if o.status == "completado"]),
+        "total":      len(all_orders),
+        "pendientes": len([o for o in all_orders if o.status == "pendiente"]),
+        "preparando": len([o for o in all_orders if o.status == "preparando"]),
+        "listos":     len([o for o in all_orders if o.status == "listo"]),
+        "completados":len([o for o in all_orders if o.status == "completado"]),
+        "cancelados": len([o for o in all_orders if o.status == "cancelado"]),
     }
-    return render_template("admin-ordenes.html", orders=orders, stats=stats)
+
+    # Filtrar para la tabla si hay filtro activo
+    q = Order.query.filter_by(archived=False)
+    if active_filter:
+        q = q.filter_by(status=active_filter)
+    orders = q.order_by(Order.created_at.desc()).all()
+
+    return render_template("admin-ordenes.html", orders=orders, stats=stats, active_filter=active_filter)
 
 
 @admin_bp.route("/ordenes/<int:order_id>/eliminar", methods=["POST"])
@@ -333,6 +345,26 @@ def order_delete(order_id: int):
     order.archived = True
     db.session.commit()
     flash("Orden archivada correctamente", "success")
+    return redirect(url_for("admin.orders"))
+
+
+@admin_bp.route("/ordenes/<int:order_id>/status", methods=["POST"])
+@login_required
+@admin_required
+def order_update_status(order_id: int):
+    """Cambia el estado de una orden (desde el select inline o botones de acción)."""
+    valid_statuses = {"pendiente", "preparando", "listo", "completado", "cancelado"}
+    order = Order.query.get_or_404(order_id)
+    new_status = request.form.get("status", "").strip().lower()
+    if new_status not in valid_statuses:
+        flash(f"Estado '{new_status}' inválido", "error")
+        return redirect(url_for("admin.orders"))
+    old_status = order.status
+    order.status = new_status
+    db.session.commit()
+    flash(f"Orden #{order_id}: {old_status} → {new_status}", "success")
+    # Regresar al mismo filtro que estaba activo
+    active_filter = request.args.get("estado") or new_status
     return redirect(url_for("admin.orders"))
 
 

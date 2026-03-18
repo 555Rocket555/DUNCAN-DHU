@@ -50,6 +50,7 @@ class EmailService:
     def send(to_email: str, subject: str, body_text: str, body_html: str = "") -> bool:
         """
         Envía un correo vía SMTP con STARTTLS obligatorio.
+        MODO DEBUG — envío síncrono garantizado. Apto para Gunicorn/Render.
 
         Args:
             to_email: Dirección del destinatario.
@@ -60,9 +61,22 @@ class EmailService:
         Returns:
             True si se envió exitosamente, False si hubo fallo (degradación graciosa).
         """
+        import traceback  # noqa: PLC0415 – debug import
+
         cfg = EmailService._get_config()
 
+        print(
+            f"📧 [EmailService] Intentando enviar a: {to_email} | "
+            f"host={cfg['host']}:{cfg['port']} | user={cfg['user']}",
+            flush=True,
+        )
+
         if not cfg["host"] or not cfg["user"] or not cfg["password"]:
+            print(
+                "⚠️ [EmailService] SMTP no configurado — correo descartado. "
+                f"host={cfg['host']!r} user={cfg['user']!r} password={'***' if cfg['password'] else 'VACÍA'}",
+                flush=True,
+            )
             logger.warning("SMTP no configurado — correo a %s descartado", to_email)
             return False
 
@@ -80,25 +94,24 @@ class EmailService:
             msg.attach(MIMEText(body_html, "html", "utf-8"))
 
         try:
-            with smtplib.SMTP(cfg["host"], cfg["port"], timeout=10) as server:
+            # Timeout de 20s (aumentado de 10s para tolerar latencia en Render cold-start)
+            with smtplib.SMTP(cfg["host"], cfg["port"], timeout=20) as server:
                 server.ehlo()
                 server.starttls()  # Ascenso obligatorio a túnel cifrado
                 server.ehlo()
                 server.login(cfg["user"], cfg["password"])
                 server.sendmail(cfg["sender"], [to_email], msg.as_string())
+            print(f"✅ [EmailService] Correo enviado exitosamente a {to_email}", flush=True)
             logger.info("Correo enviado exitosamente a %s", to_email)
             return True
 
-        except smtplib.SMTPAuthenticationError:
-            logger.error("SMTP auth fallida — revisar SMTP_USER / SMTP_PASSWORD")
-        except smtplib.SMTPException as exc:
-            logger.error("SMTP error al enviar a %s: %s", to_email, exc)
-        except socket.timeout:
-            logger.error("SMTP timeout al conectar con %s:%s", cfg["host"], cfg["port"])
-        except OSError as exc:
-            logger.error("Error de red SMTP: %s", exc)
+        except Exception as e:
+            print(f"🚨 ERROR CRÍTICO DE CORREO: {str(e)}", flush=True)
+            traceback.print_exc()
+            logger.error("Error crítico enviando correo a %s: %s", to_email, e)
 
         return False
+
 
 
 # ── TicketService ─────────────────────────────────────────────────────────────

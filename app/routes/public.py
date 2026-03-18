@@ -522,6 +522,21 @@ def ticket_send():
 
 
 # ---------------------------------------------------------------------------
+# Mis Pedidos
+# ---------------------------------------------------------------------------
+@public_bp.route("/mis-pedidos")
+@login_required
+def mis_pedidos():
+    orders = (
+        Order.query
+        .filter_by(user_id=current_user.id, archived=False)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
+    return render_template("public/mis_pedidos.html", orders=orders)
+
+
+# ---------------------------------------------------------------------------
 # Contacto
 # ---------------------------------------------------------------------------
 @public_bp.route("/contactanos", methods=["GET", "POST"])
@@ -626,34 +641,133 @@ def _send_profile_change_notification(
 
 @public_bp.route("/api/bot/products", methods=["GET"])
 def api_bot_products():
+    """Action Hook FSM legacy — redirige al nuevo quick_menu."""
+    return api_bot_quick_menu()
+
+
+@public_bp.route("/api/bot/quick_menu", methods=["GET"])
+def api_bot_quick_menu():
     """
-    Action Hook FSM: Devuelve los productos activos con sus botones de 'Agregar a Carrito'.
+    Action Hook FSM: Menú Rápido categorizado.
+    Devuelve Hamburguesas (3), Snacks (2), Bebidas (2) con sus IDs reales de BD.
     """
-    products = Product.query.filter_by(active=True).limit(5).all() # Top 5 para no saturar UI
-    
-    if not products:
-        return jsonify({
-            "message": "En este momento no tenemos productos disponibles, lo siento. 😔",
-            "options": [
-                { "text": "Volver al inicio", "next": "start", "style": "outline" }
-            ]
-        })
+    def _get_products_by_slug(slug, limit):
+        from app.models import Category  # noqa
+        cat = Category.query.filter_by(slug=slug).first()
+        if not cat:
+            return []
+        return Product.query.filter_by(active=True, category_id=cat.id).limit(limit).all()
+
+    burgers  = _get_products_by_slug("hamburguesas", 3)
+    snacks   = _get_products_by_slug("snacks", 2)
+    bebidas  = _get_products_by_slug("bebidas", 2)
 
     options = []
-    for p in products:
+
+    # ── Hamburguesas ──────────────────────────────────────────────
+    for p in burgers:
         options.append({
-            "text": f"🛒 {p.name} (${p.price})",
+            "text": f"🍔 {p.name} — ${p.price}",
             "style": "primary",
             "mutationHookUrl": f"/carrito/agregar/{p.id}",
-            "actionPayload": { "redirect_to": "ajax" }, # Flag para que Backend devuelva JSON en vez de Redirect
-            "next": "bot_menu_hook" # Recarga el menú tras agregar para seguir pidiendo
+            "actionPayload": {"redirect_to": "ajax"},
+            "next": "post_add_menu"
         })
-        
-    options.append({ "text": "Ver todo en el Catálogo 🍔", "action": "() => window.location.href = '/catalogo'", "isLink": True, "style": "secondary" })
-    options.append({ "text": "Volver", "next": "start", "style": "outline" })
+
+    # ── Snacks ────────────────────────────────────────────────────
+    for p in snacks:
+        options.append({
+            "text": f"🍟 {p.name} — ${p.price}",
+            "style": "secondary",
+            "mutationHookUrl": f"/carrito/agregar/{p.id}",
+            "actionPayload": {"redirect_to": "ajax"},
+            "next": "post_add_menu"
+        })
+
+    # ── Bebidas ───────────────────────────────────────────────────
+    for p in bebidas:
+        options.append({
+            "text": f"🥤 {p.name} — ${p.price}",
+            "style": "secondary",
+            "mutationHookUrl": f"/carrito/agregar/{p.id}",
+            "actionPayload": {"redirect_to": "ajax"},
+            "next": "post_add_menu"
+        })
+
+    # ── Navegación ───────────────────────────────────────────────
+    options.append({
+        "text": "📖 Ver Menú Completo",
+        "action": "() => window.location.href = '/catalogo'",
+        "isLink": True,
+        "style": "outline"
+    })
+    options.append({"text": "🔙 Regresar", "next": "start", "style": "outline"})
 
     return jsonify({
-        "message": "¡Claro! Estas son algunas de nuestras opciones más destacadas hoy:",
+        "message": "Estas solo son algunas de nuestras opciones, haz click en lo que mas se te antoje y se agregará al carrito 👇",
+        "options": options
+    })
+
+
+@public_bp.route("/api/bot/products_post_add", methods=["GET"])
+def api_bot_products_post_add():
+    """
+    Action Hook FSM: Post-add menu categorizado.
+    Igual que quick_menu pero con 'Proceder al Pago' en lugar de 'Regresar'.
+    """
+    def _get_products_by_slug(slug, limit):
+        cat = Category.query.filter_by(slug=slug).first()
+        if not cat:
+            return []
+        return Product.query.filter_by(active=True, category_id=cat.id).limit(limit).all()
+
+    burgers = _get_products_by_slug("hamburguesas", 3)
+    snacks  = _get_products_by_slug("snacks", 2)
+    bebidas = _get_products_by_slug("bebidas", 2)
+
+    options = []
+
+    for p in burgers:
+        options.append({
+            "text": f"🍔 {p.name} — ${p.price}",
+            "style": "primary",
+            "mutationHookUrl": f"/carrito/agregar/{p.id}",
+            "actionPayload": {"redirect_to": "ajax"},
+            "next": "post_add_menu"
+        })
+    for p in snacks:
+        options.append({
+            "text": f"🍟 {p.name} — ${p.price}",
+            "style": "secondary",
+            "mutationHookUrl": f"/carrito/agregar/{p.id}",
+            "actionPayload": {"redirect_to": "ajax"},
+            "next": "post_add_menu"
+        })
+    for p in bebidas:
+        options.append({
+            "text": f"🥤 {p.name} — ${p.price}",
+            "style": "secondary",
+            "mutationHookUrl": f"/carrito/agregar/{p.id}",
+            "actionPayload": {"redirect_to": "ajax"},
+            "next": "post_add_menu"
+        })
+
+    options.append({
+        "text": "📖 Ver Menú Completo",
+        "action": "() => window.location.href = '/catalogo'",
+        "isLink": True,
+        "style": "outline"
+    })
+    # CTA al pago en lugar de "Regresar"
+    options.append({
+        "text": "💳 Proceder al Pago",
+        "action": "() => window.location.href = '/carrito'",
+        "isLink": True,
+        "style": "primary"
+    })
+
+    return jsonify({
+        "message": "¿Deseas agregar algo más? 🛒",
         "options": options
     })
 
