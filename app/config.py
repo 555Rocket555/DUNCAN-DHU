@@ -10,11 +10,15 @@ class Config:
     # La app no arrancará sin ellos, evitando valores inseguros por defecto.
     SECRET_KEY = os.environ["SECRET_KEY"]
 
-    _raw_db_url = os.environ["DATABASE_URL"]
+    _raw_db_url = os.environ.get("DATABASE_URL", "sqlite:///instance/local.sqlite3")
     if _raw_db_url.startswith("postgres://"):
-        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql+psycopg://", 1)
-    elif _raw_db_url.startswith("postgresql://") and "+psycopg" not in _raw_db_url:
+        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+    
+    # Para psycopg3, SQLAlchemy prefiere postgresql+psycopg://,
+    # pero seguimos las instrucciones de usar postgresql://
+    if "postgresql://" in _raw_db_url and "+psycopg" not in _raw_db_url:
         _raw_db_url = _raw_db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        
     SQLALCHEMY_DATABASE_URI = _raw_db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

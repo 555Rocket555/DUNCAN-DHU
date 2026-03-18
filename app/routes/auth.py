@@ -137,6 +137,15 @@ def register():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
+
+        # Enviar correo de bienvenida
+        try:
+            body_text = f"Hola {user.name},\n\n¡Bienvenido a Duncan Dhu! Tu cuenta ha sido creada exitosamente.\n\nPuedes iniciar sesión en: {url_for('auth.login', _external=True)}\n\n— Equipo Duncan Dhu 🍔"
+            body_html = f"<h2>Bienvenido a Duncan Dhu, {user.name}</h2><p>Tu cuenta ha sido creada exitosamente.</p><p><a href='{url_for('auth.login', _external=True)}'>Iniciar sesión</a></p>"
+            EmailService.send(user.email, "¡Bienvenido a Duncan Dhu!", body_text, body_html)
+        except Exception as e:
+            logger.error("Error enviando email de bienvenida: %s", e)
+
         flash("Registro exitoso. Ahora puedes iniciar sesión.", "success")
         return redirect(url_for("auth.login"))
 

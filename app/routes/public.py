@@ -267,6 +267,14 @@ def checkout_cash():
 
     db.session.commit()
 
+    # Correo de Creación de Orden (Efectivo)
+    try:
+        user_email = current_user.email
+        body = f"Hola {current_user.name},\n\nHemos recibido tu pedido #{order.id} por un total de ${order.total:.2f}. Tu pedido se pagará en efectivo a la entrega y está actualmente en estado '{order.status}'.\n\n— Equipo Duncan Dhu 🍔"
+        TicketService.send_email(user_email, f"Confirmación de Pedido #{order.id} — Duncan Dhu", body)
+    except Exception as e:
+        logger.error("Error enviando email confirmacion efectivo: %s", e)
+
     # Descontar stock para pago en efectivo (se confirma al crear la orden)
     try:
         InventoryService.deduct_stock(order)
@@ -316,6 +324,14 @@ def checkout_mp():
         )
 
     db.session.commit()
+
+    # Correo de Creación de Orden (MercadoPago Pendiente)
+    try:
+        user_email = current_user.email
+        body = f"Hola {current_user.name},\n\nHemos registrado tu intención de pedido #{order.id}. Por favor, completa tu pago en Mercado Pago para que podamos comenzar a prepararlo.\n\n— Equipo Duncan Dhu 🍔"
+        TicketService.send_email(user_email, f"Tu Pedido #{order.id} está pendiente de pago — Duncan Dhu", body)
+    except Exception as e:
+        logger.error("Error enviando email confirmacion MP: %s", e)
 
     try:
         preference = PaymentService.create_preference(order.id, mp_items)
@@ -441,6 +457,14 @@ def mp_webhook():
                 order.status = "completado"
                 order.mp_payment_id = str(payment_id)
                 db.session.commit()
+
+                # Correo de Confirmación de Pago y Cambio de Estado (Webhook MP)
+                try:
+                    if order.user and order.user.email:
+                        body_webhook = f"Hola {order.user.name},\n\n¡Hemos recibido tu pago de MercadoPago (Ref: {payment_id}) para el pedido #{order.id}!\n\nEl estado de tu pedido ha cambiado a: '{order.status.upper()}'. Comenzaremos a prepararlo de inmediato.\n\n— Equipo Duncan Dhu 🍔"
+                        TicketService.send_email(order.user.email, f"¡Pago exitoso para el pedido #{order.id}! — Duncan Dhu", body_webhook)
+                except Exception as e:
+                    logger.error("Error enviando email webhook MP: %s", e)
 
                 # Descuento idempotente
                 try:
