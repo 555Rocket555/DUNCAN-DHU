@@ -1,18 +1,18 @@
 """
-Servicios de mensajería: Email (SMTP) y WhatsApp (Twilio).
+Servicios de mensajería: Email (Brevo REST API) y WhatsApp (Twilio).
 
-EmailService: Servicio SMTP zero-dependency usando la librería estándar de Python.
-Aplica STARTTLS obligatorio y degradación graciosa ante fallos de red/auth.
+EmailService: Envío de correos vía API REST de Brevo (HTTPS).
+  – No usa SMTP ni puertos 25/587 (bloqueados en Render Free Tier).
+  – Requiere la variable de entorno BREVO_API_KEY.
 
 TicketService: Construcción y envío de tickets de orden.
 """
 
 import logging
-import smtplib
-import socket
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import os
+import traceback
 
+import requests
 from flask import current_app
 from twilio.rest import Client
 
@@ -20,95 +20,112 @@ from app.models import Order
 
 logger = logging.getLogger(__name__)
 
+# ── Brevo REST API ────────────────────────────────────────────────────────────
+_BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email"
+
 
 # ── EmailService ──────────────────────────────────────────────────────────────
 
 class EmailService:
     """
-    Servicio SMTP zero-dependency.
-    Responsabilidad única: construir y enviar correos vía SMTP relay.
+    Envía correos vía API REST de Brevo (no SMTP).
+    Render Free Tier bloquea el puerto 587; la API REST usa HTTPS (443).
+    Requiere la variable de entorno BREVO_API_KEY.
     """
 
     @staticmethod
-    def _get_config() -> dict:
-        """Extrae la configuración SMTP del contexto de la app."""
-        return {
-            "host": current_app.config.get("SMTP_HOST", ""),
-            "port": current_app.config.get("SMTP_PORT", 587),
-            "user": current_app.config.get("SMTP_USER", ""),
-            "password": current_app.config.get("SMTP_PASSWORD", ""),
-            "sender": current_app.config.get("SMTP_FROM", "no-reply@duncandhu.local"),
-        }
-
-    @staticmethod
     def is_configured() -> bool:
-        """Verifica si las variables SMTP mínimas están presentes."""
-        cfg = EmailService._get_config()
-        return bool(cfg["host"] and cfg["user"] and cfg["password"])
+        """True si BREVO_API_KEY está definida en el entorno."""
+        return bool(os.getenv("BREVO_API_KEY"))
 
     @staticmethod
     def send(to_email: str, subject: str, body_text: str, body_html: str = "") -> bool:
         """
-        Envía un correo vía SMTP con STARTTLS obligatorio.
-        MODO DEBUG — envío síncrono garantizado. Apto para Gunicorn/Render.
+        Envía un correo usando la API REST de Brevo.
 
         Args:
-            to_email: Dirección del destinatario.
-            subject: Asunto del correo.
-            body_text: Contenido en texto plano (obligatorio para accesibilidad).
-            body_html: Contenido HTML opcional (para clientes que lo soporten).
+            to_email:  Dirección del destinatario.
+            subject:   Asunto del correo.
+            body_text: Texto plano (fallback de accesibilidad).
+            body_html: HTML completo del correo (preferido por Brevo).
 
         Returns:
-            True si se envió exitosamente, False si hubo fallo (degradación graciosa).
+            True si la API respondió 2xx, False en cualquier otro caso.
         """
-        import traceback  # noqa: PLC0415 – debug import
-
-        cfg = EmailService._get_config()
+        api_key = os.getenv("BREVO_API_KEY", "")
+        sender_email = current_app.config.get("SMTP_FROM", "no-reply@duncandhu.com")
 
         print(
-            f"📧 [EmailService] Intentando enviar a: {to_email} | "
-            f"host={cfg['host']}:{cfg['port']} | user={cfg['user']}",
+            f"📧 [EmailService] Enviando a: {to_email} | "
+            f"sender={sender_email} | api_key={'***' if api_key else 'VACÍA'}",
             flush=True,
         )
 
-        if not cfg["host"] or not cfg["user"] or not cfg["password"]:
+        if not api_key:
             print(
-                "⚠️ [EmailService] SMTP no configurado — correo descartado. "
-                f"host={cfg['host']!r} user={cfg['user']!r} password={'***' if cfg['password'] else 'VACÍA'}",
+                "⚠️ [EmailService] BREVO_API_KEY no configurada — correo descartado.",
                 flush=True,
             )
-            logger.warning("SMTP no configurado — correo a %s descartado", to_email)
+            logger.warning("BREVO_API_KEY ausente — correo a %s descartado", to_email)
             return False
 
-        # Construir payload MIME multipart/alternative
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = cfg["sender"]
-        msg["To"] = to_email
+        payload = {
+            "sender":      {"name": "Duncan Dhu", "email": sender_email},
+            "to":          [{"email": to_email}],
+            "subject":     subject,
+            "htmlContent": body_html or f"<pre>{body_text}</pre>",
+        }
 
-        # Parte texto plano (siempre presente para accesibilidad)
-        msg.attach(MIMEText(body_text, "plain", "utf-8"))
+        # body_text como alternativa de texto plano (opcional pero recomendado)
+        if body_text:
+            payload["textContent"] = body_text
 
-        # Parte HTML opcional
-        if body_html:
-            msg.attach(MIMEText(body_html, "html", "utf-8"))
+        headers = {
+            "api-key":      api_key,
+            "Content-Type": "application/json",
+            "Accept":       "application/json",
+        }
 
         try:
-            # Timeout de 20s (aumentado de 10s para tolerar latencia en Render cold-start)
-            with smtplib.SMTP(cfg["host"], cfg["port"], timeout=20) as server:
-                server.ehlo()
-                server.starttls()  # Ascenso obligatorio a túnel cifrado
-                server.ehlo()
-                server.login(cfg["user"], cfg["password"])
-                server.sendmail(cfg["sender"], [to_email], msg.as_string())
-            print(f"✅ [EmailService] Correo enviado exitosamente a {to_email}", flush=True)
-            logger.info("Correo enviado exitosamente a %s", to_email)
-            return True
+            response = requests.post(
+                _BREVO_ENDPOINT,
+                json=payload,
+                headers=headers,
+                timeout=15,   # 15s — la API de Brevo es rápida
+            )
 
-        except Exception as e:
-            print(f"🚨 ERROR CRÍTICO DE CORREO: {str(e)}", flush=True)
+            if response.status_code in (200, 201, 202):
+                msg_id = response.json().get("messageId", "?")
+                print(
+                    f"✅ [EmailService] Correo enviado. messageId={msg_id}",
+                    flush=True,
+                )
+                logger.info("Correo enviado a %s — messageId=%s", to_email, msg_id)
+                return True
+
+            # Respuesta no-2xx → error de la API
+            print(
+                f"🚨 [EmailService] Brevo API error {response.status_code}: "
+                f"{response.text}",
+                flush=True,
+            )
+            logger.error(
+                "Brevo API %s para correo a %s: %s",
+                response.status_code, to_email, response.text,
+            )
+            return False
+
+        except requests.exceptions.Timeout:
+            print("🚨 [EmailService] Timeout al conectar con Brevo API.", flush=True)
+            logger.error("Timeout enviando correo a %s", to_email)
+        except requests.exceptions.RequestException as exc:
+            print(f"🚨 [EmailService] RequestException: {exc}", flush=True)
             traceback.print_exc()
-            logger.error("Error crítico enviando correo a %s: %s", to_email, e)
+            logger.error("RequestException enviando correo a %s: %s", to_email, exc)
+        except Exception as exc:  # noqa: BLE001
+            print(f"🚨 ERROR CRÍTICO DE CORREO: {exc}", flush=True)
+            traceback.print_exc()
+            logger.error("Error crítico enviando correo a %s: %s", to_email, exc)
 
         return False
 
