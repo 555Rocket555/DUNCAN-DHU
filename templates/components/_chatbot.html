@@ -7,6 +7,7 @@
 <div id="duncan-chatbot-widget"
     class="fixed bottom-6 right-6 z-[9999] font-sans"
     data-is-admin="{{ 'true' if current_user.is_authenticated and current_user.is_admin else 'false' }}"
+    data-is-auth="{{ 'true' if current_user.is_authenticated else 'false' }}"
     data-csrf-token="{{ csrf_token() if csrf_token is defined else '' }}">
 
     <!-- ── Ventana del Chat ─────────────────────────────────────────────── -->
@@ -133,6 +134,7 @@
     // Jinja2 dentro de <script>, lo que confunde al linter JS del IDE).
     const _widget    = document.getElementById('duncan-chatbot-widget');
     const IS_ADMIN   = _widget.dataset.isAdmin === 'true';
+    const IS_AUTH    = _widget.dataset.isAuth  === 'true';
     const CSRF_TOKEN = _widget.dataset.csrfToken || '';
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -172,6 +174,7 @@
                 actionHook: { url: '/api/bot/products', method: 'GET' }
             },
             'order_status_hook': {
+                requiresAuth: true,
                 actionHook: { url: '/api/bot/order_status', method: 'GET' }
             },
             'info_general': {
@@ -254,6 +257,35 @@
         let currentStateId = 'start';
         let isWindowOpen = false;
         let currentlyRenderedOptions = [];   // Opciones visibles en pantalla
+
+        // =====================================================================
+        // GUEST GUARD — Interceptor de peticiones sin autenticación
+        // =====================================================================
+        const _GUEST_MESSAGES = [
+            '¡Hola! Para ayudarte con tus pedidos necesito saber quién eres. ¿Puedes iniciar sesión? 😊',
+            '¡Esa función está disponible solo para usuarios registrados! Inicia sesión y volvemos a hablar. 🔐',
+            '¡Bienvenido! Para una experiencia personalizada, inicia sesión o crea una cuenta. ✨',
+            'Lo siento, mis funciones avanzadas requieren que inicies sesión. ¡Es rápido y gratis! 🚀',
+        ];
+
+        /**
+         * _guestGuard(action)
+         * Si el usuario NO está autenticado, muestra un mensaje amigable y
+         * un botón de login; NO ejecuta el action del servidor.
+         * Devuelve true si el acceso fue bloqueado, false si puede continuar.
+         */
+        const _guestGuard = (context) => {
+            if (IS_AUTH) return false;   // Usuario autenticado → dejar pasar
+
+            const msg = _GUEST_MESSAGES[Math.floor(Math.random() * _GUEST_MESSAGES.length)];
+            addBotMessage(msg);
+            renderActionButtons([
+                { text: '🔑 Iniciar Sesión', action: "() => window.location.href = '/login'", isLink: true, style: 'primary' },
+                { text: '📝 Crear Cuenta',   action: "() => window.location.href = '/registro'", isLink: true, style: 'secondary' },
+                { text: '🔙 Volver',         next: 'start', style: 'outline' }
+            ]);
+            return true;   // Bloqueado
+        };
 
         const chatWindow = document.getElementById('chatbot-window');
         const messagesContainer = document.getElementById('chatbot-messages');
@@ -435,6 +467,9 @@
 
             // ── Caso A: Nodo con Action Hook (AJAX) ──────────────────────────
             if (nodeData.actionHook) {
+                // Guard: nodos marcados como requiresAuth bloquean a invitados
+                if (nodeData.requiresAuth && _guestGuard('actionHook')) return;
+
                 setTypingIndicator(true);
                 try {
                     const fetchOptions = {
@@ -522,6 +557,9 @@
 
             // ── Mutación rápida (POST) antes de continuar al siguiente nodo ──
             if (optSelected.actionPayload && optSelected.mutationHookUrl) {
+                // Guard para mutaciones (add_to_cart): requieren sesión activa
+                if (optSelected.mutationHookUrl && _guestGuard('mutationHook')) return;
+
                 setTypingIndicator(true);
                 try {
                     const opts = {
@@ -587,6 +625,15 @@
             // 1. Pintar mensaje del usuario y limpiar input
             addUserMessage(text);
             textInput.value = '';
+
+            // Guard: texto libre requiere sesión (el endpoint /api/chat puede
+            // devolver HTML de redirect si el usuario no está autenticado)
+            if (_guestGuard('freeText')) {
+                sendBtn.disabled = false;
+                textInput.disabled = false;
+                return;
+            }
+
             sendBtn.disabled = true;
             textInput.disabled = true;
 
