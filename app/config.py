@@ -24,6 +24,8 @@ class Config:
 
     REMEMBER_COOKIE_DURATION = timedelta(days=14)
     REMEMBER_COOKIE_REFRESH_EACH_REQUEST = True
+    # Sesión expira a los 60 minutos de inactividad
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=60)
 
     # ── MercadoPago ────────────────────────────────────────────────────────
     MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "")

@@ -1,7 +1,8 @@
 import os
+from datetime import datetime, timezone, timedelta
 
 from dotenv import load_dotenv
-from flask_login import current_user
+from flask_login import current_user, logout_user
 
 # Cargar .env ANTES de importar Config, que ahora exige SECRET_KEY y DATABASE_URL.
 load_dotenv()
@@ -37,6 +38,33 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(api_bp)
+
+    from flask import flash, redirect, session, url_for  # noqa: F401 – runtime import inside factory
+
+    _SESSION_TIMEOUT = timedelta(minutes=60)
+
+    @app.before_request
+    def enforce_session_timeout():
+        """
+        Cierra la sesión del usuario si lleva más de 60 min sin actividad.
+        Se ejecuta antes de CADA petición autenticada.
+        """
+        if current_user.is_authenticated:
+            last = session.get("last_active")
+            now = datetime.now(timezone.utc)
+            if last:
+                # last puede llegar como string ISO si el serializer de Flask lo convirtió
+                if isinstance(last, str):
+                    try:
+                        last = datetime.fromisoformat(last)
+                    except ValueError:
+                        last = None
+                if last and (now - last) > _SESSION_TIMEOUT:
+                    logout_user()
+                    session.clear()
+                    flash("Tu sesión ha expirado por inactividad. Por favor, inicia sesión nuevamente.", "warning")
+                    return redirect(url_for("auth.login"))
+            session["last_active"] = now.isoformat()
 
     @app.after_request
     def add_no_cache_headers(response):

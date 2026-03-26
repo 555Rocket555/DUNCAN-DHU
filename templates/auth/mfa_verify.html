@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Duncan Dhu - Verificación de Acceso Admin{% endblock %}
+
+{% block content %}
+
+<div class="min-h-[60vh] flex items-center justify-center">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="font-oswald text-4xl text-urban-yellow uppercase tracking-wider">
+                🔐 Verificación
+            </h1>
+            <p class="font-archivo text-gray-400 text-sm mt-2">
+                Acceso de Administrador — Ingresa el código enviado a tu correo.
+            </p>
+        </div>
+
+        <div class="bg-urban-surface border border-gray-800 p-8 urban-shadow relative overflow-hidden group">
+            <!-- Decorative corner -->
+            <div class="absolute top-0 right-0 w-16 h-16 bg-urban-yellow transform rotate-45 translate-x-8 -translate-y-8 z-0"></div>
+
+            <!-- Icono de escudo -->
+            <div class="flex justify-center mb-6 relative z-10">
+                <div class="w-16 h-16 rounded-full bg-urban-yellow/10 border border-urban-yellow flex items-center justify-center">
+                    <svg class="w-8 h-8 text-urban-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955
+                               11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824
+                               10.29 9 11.622 5.176-1.332 9-6.03 9-11.622
+                               0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <form action="{{ url_for('auth.mfa_verify') }}" method="post" class="space-y-6 relative z-10">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div>
+                    <label for="otp_code"
+                        class="block font-oswald text-white uppercase tracking-wider mb-2">
+                        Código de 6 Dígitos
+                    </label>
+                    <input
+                        type="text"
+                        id="otp_code"
+                        name="otp_code"
+                        maxlength="6"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        placeholder="● ● ● ● ● ●"
+                        autofocus
+                        class="w-full bg-black border border-gray-700 text-white text-center
+                               text-2xl font-bold tracking-[.5em] p-4
+                               focus:border-urban-yellow focus:outline-none
+                               font-archivo transition-colors placeholder-gray-700"
+                    >
+                    <p class="font-archivo text-gray-500 text-xs mt-2 text-center">
+                        Revisa tu bandeja de entrada &mdash; el código expira en 10 minutos.
+                    </p>
+                </div>
+
+                <button type="submit" class="w-full urban-btn text-center text-sm tracking-widest">
+                    Verificar Acceso
+                </button>
+            </form>
+
+            <div class="mt-8 text-center border-t border-gray-800 pt-6">
+                <a href="{{ url_for('auth.login') }}"
+                    class="inline-block text-gray-400 font-archivo text-sm
+                           hover:text-urban-yellow transition-colors">
+                    ← Volver al inicio de sesión
+                </a>
+            </div>
+        </div>
+
+        <!-- Nota de seguridad -->
+        <p class="text-center font-archivo text-gray-600 text-xs mt-4">
+            🔒 Este código es de un solo uso. Nunca lo compartas con nadie.
+        </p>
+    </div>
+</div>
+
+{% endblock %}

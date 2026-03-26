@@ -1,3 +1,5 @@
+import random
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 import logging
 import re
@@ -10,6 +12,7 @@ from flask import (
     redirect,
     url_for,
     flash,
+    session,
 )
 from flask_login import login_user, logout_user, current_user
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
@@ -89,17 +92,103 @@ def login():
         user = User.query.filter(
             (User.username == username) | (User.email == username)
         ).first()
+
         if not user or not user.check_password(password):
             flash("Credenciales inválidas", "error")
+
+        # ── Administrador: flujo MFA ──────────────────────────────────
+        elif user.is_admin:
+            otp = str(random.randint(100000, 999999))
+            session["mfa_code"]    = otp
+            session["mfa_user_id"] = user.id
+
+            now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+            body_html = f"""
+            <div style="font-family:sans-serif;max-width:480px;margin:auto;">
+              <h2 style="color:#f5a623;">&#128274; Código de Acceso Admin</h2>
+              <p>Hola, <strong>{user.name}</strong>.</p>
+              <p>Tu código de verificación de un solo uso es:</p>
+              <div style="font-size:2.5rem;font-weight:bold;letter-spacing:.4em;
+                          background:#1a1a1a;color:#f5a623;padding:16px 24px;
+                          border-radius:8px;text-align:center;margin:16px 0;">
+                {otp}
+              </div>
+              <p style="color:#888;">Válido por 10 minutos &middot; {now_str}</p>
+              <p>Si no intentaste iniciar sesión, cambia tu contraseña de inmediato.</p>
+            </div>
+            """
+            EmailService.send(
+                to_email=user.email,
+                subject="Código de Acceso Admin — Duncan Dhu",
+                body_text=f"Tu código de acceso es: {otp} (válido 10 min)",
+                body_html=body_html,
+            )
+            flash("Te enviamos un código de 6 dígitos a tu correo.", "info")
+            return redirect(url_for("auth.mfa_verify"))
+
+        # ── Cliente normal: login + alerta por correo ────────────────────
         else:
-            login_user(user, remember=user.is_admin)
-            if user.is_admin:
-                return redirect(url_for("admin.dashboard"))
+            login_user(user, remember=False)
+            now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+            body_html = f"""
+            <div style="font-family:sans-serif;max-width:480px;margin:auto;">
+              <h2 style="color:#f5a623;">&#128275; Nuevo inicio de sesión</h2>
+              <p>Hola, <strong>{user.name}</strong>.</p>
+              <p>Detectamos un nuevo inicio de sesión en tu cuenta de
+                 <strong>Duncan Dhu</strong>.</p>
+              <table style="background:#1a1a1a;border-radius:8px;padding:16px;width:100%;">
+                <tr><td style="color:#888;">Fecha y hora</td>
+                    <td style="color:#fff;">{now_str}</td></tr>
+              </table>
+              <p style="color:#888;margin-top:12px;">Si no fuiste tú, cambia tu
+                 contraseña inmediatamente desde tu perfil.</p>
+            </div>
+            """
+            EmailService.send(
+                to_email=user.email,
+                subject="Nuevo inicio de sesión detectado en Duncan Dhu",
+                body_text=f"Nuevo inicio de sesión en tu cuenta el {now_str}.",
+                body_html=body_html,
+            )
             if next_url:
                 return redirect(next_url)
             return redirect(url_for("public.home"))
 
     return render_template("login.html", next=next_url)
+
+
+# ── MFA Verify (Admin) ────────────────────────────────────────────
+
+@auth_bp.route("/mfa-verify", methods=["GET", "POST"])
+def mfa_verify():
+    """Verifica el OTP de 6 dígitos enviado al email del administrador."""
+    if current_user.is_authenticated:
+        return redirect(url_for("admin.dashboard"))
+
+    # Protección: si no hay código en sesión, mandar al login
+    if "mfa_code" not in session or "mfa_user_id" not in session:
+        flash("Sesión de verificación inválida. Por favor, inicia sesión de nuevo.", "error")
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        ingresado = request.form.get("otp_code", "").strip()
+
+        if ingresado == session.get("mfa_code"):
+            user = User.query.get(session.pop("mfa_user_id"))
+            session.pop("mfa_code", None)
+
+            if not user or not user.is_admin:
+                flash("Error de verificación. Intenta de nuevo.", "error")
+                return redirect(url_for("auth.login"))
+
+            login_user(user, remember=True)
+            flash(f"Bienvenido, {user.name}. Acceso admin verificado. ✅", "success")
+            return redirect(url_for("admin.dashboard"))
+        else:
+            flash("Código incorrecto. Verifica tu correo e intenta de nuevo.", "error")
+
+    return render_template("auth/mfa_verify.html")
+
 
 
 # ── Register ─────────────────────────────────────────────────────────────────
