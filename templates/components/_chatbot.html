@@ -4,21 +4,14 @@
      que puente hacia ChatService en /api/chat.
      Sync. reactiva del carrito via: window.updateBadges() de base.html.
      ========================================================================= -->
-<div id="duncan-chatbot-widget"
-    class="fixed bottom-6 right-6 z-[9999] font-sans"
+<div id="duncan-chatbot-widget" class="fixed bottom-6 right-6 z-[9999] font-sans"
     data-is-admin="{{ 'true' if current_user.is_authenticated and current_user.is_admin else 'false' }}"
     data-is-auth="{{ 'true' if current_user.is_authenticated else 'false' }}"
     data-csrf-token="{{ csrf_token() if csrf_token is defined else '' }}">
 
     <!-- ── Ventana del Chat ─────────────────────────────────────────────── -->
-    <!--
-        FIX DEFINITIVO DE SCROLL:
-        En lugar de usar clases Tailwind que pueden tener conflictos de
-        especificidad, la ventana usa un style inline + variables CSS para
-        garantizar un contenedor flex column de altura fija.
-        El contenedor de mensajes usa height:0 + flex-grow:1 que es la
-        fórmula a prueba de fallos para activar overflow-y:auto en flex.
-    -->
+
+
     <div id="chatbot-window"
         class="hidden flex-col w-80 sm:w-96 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto"
         style="display:none; flex-direction:column; height:520px; max-height:calc(100vh - 6rem); background:#ffffff;">
@@ -81,8 +74,7 @@
         </div>
 
         <!-- ── Footer: Solo campo de texto libre ── -->
-        <!-- Los botones FSM ya NO están aquí; se inyectan inline en el
-             flujo de mensajes (messagesContainer) tras cada burbuja del bot. -->
+        <!-- Los botones FSM ya NO están aquí; se inyectan inline en el flujo de mensajes (messagesContainer) tras cada burbuja del bot. -->
         <div class="bg-white border-t border-gray-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]" style="flex-shrink:0;">
 
             <!-- Campo de Texto Libre → ChatService (/api/chat) -->
@@ -132,9 +124,9 @@
      */
     // Contexto de servidor leído desde data-attributes del widget (evita
     // Jinja2 dentro de <script>, lo que confunde al linter JS del IDE).
-    const _widget    = document.getElementById('duncan-chatbot-widget');
-    const IS_ADMIN   = _widget.dataset.isAdmin === 'true';
-    const IS_AUTH    = _widget.dataset.isAuth  === 'true';
+    const _widget = document.getElementById('duncan-chatbot-widget');
+    const IS_ADMIN = _widget.dataset.isAdmin === 'true';
+    const IS_AUTH = _widget.dataset.isAuth === 'true';
     const CSRF_TOKEN = _widget.dataset.csrfToken || '';
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -281,8 +273,8 @@
             addBotMessage(msg);
             renderActionButtons([
                 { text: '🔑 Iniciar Sesión', action: "() => window.location.href = '/login'", isLink: true, style: 'primary' },
-                { text: '📝 Crear Cuenta',   action: "() => window.location.href = '/registro'", isLink: true, style: 'secondary' },
-                { text: '🔙 Volver',         next: 'start', style: 'outline' }
+                { text: '📝 Crear Cuenta', action: "() => window.location.href = '/registro'", isLink: true, style: 'secondary' },
+                { text: '🔙 Volver', next: 'start', style: 'outline' }
             ]);
             return true;   // Bloqueado
         };
@@ -408,16 +400,15 @@
          */
         const renderActionButtons = (optionsArray) => {
             setTypingIndicator(false);
-            currentlyRenderedOptions = optionsArray;
 
-            // Wrapper: columna estricta (un botón por línea) en lugar de flex-wrap
             const wrapper = document.createElement('div');
             wrapper.className = 'flex flex-col gap-2 w-full mt-3 mb-1 pl-11 animate-fade-in-up';
-            // pl-11 (44px) alinea visualmente con el texto de la burbuja del bot
+            // Guardar las opciones en el propio wrapper (fix P8: evita que clicks
+            // en botones históricos ejecuten acciones del último grupo de botones)
+            wrapper.dataset.options = JSON.stringify(optionsArray);
 
             optionsArray.forEach((opt, index) => {
                 const btn = document.createElement('button');
-                // Estilo columna ancho completo — Duncan Dhu
                 btn.className = [
                     'w-full text-left justify-start',
                     'flex items-center px-3.5 py-2',
@@ -530,12 +521,16 @@
             const btn = e.target.closest('button[data-index]');
             if (!btn) return;
 
-            // Deshabilitar el wrapper completo para evitar multi-click
-            const wrapper = btn.closest('.flex.flex-col.gap-2, .flex.flex-wrap.gap-2');
-            if (wrapper) wrapper.querySelectorAll('button').forEach(b => b.disabled = true);
-
-            const optSelected = currentlyRenderedOptions[btn.dataset.index];
+            // Leer opciones del propio wrapper (fix P8: no del estado global)
+            const wrapper = btn.closest('[data-options]');
+            if (!wrapper) return;
+            const optionsFromWrapper = JSON.parse(wrapper.dataset.options || '[]');
+            const optSelected = optionsFromWrapper[parseInt(btn.dataset.index, 10)];
             if (!optSelected) return;
+
+            // Deshabilitar todos los botones del grupo para evitar multi-click
+            wrapper.querySelectorAll('button').forEach(b => b.disabled = true);
+
             addUserMessage(optSelected.text);
 
             // ── Acción de redirección externa (isLink) ────────────────────────
@@ -601,9 +596,11 @@
                         setTimeout(() => {
                             renderActionButtons([
                                 { text: '📖 Ver más del Menú', next: 'post_add_menu', style: 'primary' },
-                                { text: '💳 Proceder al Pago',
-                                  action: "() => window.location.href='/carrito'",
-                                  isLink: true, style: 'outline' }
+                                {
+                                    text: '💳 Proceder al Pago',
+                                    action: "() => window.location.href='/carrito'",
+                                    isLink: true, style: 'outline'
+                                }
                             ]);
                         }, 1500);
                     }

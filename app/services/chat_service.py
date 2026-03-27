@@ -15,8 +15,11 @@ Respuestas predefinidas (QUICK_REPLIES):
 
 from __future__ import annotations
 
+import hashlib as _hashlib
 import logging
 import re
+import time
+import unicodedata
 
 from sqlalchemy import func
 
@@ -93,7 +96,12 @@ _KEYWORDS: dict[str, list[str]] = {
     "ubicacion": ["ubicación", "ubi","ubicacion", "dirección", "direccion", "donde", "están",
                   "estan", "encuentran", "lugar", "domicilio", "calle", "mapa", "maps"],
     "menu":      ["menú", "menuu", "menu", "carta", "platillo", "platillos", "opciones",
-                  "que tienen", "comida", "hamburguesas"],
+                  "que tienen", "comida", "hamburguesas", "hamburguesa"],
+    "hotdog":    ["hot dogs", "hotdog", "hotdogs", "jocho", "jochos", "perros calientes", "perro caliente"],
+    "bebida":    ["bebidas", "bebida", "refresco", "refrescos", "soda", "agua", "aguas", "tomar", "pa tomar", "para tomar", "jugo", "malteada", "malteadas"],
+    "postre":    ["postres", "postre", "dulce", "dulces", "helado", "helados", "pastel", "pay"],
+    "snack":     ["snacks", "snack", "papas", "papitas", "papas a la francesa", "boneless", "alitas", "aros de cebolla"],
+    "combo":     ["combos", "combo", "paquete", "paquetes", "promo", "promocion", "promoción", "promociones"],
     "precio":    ["precio", "precios", "cuánto", "cuanto", "cuesta", "cuestan", "costo",
                   "cobran", "valen"],
     "pago":      ["metodo", "metodos", "metodos de pago", "forma de pago",
@@ -103,6 +111,11 @@ _KEYWORDS: dict[str, list[str]] = {
     "pedido":    ["pedido", "orden", "order", "pedí", "pedi", "compré", "compre",
                   "estado de mi pedido", "mi orden", "dónde está", "donde esta",
                   "llegó", "llego", "envío", "envio"],
+    # Contacto, quejas, reembolsos — redirige al formulario /contactanos
+    "contacto":  ["contacto", "contactar", "contáctanos", "contactanos",
+                  "queja", "quejas", "reclamacion", "reclamación", "reclamo",
+                  "sugerencia", "sugerencias", "reembolso", "reembolsos",
+                  "devolucion", "devolución", "devolver", "problemas"],
     # Palabras vagas de información — atrapa mensajes de una palabra como
     # "informacion", "ayuda", "info" y los resuelve sin llamar a Gemini.
     "ayuda":     ["informacion", "información", "info", "ayuda", "help",
@@ -175,11 +188,42 @@ _MODIFICATION_WORDS: list[str] = [
     "término", "termino",
 ]
 
+# Stop-words para matching parcial de nombres de productos (módulo-level)
+_STOP_WORDS: frozenset[str] = frozenset({
+    "de", "la", "el", "los", "las", "del", "un", "una", "y", "o", "con", "sin"
+})
+
 
 def _normalize(s: str) -> str:
     """Elimina acentos y normaliza a minúsculas para comparación robusta."""
-    import unicodedata
     return unicodedata.normalize("NFD", s.lower()).encode("ascii", "ignore").decode()
+
+
+def _significant_words(name: str) -> list[str]:
+    """Palabras significativas de un nombre (sin stop-words, len > 2)."""
+    return [w for w in _normalize(name).split() if w not in _STOP_WORDS and len(w) > 2]
+
+
+# Caché TTL de productos activos — evita query repetida en cada mensaje
+_products_cache: list = []
+_products_cache_ts: float = 0.0
+_PRODUCTS_TTL: float = 300.0   # 5 minutos
+
+
+def _get_active_products() -> list:
+    """Devuelve productos activos desde caché en memoria (TTL 5 min).
+
+    Elimina el full table scan que antes ocírría en CADA mensaje de texto.
+    """
+    global _products_cache, _products_cache_ts
+    if time.monotonic() - _products_cache_ts > _PRODUCTS_TTL:
+        try:
+            _products_cache = Product.query.filter_by(active=True).all()
+            _products_cache_ts = time.monotonic()
+            logger.debug("ProductCache: recargado, %d productos.", len(_products_cache))
+        except Exception as exc:  # pylint: disable=broad-except
+            logger.warning("ProductCache: fallo al recargar: %s", exc)
+    return _products_cache
 
 
 def _detect_product_intent(msg: str) -> dict | None:
@@ -197,47 +241,30 @@ def _detect_product_intent(msg: str) -> dict | None:
     """
     msg_normalized = _normalize(msg)
 
-    try:
-        products = Product.query.filter_by(active=True).all()
-    except Exception as exc:  # pylint: disable=broad-except
-        logger.warning("NLU: no se pudo consultar productos: %s", exc)
+    products = _get_active_products()      # Caché TTL — sin query a BD por cada mensaje
+    if not products:
         return None
 
     # Ordenar por longitud desc: evitar que "hot" matchee antes que "hot dog"
-    products.sort(key=lambda p: len(p.name), reverse=True)
-
-    # Palabras cortas que no son significativas para el match parcial
-    _STOP_WORDS = {"de", "la", "el", "los", "las", "del", "un", "una", "y", "o", "con", "sin"}
-
-    def _significant_words(name: str) -> list[str]:
-        """Filtra stop-words y retorna las palabras significativas del nombre."""
-        return [w for w in _normalize(name).split() if w not in _STOP_WORDS and len(w) > 2]
+    products_sorted = sorted(products, key=lambda p: len(p.name), reverse=True)
 
     msg_words = set(msg_normalized.split())
 
     matched: list[Product] = []
-    for p in products:
-        sig_words = _significant_words(p.name)
+    for p in products_sorted:
+        sig_words = _significant_words(p.name)   # módulo-level, no se redefine
         if not sig_words:
             continue
         # Match exacto del nombre completo (prioritario)
         if _normalize(p.name) in msg_normalized:
             matched.append(p)
             continue
-        # Match parcial: al menos 2 palabras significativas en el mensaje
-        # (o 1 si el nombre solo tiene 1 palabra significativa)
+        # Match parcial por palavras significativas
         hits = sum(1 for w in sig_words if w in msg_words)
-        # Para nombres de 2 palabras se exigen AMBAS (evita que 'truffle'
-        # matchee tanto Truffle Street como Truffle Fries).
-        # Para nombres de 3+ palabras basta con n-1 palabras significativas.
-        if len(sig_words) <= 2:
-            threshold = len(sig_words)           # 2/2 o 1/1
-        else:
-            threshold = max(2, len(sig_words) - 1)  # p.ej. 2/3
+        threshold = len(sig_words) if len(sig_words) <= 2 else max(2, len(sig_words) - 1)
         if hits >= threshold:
             matched.append(p)
 
-    # ← Guard crítico: sin match no responder (evita "menú: ." con nombre vacío)
     if not matched:
         return None
 
@@ -282,40 +309,49 @@ _INTENT_WEIGHTS: dict[str, dict[str, float]] = {
         "quiero": 1.5, "dame": 1.5, "pide": 1.2, "pedir": 1.2,
         "me das": 2.0, "agrega": 2.0, "agrego": 1.5,
         "añade": 2.0, "añadir": 2.0, "añademe": 2.0,
-        "ordena": 1.5, "orden": 1.0, "quiero pedir": 2.5,
-        "ponme": 1.5, "trae": 1.5, "dáme": 1.5,
+        "ordena": 1.5, "quiero pedir": 2.5,
+        "ponme": 1.5, "trae": 1.5,
         "doble": 0.8, "extra": 0.5, "al carrito": 2.5,
     },
     "informacion": {
-        "información": 1.5, "informacion": 1.5,
         "ingrediente": 2.0, "ingredientes": 2.0, "contiene": 2.0,
-        "qué lleva": 3.0, "que lleva": 3.0, "lleva": 1.5,
-        "qué tiene": 2.5, "que tiene": 2.5, "de qué": 1.5, "de que": 1.5,
-        "cómo es": 2.0, "como es": 2.0, "cuéntame": 1.5,
-        "alérgeno": 2.5, "alergeno": 2.5, "gluten": 2.0,
-        "calórias": 1.5, "calorias": 1.5, "nutri": 1.5,
+        "que lleva": 3.0, "lleva": 1.5,
+        "que tiene": 2.5, "de que": 1.5,
+        "como es": 2.0, "cuentame": 1.5,
+        "alergeno": 2.5, "gluten": 2.0,
+        "calorias": 1.5, "nutri": 1.5,
     },
     "recomendacion": {
         "recomienda": 2.0, "recomiendas": 2.0, "sugieres": 2.0,
-        "sugiere": 2.0, "qué me recomiendas": 3.0,
+        "sugiere": 2.0,
         "mejor": 1.0, "popular": 1.5, "favorito": 1.5,
-        "especial": 0.8, "qué hay de": 1.5, "algo rico": 1.5,
+        "algo rico": 1.5,
     },
+}
+
+# Pre-compilar patrones con word-boundary — evita que 'pedir' matchee 'impedir'
+# Se normaliza cada keyword para que la comparación sea sin acentos
+_INTENT_PATTERNS: dict[str, list[tuple[re.Pattern, float]]] = {
+    intent: [
+        (re.compile(r'\b' + re.escape(_normalize(kw)) + r'\b'), weight)
+        for kw, weight in kw_weights.items()
+    ]
+    for intent, kw_weights in _INTENT_WEIGHTS.items()
 }
 
 
 def _classify_intent(msg: str) -> str | None:
     """
     Clasifica la intención del mensaje por puntuación ponderada de palabras.
+    Usa regex con word-boundary para evitar falsos positivos.
 
     Returns:
         'compra' | 'informacion' | 'recomendacion' | None
-        None si ninguna intención supera el umbral mínimo.
     """
-    msg_lower = msg.lower()
+    msg_norm = _normalize(msg)   # comparación sin acentos
     scores: dict[str, float] = {}
-    for intent, kw_weights in _INTENT_WEIGHTS.items():
-        score = sum(w for kw, w in kw_weights.items() if kw in msg_lower)
+    for intent, patterns in _INTENT_PATTERNS.items():
+        score = sum(weight for pattern, weight in patterns if pattern.search(msg_norm))
         if score > 0:
             scores[intent] = score
 
@@ -329,13 +365,14 @@ def _classify_intent(msg: str) -> str | None:
 # NLU LOCAL — Capa 4: caché en memoria para respuestas de Gemini
 # ===========================================================================
 
-import hashlib as _hashlib
 _gemini_cache: dict[str, dict] = {}
 _CACHE_MAX: int = 60  # máximo de entradas en memoria (FIFO)
 
 
-def _cache_key(message: str) -> str:
-    return _hashlib.md5(message.strip().lower().encode()).hexdigest()
+def _cache_key(message: str, is_admin: bool = False) -> str:
+    """Cache key única por rol + mensaje (evita contaminación admin↔cliente)."""
+    role = "admin" if is_admin else "user"
+    return _hashlib.md5(f"{role}:{message.strip().lower()}".encode()).hexdigest()
 
 
 # ===========================================================================
@@ -429,7 +466,7 @@ def _get_quick_reply(message: str) -> dict | None:
 
     # ── 6. Métodos de pago ────────────────────────────────────────────────
     if any(kw in msg for kw in _KEYWORDS["pago"]):
-        return {
+        return {        
             "reply": QUICK_REPLIES["pago"],
             "status": "ok",
             "options": [
@@ -544,6 +581,109 @@ def _get_quick_reply(message: str) -> dict | None:
             ],
         }
 
+    # ── 9. Contacto, quejas, reembolsos, sugerencias ────────────────────
+    if any(kw in msg for kw in _KEYWORDS["contacto"]):
+        return {
+            "reply": (
+                "¿Necesitas contactarnos? Puedes enviarnos un mensaje desde nuestro "
+                "formulario y te responderemos a la brevedad posible 📨 "
+            ),
+            "status": "ok",
+            "options": [
+                {
+                    "text": "📨 Abrir Formulario de Contacto",
+                    "action": "() => window.location.href = '/contactanos'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {
+                    "text": "🔙 Volver al Inicio",
+                    "next": "start",
+                    "style": "outline",
+                },
+            ],
+        }
+
+    # ── 10. Categorías Específicas: Hot Dogs ─────────────────────────────────
+    if any(kw in msg for kw in _KEYWORDS["hotdog"]):
+        return {
+            "reply": "¡Claro! Además de nuestras hamburguesas, preparamos deliciosos Hot Dogs. 🌭",
+            "status": "ok",
+            "options": [
+                {
+                    "text": "🌭 Ver Hot Dogs en el Menú",
+                    "action": "() => window.location.href = '/catalogo#category-hot-dogs'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {"text": "📖 Volver al Menú Principal", "next": "menu", "style": "outline"},
+            ],
+        }
+
+    # ── 11. Categorías Específicas: Bebidas ──────────────────────────────────
+    if any(kw in msg for kw in _KEYWORDS["bebida"]):
+        return {
+            "reply": "Para acompañar tu comida, tenemos gran variedad de bebidas bien frías. 🥤",
+            "status": "ok",
+            "options": [
+                {
+                    "text": "🥤 Ver Bebidas en el Menú",
+                    "action": "() => window.location.href = '/catalogo#category-bebidas'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {"text": "📖 Volver al Menú Principal", "next": "menu", "style": "outline"},
+            ],
+        }
+
+    # ── 12. Categorías Específicas: Postres ──────────────────────────────────
+    if any(kw in msg for kw in _KEYWORDS["postre"]):
+        return {
+            "reply": "¡Siempre hay espacio para el postre! Mira nuestras opciones dulces: 🍰",
+            "status": "ok",
+            "options": [
+                {
+                    "text": "🍰 Ver Postres en el Menú",
+                    "action": "() => window.location.href = '/catalogo#category-postres'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {"text": "📖 Volver al Menú Principal", "next": "menu", "style": "outline"},
+            ],
+        }
+
+    # ── 13. Categorías Específicas: Snacks ───────────────────────────────────
+    if any(kw in msg for kw in _KEYWORDS["snack"]):
+        return {
+            "reply": "Tenemos los mejores snacks para botanear o acompañar tu comida. 🍟",
+            "status": "ok",
+            "options": [
+                {
+                    "text": "🍟 Ver Snacks en el Menú",
+                    "action": "() => window.location.href = '/catalogo#category-snacks'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {"text": "📖 Volver al Menú Principal", "next": "menu", "style": "outline"},
+            ],
+        }
+
+    # ── 14. Categorías Específicas: Combos ───────────────────────────────────
+    if any(kw in msg for kw in _KEYWORDS["combo"]):
+        return {
+            "reply": "¡Tenemos excelentes paquetes para calmar cualquier hambre! 🍔🍟🥤",
+            "status": "ok",
+            "options": [
+                {
+                    "text": "🍔 Ver Combos en el Menú",
+                    "action": "() => window.location.href = '/catalogo#category-combos'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {"text": "📖 Volver al Menú Principal", "next": "menu", "style": "outline"},
+            ],
+        }
+
     # Sin coincidencia → dejar pasar al NLU / Gemini
     return None
 
@@ -567,6 +707,18 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
         Dict con keys ``reply`` (str) y ``status`` (str).
         Compatible con el endpoint ``/api/chat``.
     """
+    user_message = user_message.strip()
+    # Guard: mensaje vacío — sin guard Gemini recibiría string vacío
+    if not user_message:
+        return {
+            "reply": "¿En qué te puedo ayudar?",
+            "status": "ok",
+            "options": [
+                {"text": "😄 Ver Menú", "next": "menu", "style": "primary"},
+                {"text": "⏰ Horarios",  "next": "info_general", "style": "outline"},
+            ],
+        }
+
     # ── Capa 1: Quick Reply (palabras clave exactas) ───────────────────────
     if not is_admin:
         quick = _get_quick_reply(user_message)
@@ -615,7 +767,7 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
             # Sin match de producto → continuar a Gemini con caché
 
         # ── Capa 4: Caché de Gemini ───────────────────────────────────────────
-        cache_key = _cache_key(user_message)
+        cache_key = _cache_key(user_message, is_admin=False)
         if cache_key in _gemini_cache:
             logger.info("ChatService [L4-Cache]: hit para %r", user_message[:40])
             return _gemini_cache[cache_key]
@@ -687,36 +839,23 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
         menu_text = _build_menu_context()
 
         system_instruction = (
-            "Eres DuncanBot, el asistente virtual del restaurante de hamburguesas "
-            "Duncan Dhu. Tu personalidad es amable, directa y con un toque urbano. "
-            "Responde siempre en español, de forma breve (máximo 3 oraciones). "
-            "No uses listas largas; si hay muchos productos menciona solo los más destacados. "
-            "Solo ofreces productos del menú actual. Si el usuario pregunta algo "
-            "completamente ajeno al restaurante o la comida, redirige la conversación "
-            "con amabilidad hacia las hamburguesas o el menú.\\n\\n"
+            # ── REGLAS DURAS PRIMERO (el LLM las pondera más al inicio del prompt) ──
+            "IDENTIDAD: Eres DuncanBot, asistente del restaurante Duncan Dhu (hamburguesas artesanales)."
+            " Responde SIEMPRE en español. Máximo 2 oraciones. Sin Markdown (sin *, sin -, sin #).\\n\\n"
 
-            # ── CONOCIMIENTO COMPLETO DEL NEGOCIO ──
-            "INFORMACIÓN DEL RESTAURANTE:\\n"
-            "- Nombre: Duncan Dhu\\n"
-            "- Tipo: Restaurante de hamburguesas artesanales\\n"
-            "- Horario: Lunes a Domingo de 12:00 PM a 10:00 PM\\n"
-            "- Dirección: Calle Principal #123, Centro\\n"
-            "- Métodos de pago: Efectivo y tarjeta (Mercado Pago)\\n"
-            "- Política de pedidos: Los pedidos se confirman en cuanto el staff "
-            "  los acepta. El cliente recibe notificación por correo.\\n"
-            "- Para cancelaciones: Contactar antes de que el pedido esté en preparación.\\n"
-            "- Redes sociales: Instagram, Facebook, TikTok (@DuncanDhu).\\n\\n"
+            "LÍMITES DUROS:\\n"
+            "- No puedes ejecutar acciones: carrito, pedidos, pagos. "
+              "Si te piden agregar algo, di exactamente: 'Usa los botones de abajo para agregarlo.'\\n"
+            "- No respondas sobre temas ajenos al restaurante.\\n"
+            "- No inventes datos del menú ni del restaurante que no estén en este prompt.\\n\\n"
 
-            "REGLA CRÍTICA DE FORMATO: Responde en texto plano conversacional continuo. "
-            "Está estrictamente prohibido usar Markdown (sin asteriscos, sin negritas, sin listas). "
-            "Completa siempre tus oraciones y tus ideas de forma natural, no dejes frases a medias. "
-            "Sin viñetas, sin títulos, sin formato especial.\\n\\n"
-            "REGLA CRÍTICA DE ACCIONES: No tienes capacidad de agregar productos al carrito, "
-            "procesar pagos, confirmar pedidos ni realizar ninguna acción en el sistema. "
-            "Si el usuario te pide que agregue algo, NUNCA digas que lo hiciste. "
-            "En cambio, indícale que puede usar los botones del chat o ir al catálogo. "
-            "Respuesta correcta: 'Para agregar ese producto, usa los botones de abajo o visita el catálogo.'\\n\\n"
-            f"MENÚ ACTUAL DE DUNCAN DHU:\\n{menu_text}"
+            "INFORMACIÓN DEL NEGOCIO:\\n"
+            "- Horario: Lunes a Domingo, 12:00 PM – 10:00 PM.\\n"
+            "- Dirección: Calle Principal #123, Centro.\\n"
+            "- Pago: Efectivo y Mercado Pago (tarjeta).\\n"
+            "- Redes: @DuncanDhu en Instagram, Facebook, TikTok.\\n\\n"
+
+            f"MENÚ ACTUAL:\\n{menu_text}"
         )
 
     # ── Llamada a la API de Gemini ─────────────────────────────────────────
@@ -731,16 +870,17 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
         response = model.generate_content(
             user_message,
             generation_config=genai.GenerationConfig(
-                max_output_tokens=500,   # aumentado: evita cortar oraciones a la mitad
+                max_output_tokens=500,
                 temperature=0.7,
                 top_p=0.9,
             ),
             safety_settings={
-                "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
-                "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
-                "HARM_CATEGORY_SEXUALLY_EXPLICIT": "BLOCK_NONE",
-                "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE",
-            }
+                "HARM_CATEGORY_HARASSMENT":         "BLOCK_NONE",
+                "HARM_CATEGORY_HATE_SPEECH":        "BLOCK_NONE",
+                "HARM_CATEGORY_SEXUALLY_EXPLICIT":  "BLOCK_NONE",
+                "HARM_CATEGORY_DANGEROUS_CONTENT":  "BLOCK_NONE",
+            },
+            request_options={"timeout": 12},   # <─ evita spinner infinito
         )
 
         raw_text: str = response.text or ""
@@ -762,11 +902,11 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
 
         result = {"reply": clean_text, "status": "ok"}
 
-        # Guardar en caché solo si el mensaje es de cliente (no admin)
+        # Guardar en caché — key por rol
         if not is_admin:
             if len(_gemini_cache) >= _CACHE_MAX:
                 _gemini_cache.pop(next(iter(_gemini_cache)))  # FIFO eviction
-            _gemini_cache[_cache_key(user_message)] = result
+            _gemini_cache[_cache_key(user_message, is_admin=False)] = result
 
         return result
 
