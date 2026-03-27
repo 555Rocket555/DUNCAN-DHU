@@ -90,13 +90,13 @@ QUICK_REPLIES: dict[str, str] = {
 # Palabras clave por intención (listas editables)
 _KEYWORDS: dict[str, list[str]] = {
     "saludo":    ["hola","holaa", "holaaa", "buenas", "saludos", "hey", "hi", "buen día", "buenos días",
-                  "buenas tardes", "buenas noches", "qué tal", "que tal"],
+                  "buenas tardes", "buenas noches", "qué tal", "que tal", "holi", "adiós", "adios"],
     "horarios":  ["horario", "horarios", "hora", "horas", "abre", "cierra", "abierto",
                   "open", "cuando abren", "a qué hora", "turno"],
     "ubicacion": ["ubicación", "ubi","ubicacion", "dirección", "direccion", "donde", "están",
                   "estan", "encuentran", "lugar", "domicilio", "calle", "mapa", "maps"],
     "menu":      ["menú", "menuu", "menu", "carta", "platillo", "platillos", "opciones",
-                  "que tienen", "comida", "hamburguesas", "hamburguesa"],
+                  "que tienen", "comida", "hamburguesas", "hamburguesa", "catálogo", "catalogo", "qué venden", "que venden", "productos", "novedades", "antojo", "antojos"],
     "hotdog":    ["hot dogs", "hotdog", "hotdogs", "jocho", "jochos", "perros calientes", "perro caliente"],
     "bebida":    ["bebidas", "bebida", "refresco", "refrescos", "soda", "agua", "aguas", "tomar", "pa tomar", "para tomar", "jugo", "malteada", "malteadas"],
     "postre":    ["postres", "postre", "dulce", "dulces", "helado", "helados", "pastel", "pay"],
@@ -110,12 +110,12 @@ _KEYWORDS: dict[str, list[str]] = {
                   "como pago", "cómo pago"],
     "pedido":    ["pedido", "orden", "order", "pedí", "pedi", "compré", "compre",
                   "estado de mi pedido", "mi orden", "dónde está", "donde esta",
-                  "llegó", "llego", "envío", "envio"],
+                  "llegó", "llego", "envío", "envio", "entregas", "entrega", "repartidor"],
     # Contacto, quejas, reembolsos — redirige al formulario /contactanos
     "contacto":  ["contacto", "contactar", "contáctanos", "contactanos",
                   "queja", "quejas", "reclamacion", "reclamación", "reclamo",
                   "sugerencia", "sugerencias", "reembolso", "reembolsos",
-                  "devolucion", "devolución", "devolver", "problemas"],
+                  "devolucion", "devolución", "devolver", "problemas", "asesor", "asesores"],
     # Palabras vagas de información — atrapa mensajes de una palabra como
     # "informacion", "ayuda", "info" y los resuelve sin llamar a Gemini.
     "ayuda":     ["informacion", "información", "info", "ayuda", "help",
@@ -323,9 +323,9 @@ _INTENT_WEIGHTS: dict[str, dict[str, float]] = {
     },
     "recomendacion": {
         "recomienda": 2.0, "recomiendas": 2.0, "sugieres": 2.0,
-        "sugiere": 2.0,
+        "sugiere": 2.0, "recomendacion": 2.0, "recomendaciones": 2.0,
         "mejor": 1.0, "popular": 1.5, "favorito": 1.5,
-        "algo rico": 1.5,
+        "algo rico": 1.5, "antojo": 1.5, "antojos": 1.5,
     },
 }
 
