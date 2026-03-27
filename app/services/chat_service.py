@@ -736,6 +736,8 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
         Compatible con el endpoint ``/api/chat``.
     """
     user_message = user_message.strip()
+    msg_lower = user_message.lower()
+
     # Guard: mensaje vacío — sin guard Gemini recibiría string vacío
     if not user_message:
         return {
@@ -745,6 +747,34 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
                 {"text": "😄 Ver Menú", "next": "menu", "style": "primary"},
                 {"text": "⏰ Horarios",  "next": "info_general", "style": "outline"},
             ],
+        }
+
+    # ── Intercepción de Modificaciones ("sin") independiente del producto ──
+    # Si el mensaje pide omitir un ingrediente (ej. "hamburguesa sin cebolla")
+    if re.search(r'\b(sin)\b', msg_lower) and not is_admin:
+        # 1. Intentar el NLU de producto para devolver botón exacto si hay nombre de BD
+        prod_match = _detect_product_intent(user_message)
+        if prod_match is not None:
+            return prod_match
+        
+        # 2. Si no hay producto exacto, devolver mensaje genérico en lugar de Quick Reply
+        return {
+            "reply": (
+                "🔍 He notado que tienes especificaciones para tu pedido.\n\n"
+                "Recuerda que el chat no puede aplicar modificaciones a los productos "
+                "por este medio (como 'sin cebolla'). Se agregarán siempre con su receta original.\n\n"
+                "Para agregarlos, por favor dirígete a nuestro catálogo:"
+            ),
+            "status": "ok",
+            "options": [
+                {
+                    "text": "📖 Abrir el Catálogo Completo",
+                    "action": "() => window.location.href='/catalogo'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {"text": "🔙 Menú Principal", "next": "menu", "style": "outline"},
+            ]
         }
 
     # ── Capa 1: Quick Reply (palabras clave exactas) ───────────────────────
