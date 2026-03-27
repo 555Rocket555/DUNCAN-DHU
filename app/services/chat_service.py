@@ -116,6 +116,9 @@ _KEYWORDS: dict[str, list[str]] = {
                   "queja", "quejas", "reclamacion", "reclamación", "reclamo",
                   "sugerencia", "sugerencias", "reembolso", "reembolsos",
                   "devolucion", "devolución", "devolver", "problemas", "asesor", "asesores"],
+    # Gestión de cuenta
+    "cuenta":    ["perfil", "correo", "contraseña", "contrasena", "recuperar cuenta",
+                  "login", "iniciar sesion", "iniciar sesión", "mi cuenta"],
     # Palabras vagas de información — atrapa mensajes de una palabra como
     # "informacion", "ayuda", "info" y los resuelve sin llamar a Gemini.
     "ayuda":     ["informacion", "información", "info", "ayuda", "help",
@@ -585,8 +588,9 @@ def _get_quick_reply(message: str) -> dict | None:
     if any(kw in msg for kw in _KEYWORDS["contacto"]):
         return {
             "reply": (
-                "¿Necesitas contactarnos? Puedes enviarnos un mensaje desde nuestro "
-                "formulario y te responderemos a la brevedad posible 📨 "
+                "¿Necesitas contactarnos? Puedes escribirnos directamente a nuestro correo "
+                "oficial dunc.dhuisc@gmail.com, o enviarnos un mensaje desde nuestro "
+                "formulario y te responderemos a la brevedad. 📨"
             ),
             "status": "ok",
             "options": [
@@ -599,6 +603,30 @@ def _get_quick_reply(message: str) -> dict | None:
                 {
                     "text": "🔙 Volver al Inicio",
                     "next": "start",
+                    "style": "outline",
+                },
+            ],
+        }
+
+    # ── 10. Gestión de Cuenta (Login, Perfil, Password) ──────────────────────
+    if any(kw in msg for kw in _KEYWORDS["cuenta"]):
+        return {
+            "reply": (
+                "Para gestionar tu cuenta, perfil, o contraseñas, por favor visita "
+                "la sección de tu Perfil. Si no tienes sesión iniciada, hazlo ahora. 👤"
+            ),
+            "status": "ok",
+            "options": [
+                {
+                    "text": "👤 Ir a Mi Perfil",
+                    "action": "() => window.location.href = '/perfil'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {
+                    "text": "🔑 Iniciar Sesión",
+                    "action": "() => window.location.href = '/login'",
+                    "isLink": True,
                     "style": "outline",
                 },
             ],
@@ -853,6 +881,7 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
             "- Horario: Lunes a Domingo, 12:00 PM – 10:00 PM.\\n"
             "- Dirección: Calle Principal #123, Centro.\\n"
             "- Pago: Efectivo y Mercado Pago (tarjeta).\\n"
+            "- Correo de contacto original: dunc.dhuisc@gmail.com\\n"
             "- Redes: @DuncanDhu en Instagram, Facebook, TikTok.\\n\\n"
 
             f"MENÚ ACTUAL:\\n{menu_text}"
@@ -921,8 +950,8 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
             return {
                 "reply": (
                     "🛠️ El asistente de IA alcanzó el límite de consultas por ahora. "
-                    "Mientras tanto, usa los botones de navegación o "
-                    "contáctanos directamente."
+                    "Mientras tanto, usa los botones de navegación o escríbenos a "
+                    "nuestro correo de soporte: dunc.dhuisc@gmail.com"
                 ),
                 "status": "rate_limit",
                 "options": [
