@@ -103,6 +103,10 @@ _KEYWORDS: dict[str, list[str]] = {
     "pedido":    ["pedido", "orden", "order", "pedí", "pedi", "compré", "compre",
                   "estado de mi pedido", "mi orden", "dónde está", "donde esta",
                   "llegó", "llego", "envío", "envio"],
+    # Palabras vagas de información — atrapa mensajes de una palabra como
+    # "informacion", "ayuda", "info" y los resuelve sin llamar a Gemini.
+    "ayuda":     ["informacion", "información", "info", "ayuda", "help",
+                  "soporte", "apoyo", "orientacion", "orientación"],
 }
 
 
@@ -335,11 +339,11 @@ def _cache_key(message: str) -> str:
 
 
 # ===========================================================================
-# ██████  ██    ██ ██  ██████ ██   ██     ██████  ███████ ██████  ██    ██
+#  █████  ██    ██ ██  ██████ ██   ██     ██████  ███████ ██████  ██    ██
 # ██   ██ ██    ██ ██ ██      ██  ██      ██   ██ ██      ██   ██ ██    ██
 # ██   ██ ██    ██ ██ ██      █████       ██████  █████   ██████  ██    ██
 # ██   ██ ██    ██ ██ ██      ██  ██      ██   ██ ██      ██      ██    ██
-# ██████   ██████  ██  ██████ ██   ██     ██   ██ ███████ ██       ██████
+# ████████ ██████  ██  ██████ ██   ██     ██   ██ ███████ ██       ██████
 #
 # LÓGICA DE DETECCIÓN — no necesitas editar esto normalmente
 # ===========================================================================
@@ -524,7 +528,23 @@ def _get_quick_reply(message: str) -> dict | None:
             ],
         }
 
-    # Sin coincidencia → dejar pasar a Gemini
+    # ── 8. Palabras vagas de información (ayuda, info, informacion...) ──────
+    if any(kw in msg for kw in _KEYWORDS["ayuda"]):
+        return {
+            "reply": (
+                "¡Claro! ¿Sobre qué tema necesitas información? Puedo ayudarte con:"
+            ),
+            "status": "ok",
+            "options": [
+                {"text": "🍔 Ver el Menú",         "next": "menu",              "style": "primary"},
+                {"text": "🕑 Horarios",             "next": "info_general",      "style": "outline"},
+                {"text": "📍 Ubicación",            "next": "info_general",      "style": "outline"},
+                {"text": "💳 Métodos de Pago",      "next": "start",             "style": "outline"},
+                {"text": "📦 Estado de mi Pedido",  "next": "order_status_hook", "style": "outline"},
+            ],
+        }
+
+    # Sin coincidencia → dejar pasar al NLU / Gemini
     return None
 
 
@@ -757,11 +777,22 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
         logger.error("ChatService: Error al llamar a Gemini API: %s", exc)
 
         # Rate Limit 429
-        if "429" in error_msg_str or "quota" in error_msg_str.lower():
+        if "429" in error_msg_str or "quota" in error_msg_str.lower() or "resource_exhausted" in error_msg_str.lower():
             return {
-                "reply": "¡Uf! Estoy recibiendo muchos mensajes a la vez 😅. "
-                         "Por favor, dame 1 minuto para tomar aire y vuelve a preguntarme.",
+                "reply": (
+                    "🛠️ El asistente de IA alcanzó el límite de consultas por ahora. "
+                    "Mientras tanto, usa los botones de navegación o "
+                    "contáctanos directamente."
+                ),
                 "status": "rate_limit",
+                "options": [
+                    {"text": "📖 Ver Menú",      "next": "menu",  "style": "primary"},
+                    {"text": "🕑 Horarios",      "next": "start", "style": "outline"},
+                    {"text": "📍 Ubicación",     "next": "start", "style": "outline"},
+                    {"text": "📧 Contáctanos",
+                     "action": "() => window.location.href='/contactanos'",
+                     "isLink": True, "style": "outline"},
+                ],
             }
 
         return {
