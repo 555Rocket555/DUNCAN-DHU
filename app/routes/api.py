@@ -52,7 +52,6 @@ def api_order(order_id: int):
 
 
 @api_bp.post("/chat")
-@login_required
 def api_chat():
     """Endpoint para el chatbot. Recibe un JSON ``{"message": "..."}``."""
     data = request.get_json(silent=True) or {}

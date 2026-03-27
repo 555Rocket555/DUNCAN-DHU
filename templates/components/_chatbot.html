@@ -555,10 +555,12 @@
                 return;
             }
 
-            // ── Mutación rápida (POST) antes de continuar al siguiente nodo ──
-            if (optSelected.actionPayload && optSelected.mutationHookUrl) {
-                // Guard para mutaciones (add_to_cart): requieren sesión activa
-                if (optSelected.mutationHookUrl && _guestGuard('mutationHook')) return;
+            // ── Mutación rápida (POST) — requiere solo mutationHookUrl ────────
+            // actionPayload es opcional: los botones de carrito directos no lo
+            // necesitan, solo los que mandan datos extra (cantidad, etc).
+            if (optSelected.mutationHookUrl) {
+                // Guard: siempre requiere autenticación
+                if (_guestGuard('mutationHook')) return;
 
                 setTypingIndicator(true);
                 try {
@@ -569,7 +571,9 @@
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(optSelected.actionPayload)
+                        body: optSelected.actionPayload
+                            ? JSON.stringify(optSelected.actionPayload)
+                            : JSON.stringify({})   // body vacío para /carrito/agregar/<id>
                     };
                     if (CSRF_TOKEN) opts.headers['X-CSRFToken'] = CSRF_TOKEN;
 
@@ -578,32 +582,41 @@
 
                     const json = await resp.json();
 
+                    setTypingIndicator(false);
+
                     if (json.cart_total_items !== undefined && typeof window.updateBadges === 'function') {
                         window.updateBadges(json.cart_total_items);
                     }
-                    // Mensaje de confirmación del producto agregado
                     if (json.message) addBotMessage(json.message);
+
+                    // Mostrar opciones de seguimiento o ir al nodo next
+                    if (optSelected.next) {
+                        setTypingIndicator(true);
+                        setTimeout(async () => {
+                            setTypingIndicator(false);
+                            await renderNode(optSelected.next);
+                        }, 1500);
+                    } else {
+                        // Si no hay next, mostrar opciones genéricas post-carrito
+                        setTimeout(() => {
+                            renderActionButtons([
+                                { text: '📖 Ver más del Menú', next: 'post_add_menu', style: 'primary' },
+                                { text: '💳 Proceder al Pago',
+                                  action: "() => window.location.href='/carrito'",
+                                  isLink: true, style: 'outline' }
+                            ]);
+                        }, 1500);
+                    }
 
                 } catch (err) {
                     console.error('Mutation Hook falló:', err);
-                    addBotMessage(`🚨 Error al ejecutar acción: *${err.message}*`);
-                }
-
-                // ── PAUSA ANTES DE POST_ADD_MENU ──────────────────────────────
-                // Tras mostrar la confirmación del bot, esperamos 1500ms con
-                // el typing indicator activo antes de mostrar el siguiente nodo.
-                // Esto evita que las opciones aparezcan instantaneamente y da
-                // un feeling más natural de conversación.
-                if (optSelected.next) {
-                    setTypingIndicator(true);
-                    setTimeout(async () => {
-                        setTypingIndicator(false);
-                        await renderNode(optSelected.next);
-                    }, 1500);
+                    setTypingIndicator(false);
+                    addBotMessage(`🚨 Error al agregar al carrito: ${err.message}`);
+                    renderActionButtons([{ text: '🔙 Volver al inicio', next: 'start', style: 'outline' }]);
                 }
 
             } else if (optSelected.next) {
-                // ── Transición clásica FSM ────────────────────────────────────
+                // ── Transición clásica FSM ─────────────────────────────────
                 await renderNode(optSelected.next);
             }
         });
@@ -625,15 +638,7 @@
             // 1. Pintar mensaje del usuario y limpiar input
             addUserMessage(text);
             textInput.value = '';
-
-            // Guard: texto libre requiere sesión (el endpoint /api/chat puede
-            // devolver HTML de redirect si el usuario no está autenticado)
-            if (_guestGuard('freeText')) {
-                sendBtn.disabled = false;
-                textInput.disabled = false;
-                return;
-            }
-
+            currentNodeId = 'start';   // sincronizar FSM al escribir texto libre
             sendBtn.disabled = true;
             textInput.disabled = true;
 
@@ -674,6 +679,16 @@
                 if (loader) loader.remove();
 
                 addBotMessage(data.reply || data.message || '🤖 Sin respuesta del servidor.');
+
+                // 5. Si la respuesta incluye opciones/botones FSM, renderizarlos
+                if (data.options && data.options.length > 0) {
+                    renderActionButtons(data.options);
+                }
+
+                // 6. Sincronización reactiva del badge del carrito
+                if (data.cart_total_items !== undefined && typeof window.updateBadges === 'function') {
+                    window.updateBadges(data.cart_total_items);
+                }
 
             } catch (err) {
                 console.error('Free-text ChatService error:', err);
