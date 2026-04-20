@@ -1,5 +1,5 @@
-from flask import Blueprint, jsonify, request
-from flask_login import login_required
+from flask import Blueprint, abort, jsonify, request
+from flask_login import current_user, login_required
 
 from app.models import Product, Category, InventoryItem, Order
 from app.services import chat_service
@@ -31,6 +31,8 @@ def api_products():
 @login_required
 def api_order(order_id: int):
     order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id and not current_user.is_admin:
+        abort(403)
     return jsonify(
         {
             "id": order.id,

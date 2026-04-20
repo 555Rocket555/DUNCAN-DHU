@@ -492,6 +492,315 @@
             });
         })();
     </script>
+    <div id="a11y-widget" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; font-family: sans-serif;">
+    
+        <div id="a11y-menu" style="display: none; background: #ffffff; border: 2px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); width: 220px;">
+            <h4 style="margin: 0 0 10px 0; color: #333; text-align: center;">Accesibilidad</h4>
+            
+            <button id="btn-theme" onclick="toggleThemeMode()" class="a11y-btn">🌗 Modo Claro/Oscuro (Oscuro)</button>
+            <button onclick="a11yToggleClass('a11y-contrast')" class="a11y-btn">🔆 Alto Contraste</button>
+            <button onclick="a11yToggleClass('a11y-grayscale')" class="a11y-btn">🔳 Escala de Grises</button>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;">
+                <span style="font-size: 14px; color: #333;">🔍 Texto:</span>
+                <button onclick="a11yChangeFontSize(1)" class="a11y-font-btn">A+</button>
+                <button onclick="a11yChangeFontSize(-1)" class="a11y-font-btn">A-</button>
+            </div>
+            
+            <button id="btn-voice" onclick="toggleVoiceReader()" class="a11y-btn" style="margin-top: 10px; border-top: 2px solid #0056b3;">🔊 Narración al pasar (Off)</button>
+            <button id="btn-mask" onclick="toggleReadingMask()" class="a11y-btn">🟨 Resaltar texto al pasar (Off)</button>
+        </div>
+    
+        <button onclick="document.getElementById('a11y-menu').style.display = document.getElementById('a11y-menu').style.display === 'none' ? 'block' : 'none'" 
+                style="width: 58px; height: 58px; border-radius: 50%; background: #0056b3; color: white; font-size: 26px; border: none; cursor: pointer; float: left; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            ♿
+        </button>
+    </div>
+    
+    <style>
+        .a11y-btn { display: block; width: 100%; padding: 8px; margin-bottom: 5px; cursor: pointer; border: 1px solid #ccc; background: #f8f9fa; text-align: left; border-radius: 4px; color: #333; }
+        .a11y-btn:hover { background: #e2e6ea; }
+        .a11y-font-btn {
+            padding: 6px 11px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: 1px solid #1f2937;
+            background: #ffffff;
+            color: #111827;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .a11y-font-btn:hover { background: #e5e7eb; }
+        
+        /* Modos visuales (se aplican de forma exclusiva) */
+        body.a11y-light {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        body.a11y-light header,
+        body.a11y-light footer,
+        body.a11y-light #mobile-menu {
+            background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%) !important;
+            border-color: #e5e7eb !important;
+            color: #1f2937 !important;
+        }
+        body.a11y-light main {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+        body.a11y-light header a,
+        body.a11y-light footer a,
+        body.a11y-light main a {
+            color: #1f2937 !important;
+        }
+        body.a11y-light header a:hover,
+        body.a11y-light footer a:hover,
+        body.a11y-light main a:hover {
+            color: #b45309 !important;
+        }
+        body.a11y-light header .text-white,
+        body.a11y-light footer .text-white,
+        body.a11y-light main .text-white {
+            color: #111827 !important;
+        }
+        body.a11y-light header .text-gray-400,
+        body.a11y-light footer .text-gray-400,
+        body.a11y-light main .text-gray-400,
+        body.a11y-light header .text-gray-500,
+        body.a11y-light footer .text-gray-500,
+        body.a11y-light main .text-gray-500,
+        body.a11y-light header .text-gray-600,
+        body.a11y-light footer .text-gray-600,
+        body.a11y-light main .text-gray-600 {
+            color: #4b5563 !important;
+        }
+        body.a11y-light .bg-black,
+        body.a11y-light .bg-urban-black,
+        body.a11y-light .bg-urban-surface,
+        body.a11y-light .bg-black\/90 {
+            background-color: #ffffff !important;
+        }
+        body.a11y-light .border-white\/10,
+        body.a11y-light .border-gray-800 {
+            border-color: #d1d5db !important;
+        }
+        body.a11y-light .text-urban-yellow {
+            color: #b45309 !important;
+        }
+        body.a11y-light .a11y-font-btn {
+            background: #ffffff;
+            color: #111827;
+            border-color: #9ca3af;
+        }
+        body:not(.a11y-light) .a11y-font-btn {
+            background: #111827;
+            color: #f9fafb;
+            border-color: #4b5563;
+        }
+        body.a11y-contrast header,
+        body.a11y-contrast main,
+        body.a11y-contrast footer,
+        body.a11y-contrast #mobile-menu {
+            filter: contrast(160%);
+        }
+        body.a11y-grayscale header,
+        body.a11y-grayscale main,
+        body.a11y-grayscale footer,
+        body.a11y-grayscale #mobile-menu {
+            filter: grayscale(100%);
+        }
+        .a11y-hover-highlight {
+            outline: 3px solid #FFDD00 !important;
+            outline-offset: 2px !important;
+            background-color: rgba(255, 221, 0, 0.18) !important;
+            border-radius: 4px;
+            transition: outline-color 0.15s ease, background-color 0.15s ease;
+        }
+        html { transition: font-size 0.3s ease; }
+    </style>
+    
+    <script>
+        let a11yFontSize = 100; // Porcentaje base
+        let voiceReaderEnabled = false;
+        let readingMaskEnabled = false;
+        let currentHighlightedElement = null;
+        let lastSpokenText = '';
+        let lastSpokenAt = 0;
+        let voiceHoverTimer = null;
+        const visualModes = ['a11y-light', 'a11y-contrast', 'a11y-grayscale'];
+
+        function updateThemeButton() {
+            const btn = document.getElementById('btn-theme');
+            if (!btn) return;
+            const isLightMode = document.body.classList.contains('a11y-light');
+            btn.textContent = isLightMode
+                ? '🌗 Modo Claro/Oscuro (Claro)'
+                : '🌗 Modo Claro/Oscuro (Oscuro)';
+        }
+    
+        function updateVoiceButton() {
+            const btn = document.getElementById('btn-voice');
+            if (!btn) return;
+            btn.textContent = voiceReaderEnabled ? '🔊 Narración al pasar (On)' : '🔊 Narración al pasar (Off)';
+        }
+    
+        function updateMaskButton() {
+            const btn = document.getElementById('btn-mask');
+            if (!btn) return;
+            btn.textContent = readingMaskEnabled ? '🟨 Resaltar texto al pasar (On)' : '🟨 Resaltar texto al pasar (Off)';
+        }
+
+        function setVisualMode(modeToEnable) {
+            visualModes.forEach((mode) => {
+                const shouldEnable = mode === modeToEnable && !document.body.classList.contains(mode);
+                document.body.classList.remove(mode);
+                localStorage.setItem(mode, 'false');
+                if (shouldEnable) {
+                    document.body.classList.add(mode);
+                    localStorage.setItem(mode, 'true');
+                }
+            });
+            updateThemeButton();
+        }
+
+        function getTextTarget(node) {
+            if (!node || !node.closest) return null;
+            if (node.closest('#a11y-widget') || node.closest('#duncan-chatbot-widget')) return null;
+            return node.closest('h1, h2, h3, h4, h5, h6, p, li, a, span, strong, em, label, button, td, th, blockquote');
+        }
+
+        function narrateTarget(target) {
+            if (!voiceReaderEnabled || !window.speechSynthesis || !target) return;
+            const text = (target.innerText || '').trim().replace(/\s+/g, ' ');
+            if (text.length < 3) return;
+            if (text === lastSpokenText) return;
+            clearTimeout(voiceHoverTimer);
+            voiceHoverTimer = setTimeout(() => {
+                if (!voiceReaderEnabled || !window.speechSynthesis) return;
+                const now = Date.now();
+                if (text === lastSpokenText && (now - lastSpokenAt) < 1500) return;
+                const utterance = new SpeechSynthesisUtterance(text.slice(0, 280));
+                utterance.lang = 'es-ES';
+                utterance.rate = 1;
+                utterance.pitch = 1;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+                lastSpokenText = text;
+                lastSpokenAt = now;
+            }, 220);
+        }
+
+        function onA11yHover(event) {
+            const target = getTextTarget(event.target);
+
+            if (readingMaskEnabled) {
+                if (target === currentHighlightedElement) {
+                    narrateTarget(target);
+                    return;
+                }
+                if (currentHighlightedElement) currentHighlightedElement.classList.remove('a11y-hover-highlight');
+                if (target) {
+                    target.classList.add('a11y-hover-highlight');
+                    currentHighlightedElement = target;
+                } else {
+                    currentHighlightedElement = null;
+                }
+            }
+
+            if (voiceReaderEnabled) {
+                narrateTarget(target);
+            }
+        }
+
+        function clearHighlight() {
+            if (currentHighlightedElement) {
+                currentHighlightedElement.classList.remove('a11y-hover-highlight');
+                currentHighlightedElement = null;
+            }
+        }
+
+        function syncA11yHoverListener() {
+            document.removeEventListener('mouseover', onA11yHover, true);
+            if (voiceReaderEnabled || readingMaskEnabled) {
+                document.addEventListener('mouseover', onA11yHover, true);
+            }
+        }
+    
+        // 1. Al cargar la página, recuperar preferencias
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeMode = visualModes.find((mode) => localStorage.getItem(mode) === 'true');
+            if (activeMode) setVisualMode(activeMode);
+            
+            if (localStorage.getItem('a11y-fontsize')) {
+                a11yFontSize = parseInt(localStorage.getItem('a11y-fontsize'));
+                document.documentElement.style.fontSize = a11yFontSize + '%';
+            }
+    
+            voiceReaderEnabled = localStorage.getItem('a11y-voice-reader') === 'true';
+            readingMaskEnabled = localStorage.getItem('a11y-reading-mask') === 'true';
+    
+            if (!window.speechSynthesis) {
+                voiceReaderEnabled = false;
+                localStorage.setItem('a11y-voice-reader', 'false');
+                const btn = document.getElementById('btn-voice');
+                if (btn) btn.disabled = true;
+            }
+    
+            syncA11yHoverListener();
+    
+            updateThemeButton();
+            updateVoiceButton();
+            updateMaskButton();
+        });
+    
+        // 2. Función para alternar clases y guardar
+        function a11yToggleClass(className) {
+            setVisualMode(className);
+        }
+
+        function toggleThemeMode() {
+            if (document.body.classList.contains('a11y-light')) {
+                setVisualMode(null); // Vuelve al tema oscuro por defecto
+            } else {
+                setVisualMode('a11y-light');
+            }
+        }
+    
+        // 3. Función para escalar texto (Límite 200%)
+        function a11yChangeFontSize(step) {
+            a11yFontSize += step * 20; // Sube o baja 20%
+            if (a11yFontSize < 100) a11yFontSize = 100;
+            if (a11yFontSize > 200) a11yFontSize = 200; 
+            
+            document.documentElement.style.fontSize = a11yFontSize + '%';
+            localStorage.setItem('a11y-fontsize', a11yFontSize);
+        }
+    
+        function toggleVoiceReader() {
+            if (!window.speechSynthesis) return;
+            voiceReaderEnabled = !voiceReaderEnabled;
+            localStorage.setItem('a11y-voice-reader', String(voiceReaderEnabled));
+            if (voiceReaderEnabled) {
+                window.speechSynthesis.resume();
+            } else {
+                clearTimeout(voiceHoverTimer);
+                window.speechSynthesis.cancel();
+                lastSpokenText = '';
+            }
+            syncA11yHoverListener();
+            updateVoiceButton();
+        }
+    
+        function toggleReadingMask() {
+            readingMaskEnabled = !readingMaskEnabled;
+            localStorage.setItem('a11y-reading-mask', String(readingMaskEnabled));
+            if (!readingMaskEnabled) {
+                clearHighlight();
+            }
+            syncA11yHoverListener();
+            updateMaskButton();
+        }
+    </script>
 
     {% include 'components/_chatbot.html' %}
     {% block extra_scripts %}{% endblock %}

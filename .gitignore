@@ -44,7 +44,7 @@ MASDO/
 .cursor/
 .gemini/
 .antigravity/
-
+context.md
 # ── Uploads locales (Cloudinary maneja producción) ────────────────────────
 static/uploads/
 app/static/uploads/
