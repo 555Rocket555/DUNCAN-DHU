@@ -26,6 +26,8 @@ class User(UserMixin, db.Model):
     phone = db.Column(db.String(40), nullable=True)
     password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    email_verified = db.Column(db.Boolean, default=False)
+    email_verified_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     orders = db.relationship("Order", backref="user", lazy=True)

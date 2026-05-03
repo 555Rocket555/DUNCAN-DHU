@@ -27,7 +27,9 @@ auth_bp = Blueprint("auth", __name__)
 
 # ── Token constants ──────────────────────────────────────────────────────────
 _TOKEN_SALT = "password-reset-v1"
+_TOKEN_EMAIL_SALT = "email-verify-v1"
 _TOKEN_MAX_AGE = 1800  # 30 minutos
+_TOKEN_EMAIL_MAX_AGE = 86400  # 24 horas para verificación de email
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -57,6 +59,22 @@ def _verify_reset_token(token: str) -> str | None:
     """
     try:
         return _get_serializer().loads(token, salt=_TOKEN_SALT, max_age=_TOKEN_MAX_AGE)
+    except (SignatureExpired, BadSignature):
+        return None
+
+
+def _generate_email_verify_token(email: str) -> str:
+    """Genera un token stateless firmado para verificación de email."""
+    return _get_serializer().dumps(email, salt=_TOKEN_EMAIL_SALT)
+
+
+def _verify_email_token(token: str) -> str | None:
+    """
+    Valida el token de verificación de email y retorna el email si es válido.
+    Retorna None si expiró (>24 horas) o fue manipulado.
+    """
+    try:
+        return _get_serializer().loads(token, salt=_TOKEN_EMAIL_SALT, max_age=_TOKEN_EMAIL_MAX_AGE)
     except (SignatureExpired, BadSignature):
         return None
 
@@ -95,6 +113,11 @@ def login():
 
         if not user or not user.check_password(password):
             flash("Credenciales inválidas", "error")
+
+        # ── Usuario normal: verificar email antes de login ──────────────
+        elif not user.is_admin and not user.email_verified:
+            flash("Por favor verifica tu correo electrónico antes de iniciar sesión.", "error")
+            return render_template("auth/email_verification_pending.html", email=user.email)
 
         # ── Administrador: flujo MFA ──────────────────────────────────
         elif user.is_admin:
@@ -206,6 +229,14 @@ def register():
             flash("Completa todos los campos obligatorios", "error")
             return render_template("registro-usuarios.html")
 
+        if not request.form.get("terminos"):
+            flash("Debes aceptar los términos y condiciones", "error")
+            return render_template("registro-usuarios.html")
+
+        if not request.form.get("mayor_edad"):
+            flash("Debes confirmar que eres mayor de edad", "error")
+            return render_template("registro-usuarios.html")
+
         if phone and not is_valid_phone(phone):
             flash("El número de teléfono debe tener exactamente 10 dígitos.", "error")
             return render_template("registro-usuarios.html")
@@ -222,21 +253,35 @@ def register():
             flash("El nombre de usuario ya está en uso", "error")
             return render_template("registro-usuarios.html")
 
-        user = User(name=name, email=email, phone=phone, username=username, is_admin=False)
+        user = User(name=name, email=email, phone=phone, username=username, is_admin=False, email_verified=False)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
 
-        # Enviar correo de bienvenida
-        try:
-            body_text = f"Hola {user.name},\n\n¡Bienvenido a Duncan Dhu! Tu cuenta ha sido creada exitosamente.\n\nPuedes iniciar sesión en: {url_for('auth.login', _external=True)}\n\n— Equipo Duncan Dhu 🍔"
-            body_html = f"<h2>Bienvenido a Duncan Dhu, {user.name}</h2><p>Tu cuenta ha sido creada exitosamente.</p><p><a href='{url_for('auth.login', _external=True)}'>Iniciar sesión</a></p>"
-            EmailService.send(user.email, "¡Bienvenido a Duncan Dhu!", body_text, body_html)
-        except Exception as e:
-            logger.error("Error enviando email de bienvenida: %s", e)
+        # Generar token de verificación y enviar correo
+        verify_token = _generate_email_verify_token(user.email)
+        verify_url = url_for("auth.verify_email", token=verify_token, _external=True)
 
-        flash("Registro exitoso. Ahora puedes iniciar sesión.", "success")
-        return redirect(url_for("auth.login"))
+        try:
+            body_text = f"Hola {user.name},\n\n¡Bienvenido a Duncan Dhu! Por favor verifica tu correo haciendo clic en el siguiente enlace:\n\n{verify_url}\n\nEste enlace expirará en 24 horas.\n\nSi no creaste esta cuenta, ignora este correo.\n\n— Equipo Duncan Dhu 🍔"
+            body_html = f"""
+            <div style="font-family:sans-serif;max-width:480px;margin:auto;">
+              <h2 style="color:#FFDD00;">¡Bienvenido a Duncan Dhu, {user.name}!</h2>
+              <p>Por favor verifica tu correo electrónico haciendo clic en el botón de abajo:</p>
+              <div style="text-align:center;margin:24px 0;">
+                <a href="{verify_url}" style="display:inline-block;background:#FFDD00;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;border-radius:4px;">Verificar Correo</a>
+              </div>
+              <p style="color:#888;font-size:12px;">O copia este enlace: <br/>{verify_url}</p>
+              <p style="color:#888;font-size:12px;">Este enlace expirará en 24 horas.</p>
+              <p style="color:#888;font-size:12px;">Si no creaste esta cuenta, ignora este correo.</p>
+            </div>
+            """
+            EmailService.send(user.email, "Verifica tu correo - Duncan Dhu", body_text, body_html)
+        except Exception as e:
+            logger.error("Error enviando email de verificación: %s", e)
+
+        flash("Cuenta creada exitosamente. Te hemos enviado un correo con un enlace de verificación. Por favor verifica tu correo para activar tu cuenta.", "success")
+        return redirect(url_for("auth.email_verification_pending", email=user.email))
 
     return render_template("registro-usuarios.html")
 
@@ -248,6 +293,89 @@ def logout():
     logout_user()
     flash("Has cerrado sesión exitosamente", "success")
     return redirect(url_for("auth.login"))
+
+
+# ── Email Verification ──────────────────────────────────────────────────────
+
+@auth_bp.route("/verificar-correo", methods=["GET", "POST"])
+def verify_email():
+    """Verifica el correo del usuario mediante token."""
+    token = request.args.get("token")
+    if not token:
+        flash("Enlace de verificación inválido o expirado", "error")
+        return redirect(url_for("auth.login"))
+
+    email = _verify_email_token(token)
+    if not email:
+        flash("Enlace de verificación expirado. Por favor solicita uno nuevo.", "error")
+        return redirect(url_for("auth.login"))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash("Usuario no encontrado", "error")
+        return redirect(url_for("auth.login"))
+
+    if user.email_verified:
+        flash("Tu correo ya ha sido verificado. Puedes iniciar sesión.", "success")
+        return redirect(url_for("auth.login"))
+
+    # Marcar email como verificado
+    user.email_verified = True
+    user.email_verified_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    flash("¡Correo verificado exitosamente! Ahora puedes iniciar sesión.", "success")
+    return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/verificacion-pendiente")
+def email_verification_pending():
+    """Muestra página de espera mientras el usuario verifica su correo."""
+    email = request.args.get("email", "")
+    return render_template("auth/email_verification_pending.html", email=email)
+
+
+@auth_bp.route("/reenviar-verificacion", methods=["POST"])
+def resend_verification_email():
+    """Reenvía el email de verificación."""
+    email = request.form.get("email", "").strip()
+    if not email:
+        flash("Por favor proporciona tu correo", "error")
+        return redirect(url_for("auth.email_verification_pending", email=email))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash("Correo no encontrado", "error")
+        return redirect(url_for("auth.email_verification_pending", email=email))
+
+    if user.email_verified:
+        flash("Tu correo ya ha sido verificado. Puedes iniciar sesión.", "success")
+        return redirect(url_for("auth.login"))
+
+    # Generar nuevo token y reenviar
+    verify_token = _generate_email_verify_token(user.email)
+    verify_url = url_for("auth.verify_email", token=verify_token, _external=True)
+
+    try:
+        body_text = f"Hola {user.name},\n\nAquí está el enlace de verificación de tu correo:\n\n{verify_url}\n\nEste enlace expirará en 24 horas.\n\n— Equipo Duncan Dhu 🍔"
+        body_html = f"""
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;">
+          <h2 style="color:#FFDD00;">Verifica tu correo</h2>
+          <p>Hola {user.name},</p>
+          <p>Aquí está el enlace para verificar tu correo:</p>
+          <div style="text-align:center;margin:24px 0;">
+            <a href="{verify_url}" style="display:inline-block;background:#FFDD00;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;border-radius:4px;">Verificar Correo</a>
+          </div>
+          <p style="color:#888;font-size:12px;">Este enlace expirará en 24 horas.</p>
+        </div>
+        """
+        EmailService.send(user.email, "Verifica tu correo - Duncan Dhu", body_text, body_html)
+        flash("Te hemos reenviado el enlace de verificación. Por favor revisa tu correo.", "success")
+    except Exception as e:
+        logger.error("Error reenviando email de verificación: %s", e)
+        flash("Error al reenviar el correo. Por favor intenta más tarde.", "error")
+
+    return redirect(url_for("auth.email_verification_pending", email=email))
 
 
 # ── Admin Login ──────────────────────────────────────────────────────────────

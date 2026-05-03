@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Verifica tu Correo - Duncan Dhu{% endblock %}
+
+{% block content %}
+
+<div class="min-h-[60vh] flex items-center justify-center py-10">
+    <div class="w-full max-w-lg">
+        <div class="text-center mb-8">
+            <div class="text-6xl mb-4">📧</div>
+            <h1 class="font-oswald text-4xl text-white uppercase tracking-wider">
+                Verifica tu <span class="text-urban-yellow">Correo</span>
+            </h1>
+        </div>
+
+        <div class="bg-urban-surface border border-gray-800 p-8 urban-shadow">
+            <p class="text-center text-gray-300 font-archivo mb-6">
+                Hemos enviado un enlace de verificación a:
+            </p>
+            <p class="text-center text-urban-yellow font-oswald text-lg font-bold mb-8">
+                {{ email }}
+            </p>
+
+            <div class="bg-black border border-gray-700 p-4 mb-6 rounded-sm">
+                <p class="text-gray-400 font-archivo text-sm mb-4">
+                    📝 <strong>¿Qué hacer ahora?</strong>
+                </p>
+                <ol class="text-gray-400 font-archivo text-sm space-y-2 list-decimal list-inside">
+                    <li>Abre tu correo electrónico</li>
+                    <li>Busca el correo de Duncan Dhu</li>
+                    <li>Haz clic en el botón "Verificar Correo"</li>
+                    <li>¡Listo! Podrás iniciar sesión</li>
+                </ol>
+            </div>
+
+            <div class="bg-yellow-900/20 border border-urban-yellow p-4 mb-6 rounded-sm">
+                <p class="text-urban-yellow font-archivo text-xs">
+                    ⏰ <strong>El enlace expira en 24 horas.</strong> Si no lo verificas en ese tiempo, tendrás que solicitar uno nuevo.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <form action="{{ url_for('auth.resend_verification_email') }}" method="post">
+                    <input type="hidden" name="email" value="{{ email }}">
+                    <button type="submit" class="w-full border-2 border-urban-yellow text-urban-yellow hover:bg-urban-yellow hover:text-black font-oswald font-bold py-3 px-4 transition-all duration-200 uppercase tracking-widest">
+                        ↻ Reenviar Correo de Verificación
+                    </button>
+                </form>
+
+                <a href="{{ url_for('auth.login') }}" class="block w-full text-center text-gray-400 hover:text-white border border-gray-700 py-3 px-4 font-archivo font-bold uppercase tracking-widest transition-colors">
+                    Volver al Login
+                </a>
+            </div>
+
+            <div class="mt-6 text-center border-t border-gray-800 pt-6">
+                <p class="text-gray-500 text-xs font-archivo">
+                    ¿Necesitas ayuda? Contacta a <a href="mailto:soporte@duncandhu.com" class="text-urban-yellow hover:underline">soporte@duncandhu.com</a>
+                </p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mt-6 p-4 border border-urban-yellow bg-yellow-900/20">
+                {% for category, message in messages %}
+                <p class="font-oswald text-urban-yellow uppercase text-center text-sm">{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="text-center mt-8">
+            <p class="text-gray-600 text-xs font-archivo">
+                Una vez verificado, podrás acceder a tu cuenta y disfrutar de todos nuestros servicios.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
