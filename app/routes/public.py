@@ -822,3 +822,18 @@ def api_bot_order_status():
         ]
     })
 
+
+# ---------------------------------------------------------------------------
+# Términos y Política de Privacidad
+# ---------------------------------------------------------------------------
+@public_bp.route("/terminos")
+def terminos():
+    """Página de términos y condiciones."""
+    return render_template("public/terminos.html")
+
+
+@public_bp.route("/politica-privacidad")
+def politica_privacidad():
+    """Página de política de privacidad."""
+    return render_template("public/politica-privacidad.html")
+

@@ -79,6 +79,37 @@ def _verify_email_token(token: str) -> str | None:
         return None
 
 
+def _verify_recaptcha(recaptcha_response: str) -> bool:
+    """
+    Verifica el token de reCAPTCHA v2 con Google.
+    Retorna True si es válido, False en caso contrario.
+    """
+    print(f"DEBUG: reCAPTCHA response: '{recaptcha_response}'")  # Debug
+    if not recaptcha_response:
+        print("DEBUG: No reCAPTCHA response provided")  # Debug
+        return False
+
+    import requests
+
+    secret_key = current_app.config.get("RECAPTCHA_SECRET_KEY", "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe")  # Test key
+    print(f"DEBUG: Using secret key: {secret_key[:10]}...")  # Debug
+    verify_url = "https://www.google.com/recaptcha/api/siteverify"
+
+    try:
+        response = requests.post(verify_url, data={
+            "secret": secret_key,
+            "response": recaptcha_response
+        }, timeout=10)
+
+        result = response.json()
+        print(f"DEBUG: reCAPTCHA API response: {result}")  # Debug
+        return result.get("success", False)
+    except Exception as e:
+        print(f"DEBUG: Error verifying reCAPTCHA: {e}")  # Debug
+        logger.error("Error verificando reCAPTCHA: %s", e)
+        return False
+
+
 def is_valid_phone(phone: str) -> bool:
     """Checks if phone consists of exactly 10 digits."""
     return bool(re.match(r'^\d{10}$', phone))
@@ -105,7 +136,13 @@ def login():
     if request.method == "POST":
         username = request.form.get("usuario", "").strip()
         password = request.form.get("contrasena", "")
+        recaptcha_response = request.form.get("g-recaptcha-response", "")
         next_url = _safe_next(request.form.get("next") or request.args.get("next"))
+
+        # ── Verificar reCAPTCHA ────────────────────────────────────────
+        if not _verify_recaptcha(recaptcha_response):
+            flash("Por favor verifica que no eres un robot.", "error")
+            return render_template("login.html")
 
         user = User.query.filter(
             (User.username == username) | (User.email == username)

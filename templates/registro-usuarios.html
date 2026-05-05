@@ -57,7 +57,7 @@
                         <input type="checkbox" id="terminos" name="terminos" required
                             class="mt-1 h-4 w-4 bg-black border border-gray-700 text-urban-yellow focus:ring-urban-yellow focus:ring-2">
                         <label for="terminos" class="text-sm text-gray-300 font-archivo">
-                            Acepto los <a href="#" class="text-urban-yellow hover:underline">términos y condiciones</a> y la <a href="#" class="text-urban-yellow hover:underline">política de privacidad</a>.
+                            Acepto los <a href="{{ url_for('public.terminos') }}" class="text-urban-yellow hover:underline" target="_blank">términos y condiciones</a> y la <a href="{{ url_for('public.politica_privacidad') }}" class="text-urban-yellow hover:underline" target="_blank">política de privacidad</a>.
                         </label>
                     </div>
                     <div class="flex items-start space-x-3">
