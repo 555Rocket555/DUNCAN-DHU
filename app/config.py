@@ -49,6 +49,10 @@ class Config:
         or os.getenv("MAIL_DEFAULT_SENDER", "no-reply@duncandhu.local")
     )
 
+    # ── reCAPTCHA ──────────────────────────────────────────────────────────
+    RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI")  # Test key
+    RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe")  # Test key
+
     # ── Twilio / WhatsApp ─────────────────────────────────────────────────
     TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
     TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")

@@ -52,6 +52,23 @@
                         class="w-full bg-black border border-gray-700 text-white p-3 focus:border-urban-yellow focus:outline-none font-archivo transition-colors">
                 </div>
 
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" id="terminos" name="terminos" required
+                            class="mt-1 h-4 w-4 bg-black border border-gray-700 text-urban-yellow focus:ring-urban-yellow focus:ring-2">
+                        <label for="terminos" class="text-sm text-gray-300 font-archivo">
+                            Acepto los <a href="{{ url_for('public.terminos') }}" class="text-urban-yellow hover:underline" target="_blank">términos y condiciones</a> y la <a href="{{ url_for('public.politica_privacidad') }}" class="text-urban-yellow hover:underline" target="_blank">política de privacidad</a>.
+                        </label>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" id="mayor_edad" name="mayor_edad" required
+                            class="mt-1 h-4 w-4 bg-black border border-gray-700 text-urban-yellow focus:ring-urban-yellow focus:ring-2">
+                        <label for="mayor_edad" class="text-sm text-gray-300 font-archivo">
+                            Confirmo que soy mayor de 18 años y que la información proporcionada es veraz.
+                        </label>
+                    </div>
+                </div>
+
                 <div class="pt-4">
                     <button type="submit" class="w-full urban-btn text-center text-sm tracking-widest">
                         Crear Cuenta

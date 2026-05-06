@@ -62,3 +62,5 @@ logs/
 # ── Misc ─────────────────────────────────────────────────────────────────
 pyrightconfig.json
 .mypy_cache/
+
+cookies.txt
