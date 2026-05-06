@@ -242,7 +242,7 @@
             {% for category, message in messages %}
             <div
                 class="flash-message mb-4 p-4 rounded-sm shadow-lg flex justify-between items-center opacity-0 translate-y-2 animate-fade-in-up
-                        {% if category == 'success' %}bg-green-600 text-white border-l-4 border-green-300{% else %}bg-urban-red text-white border-l-4 border-red-900{% endif %}">
+                        {% if category == 'success' %}bg-green-600 text-white border-l-4 border-green-300{% elif category == 'warning' %}bg-urban-yellow text-black border-l-4 border-yellow-300{% else %}bg-urban-red text-white border-l-4 border-red-900{% endif %}">
                 <span class="font-archivo font-medium">{{ message }}</span>
                 <button onclick="this.parentElement.remove()"
                     class="ml-4 text-white hover:text-gray-200 focus:outline-none">
@@ -806,6 +806,78 @@
     </script>
 
     {% include 'components/_chatbot.html' %}
+    <script>
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || performance.getEntriesByType('navigation').some(function (nav) {
+                return nav.type === 'back_forward';
+            })) {
+                window.location.reload();
+            }
+        });
+    </script>
+
+    {% if current_user.is_authenticated %}
+    <style>
+        #session-timeout-indicator {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.85);
+            color: #ffffff;
+            border: 1px solid #FFDD00;
+            padding: 0.75rem 1rem;
+            border-radius: 999px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 0.9rem;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+        }
+    </style>
+    <div id="session-timeout-indicator">
+        Sesión expira en <span id="session-countdown">05:00</span>
+    </div>
+    <script>
+        (function () {
+            var timeoutMs = 5 * 60 * 1000;
+            var lastActivity = Date.now();
+            var countdownEl = document.getElementById('session-countdown');
+            var indicator = document.getElementById('session-timeout-indicator');
+            if (!countdownEl || !indicator) return;
+
+            function formatTime(ms) {
+                var total = Math.max(0, Math.ceil(ms / 1000));
+                var min = Math.floor(total / 60);
+                var sec = total % 60;
+                return String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+            }
+
+            function updateCounter() {
+                var diff = timeoutMs - (Date.now() - lastActivity);
+                if (diff <= 0) {
+                    countdownEl.textContent = '00:00';
+                    indicator.textContent = 'Sesión expirada. Recargando...';
+                    window.location.reload();
+                    return;
+                }
+                countdownEl.textContent = formatTime(diff);
+            }
+
+            function resetTimer() {
+                lastActivity = Date.now();
+                indicator.style.display = 'block';
+                updateCounter();
+            }
+
+            ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'].forEach(function (eventName) {
+                document.addEventListener(eventName, resetTimer, { passive: true });
+            });
+
+            resetTimer();
+            setInterval(updateCounter, 1000);
+        })();
+    </script>
+    {% endif %}
+
     {% block extra_scripts %}{% endblock %}
 </body>
 

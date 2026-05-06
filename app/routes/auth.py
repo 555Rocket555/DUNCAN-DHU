@@ -141,7 +141,7 @@ def login():
 
         # ── Verificar reCAPTCHA ────────────────────────────────────────
         if not _verify_recaptcha(recaptcha_response):
-            flash("Por favor verifica que no eres un robot.", "error")
+            flash("Por favor verifica que no eres un robot.", "warning")
             return render_template("login.html")
 
         user = User.query.filter(
@@ -161,6 +161,9 @@ def login():
             otp = str(random.randint(100000, 999999))
             session["mfa_code"]    = otp
             session["mfa_user_id"] = user.id
+
+            # DEBUG: Mostrar el código MFA en la consola del servidor para pruebas.
+            print(f"DEBUG: Código MFA para admin '{user.username}': {otp}")
 
             now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
             body_html = f"""
@@ -241,7 +244,7 @@ def mfa_verify():
                 flash("Error de verificación. Intenta de nuevo.", "error")
                 return redirect(url_for("auth.login"))
 
-            login_user(user, remember=True)
+            login_user(user, remember=False)
             flash(f"Bienvenido, {user.name}. Acceso admin verificado. ✅", "success")
             return redirect(url_for("admin.dashboard"))
         else:
@@ -328,8 +331,17 @@ def register():
 @auth_bp.route("/logout")
 def logout():
     logout_user()
+    session.pop("_user_id", None)
+    session.pop("_remember", None)
+    session.pop("_fresh", None)
+    session.pop("last_active", None)
+    session.clear()
+    session.modified = True
     flash("Has cerrado sesión exitosamente", "success")
-    return redirect(url_for("auth.login"))
+
+    response = redirect(url_for("auth.login"))
+    response.delete_cookie(current_app.config.get("REMEMBER_COOKIE_NAME", "remember_token"), path="/")
+    return response
 
 
 # ── Email Verification ──────────────────────────────────────────────────────
@@ -436,7 +448,7 @@ def admin_login():
         if not user or not user.check_password(password):
             flash("Credenciales inválidas", "error")
         else:
-            login_user(user, remember=True)
+            login_user(user, remember=False)
             return redirect(url_for("admin.dashboard"))
 
     return render_template("login-admin.html")

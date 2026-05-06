@@ -22,10 +22,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = _raw_db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    REMEMBER_COOKIE_DURATION = timedelta(days=14)
+    REMEMBER_COOKIE_DURATION = timedelta(minutes=5)
     REMEMBER_COOKIE_REFRESH_EACH_REQUEST = True
-    # Sesión expira a los 60 minutos de inactividad
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=60)
+    # Sesión expira a los 5 minutos de inactividad
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=5)
 
     # ── MercadoPago ────────────────────────────────────────────────────────
     MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "")
