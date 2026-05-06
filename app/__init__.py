@@ -41,12 +41,12 @@ def create_app():
 
     from flask import flash, redirect, session, url_for  # noqa: F401 – runtime import inside factory
 
-    _SESSION_TIMEOUT = timedelta(minutes=60)
+    _SESSION_TIMEOUT = timedelta(minutes=5)
 
     @app.before_request
     def enforce_session_timeout():
         """
-        Cierra la sesión del usuario si lleva más de 60 min sin actividad.
+        Cierra la sesión del usuario si lleva más de 5 min sin actividad.
         Se ejecuta antes de CADA petición autenticada.
         """
         if current_user.is_authenticated:
@@ -68,7 +68,7 @@ def create_app():
 
     @app.after_request
     def add_no_cache_headers(response):
-        if current_user.is_authenticated:
+        if response.content_type and response.content_type.startswith("text/html"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"

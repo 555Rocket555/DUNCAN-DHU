@@ -39,7 +39,9 @@
 
                 <!-- Google reCAPTCHA v2 -->
                 <div class="flex justify-center mb-6">
-                    <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
+                    <div class="recaptcha-wrapper">
+                        <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
+                    </div>
                 </div>
 
                 <button type="submit" class="w-full urban-btn text-center text-sm tracking-widest">

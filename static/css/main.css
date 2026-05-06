@@ -118,6 +118,19 @@ h6 {
     padding: var(--btn-padding);
     border: none;
     cursor: pointer;
+}
+
+/* --- reCAPTCHA styling fixes -------------------------------- */
+.recaptcha-wrapper {
+    height: 70px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 330px;
+}
+
+.recaptcha-wrapper .g-recaptcha {
+    transform: translateY(-10px);
+}
     transition: all 0.2s;
     text-decoration: none;
     font-size: 1.1rem;
