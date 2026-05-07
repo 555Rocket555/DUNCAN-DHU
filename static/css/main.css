@@ -350,3 +350,9 @@ button[aria-expanded] {
         z-index: 30 !important;
     }
 }
+
+.rc-anchor-alert {
+    color: white;
+    font-size: 2px;
+    display: none;
+}
