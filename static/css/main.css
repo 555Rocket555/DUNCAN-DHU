@@ -118,19 +118,6 @@ h6 {
     padding: var(--btn-padding);
     border: none;
     cursor: pointer;
-}
-
-/* --- reCAPTCHA styling fixes -------------------------------- */
-.recaptcha-wrapper {
-    height: 70px;
-    overflow: hidden;
-    width: 100%;
-    max-width: 330px;
-}
-
-.recaptcha-wrapper .g-recaptcha {
-    transform: translateY(-10px);
-}
     transition: all 0.2s;
     text-decoration: none;
     font-size: 1.1rem;
@@ -195,6 +182,18 @@ h6 {
     box-shadow: 0 0 0 3px var(--color-accent-primary);
 }
 
+/* --- reCAPTCHA styling fixes -------------------------------- */
+.recaptcha-wrapper {
+    height: 70px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 330px;
+}
+
+.recaptcha-wrapper .g-recaptcha {
+    transform: translateY(-10px);
+}
+
 /* --- Text Effects ------------------------------------------ */
 .text-stroke {
     -webkit-text-stroke: 1px var(--color-accent-primary);
@@ -207,8 +206,6 @@ h6 {
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-
-/* --- Mobile Menu: now handled via inline styles in base.html --- */
 
 /* --- Flash Message Animation ------------------------------- */
 @keyframes fade-in-up {
@@ -227,7 +224,7 @@ h6 {
     animation: fade-in-up 0.3s ease forwards;
 }
 
-/* --- Category nav buttons (no clip-path on filter tabs) ---- */
+/* --- Category nav buttons ---------------------------------- */
 .category-filter-btn {
     clip-path: none !important;
     white-space: nowrap;
@@ -275,7 +272,6 @@ h6 {
 }
 
 /* --- Scrollbar (Urban feel) -------------------------------- */
-/* global rules (for the whole site) */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -292,7 +288,6 @@ h6 {
     background: #FFEE00;
 }
 
-/* chatbot-specific scrollbar so that la ventana tenga su propio scroll */
 #chatbot-messages::-webkit-scrollbar {
     width: 6px;
 }
@@ -308,4 +303,50 @@ h6 {
 
 #chatbot-messages::-webkit-scrollbar-thumb:hover {
     background: #222;
+}
+
+/* ============================================================
+   🚨 FIX ARQUITECTÓNICO: JERARQUÍAS DE Z-INDEX (MENÚ MÓVIL)
+   ============================================================ */
+
+/* 1. Aseguramos que la barra superior (Header) SIEMPRE gane */
+header,
+.admin-header,
+#admin-bar {
+    z-index: 100000 !important;
+}
+
+/* 2. El botón de menú hamburguesa y botón de cerrar siempre flotan arriba */
+#mobile-menu-btn,
+#close-mobile-menu,
+button[aria-expanded] {
+    z-index: 100001 !important;
+    position: relative;
+}
+
+/* 3. El Menú Móvil general (pantalla completa) */
+#mobile-menu {
+    background-color: var(--color-bg-primary) !important;
+    z-index: 99990 !important;
+    overflow-y: auto !important;
+}
+
+/* 4. El Menú Lateral del Administrador (Sidebar) */
+@media (max-width: 768px) {
+
+    .admin-sidebar,
+    aside {
+        background-color: var(--color-bg-primary) !important;
+        z-index: 99990 !important;
+        /* Está por debajo del header y del botón */
+        overflow-y: auto !important;
+    }
+}
+
+@media (min-width: 769px) {
+
+    .admin-sidebar,
+    aside {
+        z-index: 30 !important;
+    }
 }

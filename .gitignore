@@ -45,6 +45,11 @@ MASDO/
 .gemini/
 .antigravity/
 context.md
+DOCS_INDEX.md
+DOCUMENTATION.md
+LEEME_PRIMERO.md
+MAPA_DOCUMENTACION.md
+RESUMEN_EJECUTIVO.md
 # ── Uploads locales (Cloudinary maneja producción) ────────────────────────
 static/uploads/
 app/static/uploads/

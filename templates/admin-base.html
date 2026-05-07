@@ -6,14 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin - Duncan Dhu{% endblock %}</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Oswald:wght@400;500;700&display=swap"
         rel="stylesheet">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -34,90 +32,96 @@
         }
     </script>
 
-    <!-- Global Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
     {% block extra_css %}{% endblock %}
+
+    <style>
+        /* Transiciones suaves para el menú y el contenido */
+        #admin-sidebar,
+        #main-content,
+        #sidebar-overlay {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ESTADO MÓVIL (Celular) */
+        @media (max-width: 767px) {
+            #admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            /* Oculto por defecto */
+            #admin-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            /* Visible cuando se hace clic */
+            #main-content {
+                padding-left: 0;
+            }
+        }
+
+        /* ESTADO ESCRITORIO (Computadora) */
+        @media (min-width: 768px) {
+            #admin-sidebar {
+                transform: translateX(0);
+            }
+
+            /* Visible por defecto */
+            #admin-sidebar.desktop-closed {
+                transform: translateX(-100%);
+            }
+
+            /* Contraído */
+            #main-content {
+                padding-left: 16rem;
+            }
+
+            /* Margen izquierdo para no tapar contenido */
+            #main-content.desktop-expanded {
+                padding-left: 0;
+            }
+
+            /* Contenido expandido */
+        }
+    </style>
 </head>
 
-<body class="bg-black text-white min-h-screen">
+<body class="bg-black text-white min-h-screen overflow-hidden">
 
-    <!-- Header -->
-    <header class="fixed w-full z-40 bg-black/90 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Branding -->
-                <div class="flex-shrink-0 flex items-center gap-4">
-                    <a href="{{ url_for('admin.dashboard') }}" class="flex flex-col">
-                        <span
-                            class="font-oswald text-3xl font-bold text-urban-yellow tracking-tighter uppercase relative group">
-                            Duncan Dhu <span class="text-white">Admin</span>
-                        </span>
-                    </a>
-                </div>
-
-                <!-- Admin Action -->
-                <div class="hidden md:flex items-center gap-3">
-                    <a href="{{ url_for('public.home') }}"
-                        class="font-oswald py-2 px-4 text-sm uppercase bg-urban-yellow/10 border border-urban-yellow/40 text-urban-yellow hover:bg-urban-yellow hover:text-black transition-colors duration-300">
-                        🌐 Ver Sitio Público
-                    </a>
-                    <a href="{{ url_for('auth.logout') }}"
-                        class="urban-btn-secondary py-2 px-4 text-sm uppercase">Cerrar Sesión</a>
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-btn" class="text-white hover:text-urban-yellow focus:outline-none">
-                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Menu Overlay -->
-        <div id="mobile-menu"
-            class="fixed inset-0 z-50 bg-zinc-900 bg-opacity-[0.97] backdrop-blur-sm flex flex-col justify-center items-center hidden">
-            <button id="close-mobile-menu" class="absolute top-6 right-6 text-white hover:text-urban-yellow">
-                <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <header
+        class="fixed w-full z-[70] bg-black/90 backdrop-blur-md border-b border-white/10 h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-4">
+            <button id="sidebar-toggle-btn"
+                class="text-white hover:text-urban-yellow focus:outline-none transition-transform hover:scale-110">
+                <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            <nav class="flex flex-col space-y-6 text-center w-full px-8">
-                <span class="font-oswald text-4xl text-urban-yellow uppercase mb-4">Admin Panel</span>
+            <a href="{{ url_for('admin.dashboard') }}" class="flex flex-col">
+                <span
+                    class="font-oswald text-2xl sm:text-3xl font-bold text-urban-yellow tracking-tighter uppercase relative group">
+                    Duncan Dhu <span class="text-white hidden sm:inline">Admin</span>
+                </span>
+            </a>
+        </div>
 
-                <a href="{{ url_for('admin.dashboard') }}"
-                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Dashboard</a>
-                <a href="{{ url_for('admin.products') }}"
-                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Productos</a>
-                <a href="{{ url_for('admin.inventory') }}"
-                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Inventario</a>
-                <a href="{{ url_for('admin.orders') }}"
-                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Órdenes</a>
-                <a href="{{ url_for('admin.reports') }}"
-                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Reportes</a>
-                <a href="{{ url_for('admin.users_list') }}"
-                    class="font-oswald text-2xl text-white hover:text-urban-yellow uppercase">Usuarios</a>
-
-                <div class="border-t border-gray-700 w-24 mx-auto my-4"></div>
-
-                <a href="{{ url_for('public.home') }}"
-                    class="font-oswald text-2xl text-urban-yellow hover:text-white uppercase">🌐 Ver Sitio Público</a>
-
-                <a href="{{ url_for('auth.logout') }}"
-                    class="font-oswald text-2xl text-urban-red hover:underline uppercase">Cerrar Sesión</a>
-            </nav>
+        <div class="hidden md:flex items-center gap-3">
+            <a href="{{ url_for('public.home') }}"
+                class="font-oswald py-2 px-4 text-sm uppercase bg-urban-yellow/10 border border-urban-yellow/40 text-urban-yellow hover:bg-urban-yellow hover:text-black transition-colors duration-300">
+                🌐 Ver Sitio
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="urban-btn-secondary py-2 px-4 text-sm uppercase">Cerrar
+                Sesión</a>
         </div>
     </header>
 
-    <div class="flex h-screen overflow-hidden pt-20">
-        <!-- Sidebar (persistent desktop, hidden mobile) -->
-        <aside
-            class="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:pt-20 w-64 bg-urban-black border-r border-white/10 z-30 overflow-y-auto">
-            <nav class="p-6 space-y-2">
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/80 z-[50] hidden cursor-pointer"></div>
+
+    <div class="flex h-screen pt-20">
+        <aside id="admin-sidebar"
+            class="fixed inset-y-0 left-0 pt-20 w-64 bg-urban-black border-r border-white/10 z-[60] overflow-y-auto shadow-2xl">
+            <nav class="p-6 space-y-2 pb-24">
                 {% set active_page = active_page|default('dashboard') %}
 
                 <a href="{{ url_for('admin.dashboard') }}"
@@ -197,57 +201,85 @@
                     </svg>
                     Ver Sitio Público
                 </a>
+
+                <a href="{{ url_for('auth.logout') }}"
+                    class="md:hidden flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-oswald uppercase tracking-wide text-urban-red hover:bg-urban-red/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Cerrar Sesión
+                </a>
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 md:ml-64 p-6 overflow-y-auto overflow-x-hidden">
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div id="flash-messages" class="mb-4">
-                {% for category, message in messages %}
-                <div
-                    class="flash-message p-4 mb-2 rounded-sm shadow-md flex justify-between items-center animate-fade-in-up
-                            {% if category == 'success' %}bg-green-600 text-white border-l-4 border-green-300{% else %}bg-urban-red text-white border-l-4 border-red-900{% endif %}">
-                    <span class="font-archivo font-medium">{{ message }}</span>
-                    <button onclick="this.parentElement.remove()"
-                        class="ml-4 text-white hover:text-gray-200 focus:outline-none">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+        <main id="main-content" class="flex-1 w-full overflow-y-auto overflow-x-hidden">
+            <div class="p-4 sm:p-6 max-w-7xl mx-auto pb-24">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div id="flash-messages" class="mb-4">
+                    {% for category, message in messages %}
+                    <div
+                        class="flash-message p-4 mb-2 rounded-sm shadow-md flex justify-between items-center animate-fade-in-up
+                                {% if category == 'success' %}bg-green-600 text-white border-l-4 border-green-300{% else %}bg-urban-red text-white border-l-4 border-red-900{% endif %}">
+                        <span class="font-archivo font-medium">{{ message }}</span>
+                        <button onclick="this.parentElement.remove()"
+                            class="ml-4 text-white hover:text-gray-200 focus:outline-none">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endwith %}
+                {% endif %}
+                {% endwith %}
 
-            <div class="max-w-7xl mx-auto">
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
 
     <script>
-        // Mobile Menu Logic
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const closeMobileMenuBtn = document.getElementById('close-mobile-menu');
-        const mobileMenu = document.getElementById('mobile-menu');
+        const sidebar = document.getElementById('admin-sidebar');
+        const mainContent = document.getElementById('main-content');
+        const toggleBtn = document.getElementById('sidebar-toggle-btn');
+        const overlay = document.getElementById('sidebar-overlay');
 
-        function toggleMenu() {
-            if (mobileMenu.classList.contains('hidden')) {
-                mobileMenu.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
+        function toggleSidebar() {
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile) {
+                // Comportamiento de Celular (Aparece desde la izquierda + Overlay)
+                sidebar.classList.toggle('mobile-open');
+                if (sidebar.classList.contains('mobile-open')) {
+                    overlay.style.display = 'block';
+                    document.body.style.overflow = 'hidden'; // Evita scroll de fondo
+                } else {
+                    overlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
             } else {
-                mobileMenu.classList.add('hidden');
-                document.body.style.overflow = '';
+                // Comportamiento de PC (Contrae hacia la izquierda y expande contenido)
+                sidebar.classList.toggle('desktop-closed');
+                mainContent.classList.toggle('desktop-expanded');
             }
         }
 
-        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleMenu);
-        if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', toggleMenu);
+        // Asignar eventos de clic
+        toggleBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // Si giras el dispositivo o cambias tamaño, limpiamos estados para evitar bugs visuales
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('mobile-open');
+                overlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
 
         // Flash Messages Auto-Dismiss
         document.addEventListener('DOMContentLoaded', () => {
