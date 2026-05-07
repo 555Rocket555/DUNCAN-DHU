@@ -69,6 +69,23 @@ QUICK_REPLIES: dict[str, str] = {
         "🔍 No encontré un pedido con ese número en tu cuenta. "
         "Revisa el número de pedido en tu confirmación o ve a 'Mis Pedidos'."
     ),
+    "despedida": (
+        "¡Hasta pronto! Recuerda que aquí estamos para calmar tus antojos. 🍔👋 "
+        "¡Que tengas un excelente día!"
+    ),
+    "agradecimiento": (
+        "¡Con mucho gusto! Para eso estamos. 😎 ¿Hay algo más en lo que te pueda ayudar hoy?"
+    ),
+    "recomendacion": (
+        "¡Uf! Si es tu primera vez, te recomiendo nuestra Hamburguesa Clásica o un buen Combo. 🤤 "
+        "Haz clic abajo para ver nuestras opciones más populares."
+    ),
+    # 🚨 NUEVO: Respuesta para envíos a domicilio
+    "envios": (
+        "🛵 Por el momento no contamos con servicio a domicilio. "
+        "Todas nuestras órdenes son para recoger directamente en sucursal "
+        "(Calle Principal #123). ¡Puedes hacer tu pedido en línea aquí mismo para que esté listo cuando llegues!"
+    ),
 }
 
 # Palabras clave por intención (listas editables)
@@ -88,8 +105,54 @@ _KEYWORDS: dict[str, list[str]] = {
         "qué tal",
         "que tal",
         "holi",
+    ],
+    "despedida": [
         "adiós",
         "adios",
+        "bye",
+        "hasta luego",
+        "nos vemos",
+        "chao",
+        "hasta pronto",
+    ],
+    "agradecimiento": [
+        "gracias",
+        "muchas gracias",
+        "te lo agradezco",
+        "mil gracias",
+        "ok",
+        "perfecto",
+        "excelente",
+        "vale",
+        "genial",
+    ],
+    "recomendacion": [
+        "recomendacion",
+        "recomendaciones",
+        "recomienda",
+        "recomiendas",
+        "sugieres",
+        "sugerencia",
+        "popular",
+        "favorito",
+        "antojo",
+        "mejores",
+        "mejor",
+    ],
+    # 🚨 NUEVO: Categoría para envíos y domicilios
+    "envios": [
+        "envio",
+        "envío",
+        "envios",
+        "envíos",
+        "domicilio",
+        "delivery",
+        "repartidor",
+        "reparto",
+        "llevan",
+        "mandan",
+        "entregas",
+        "entregan",
     ],
     "horarios": [
         "horario",
@@ -138,7 +201,6 @@ _KEYWORDS: dict[str, list[str]] = {
         "que venden",
         "productos",
         "novedades",
-        "antojo",
         "antojos",
     ],
     "hotdog": [
@@ -236,11 +298,6 @@ _KEYWORDS: dict[str, list[str]] = {
         "donde esta",
         "llegó",
         "llego",
-        "envío",
-        "envio",
-        "entregas",
-        "entrega",
-        "repartidor",
     ],
     "contacto": [
         "contacto",
@@ -542,7 +599,6 @@ def _get_admin_quick_reply(message: str) -> dict | None:
             logger.warning("AdminFSM: Error calculando métricas en saludo: %s", e)
             reply = "Hola Admin 👋 Bienvenido al panel. ¿En qué puedo ayudarte?"
 
-        # FIX ARQUITECTÓNICO: Se usa 'action' y 'isLink' para evitar colapso de FSM en el frontend.
         return {
             "reply": reply,
             "status": "ok",
@@ -618,6 +674,8 @@ def _get_admin_quick_reply(message: str) -> dict | None:
 def _get_quick_reply(message: str) -> dict | None:
     msg = message.lower().strip()
 
+    # ── 1. SALUDOS, DESPEDIDAS, AGRADECIMIENTOS, RECOMENDACIONES, Y ENVÍOS ───
+
     if _aggressive_keyword_match(msg, _KEYWORDS["saludo"]):
         return {
             "reply": "¡Hola! Bienvenido a Duncan Dhu 🍔 ¿En qué te puedo ayudar hoy?",
@@ -632,6 +690,67 @@ def _get_quick_reply(message: str) -> dict | None:
                 {"text": "Soporte / Ayuda", "next": "help_order", "style": "outline"},
             ],
         }
+
+    if _aggressive_keyword_match(msg, _KEYWORDS["despedida"]):
+        return {
+            "reply": QUICK_REPLIES["despedida"],
+            "status": "ok",
+            "options": [
+                {"text": "📖 Ver Menú Rápido", "next": "menu", "style": "primary"},
+            ],
+        }
+
+    if _aggressive_keyword_match(msg, _KEYWORDS["agradecimiento"]):
+        return {
+            "reply": QUICK_REPLIES["agradecimiento"],
+            "status": "ok",
+            "options": [
+                {"text": "📖 Ver Menú", "next": "menu", "style": "primary"},
+                {
+                    "text": "📦 Estado de mi Pedido",
+                    "next": "order_status_hook",
+                    "style": "outline",
+                },
+            ],
+        }
+
+    if _aggressive_keyword_match(msg, _KEYWORDS["recomendacion"]):
+        return {
+            "reply": QUICK_REPLIES["recomendacion"],
+            "status": "ok",
+            "options": [
+                {
+                    "text": "🍔 Ver Combos",
+                    "action": "() => window.location.href = '/catalogo#category-combos'",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {
+                    "text": "📖 Ver Catálogo Completo",
+                    "action": "() => window.location.href = '/catalogo'",
+                    "isLink": True,
+                    "style": "outline",
+                },
+            ],
+        }
+
+    # 🚨 NUEVO INTERCEPTOR: Envíos a Domicilio
+    if _aggressive_keyword_match(msg, _KEYWORDS["envios"]):
+        return {
+            "reply": QUICK_REPLIES["envios"],
+            "status": "ok",
+            "options": [
+                {
+                    "text": "📍 Ver Ubicación",
+                    "action": "() => window.open('https://maps.google.com/?q=Calle+Principal+%23123,+Centro', '_blank')",
+                    "isLink": True,
+                    "style": "primary",
+                },
+                {"text": "📖 Ver Menú", "next": "menu", "style": "outline"},
+            ],
+        }
+
+    # ── 2. PREGUNTAS GENERALES ──────────────────────────────────────────────
 
     if _aggressive_keyword_match(msg, _KEYWORDS["horarios"]):
         return {
@@ -694,6 +813,8 @@ def _get_quick_reply(message: str) -> dict | None:
                 {"text": "🔙 Volver al Inicio", "next": "start", "style": "outline"},
             ],
         }
+
+    # ── 3. ESTADO DE PEDIDOS Y AYUDA ─────────────────────────────────────────
 
     order_num = _detect_order_number(msg)
     has_order_kw = any(kw in msg for kw in _KEYWORDS["pedido"])
@@ -939,11 +1060,6 @@ def _get_quick_reply(message: str) -> dict | None:
 # ===========================================================================
 
 
-# ===========================================================================
-# Interfaz pública
-# ===========================================================================
-
-
 def process_message(user_message: str, is_admin: bool = False) -> dict:
     # 🚨 FIX ARQUITECTÓNICO DEFINITIVO: Autodetección inquebrantable de Rol
     # Verificamos directamente con la sesión activa, ignorando el parámetro de la ruta
@@ -1165,6 +1281,6 @@ def process_message(user_message: str, is_admin: bool = False) -> dict:
             }
 
         return {
-            "reply": "Ups, tuve un pequeño mareo técnico. ¿Podemos intentar de nuevo en un momento?",
+            "reply": "Ups, tuve un pequeño problema con tu consulta. ¿Podemos intentar de nuevo en un momento?",
             "status": "api_error",
         }
