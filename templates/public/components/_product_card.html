@@ -3,10 +3,14 @@ Requiere: product (modelo Product), macros render_product_image ya importado #}
 
 <div class="urban-card group relative flex flex-col h-full bg-urban-surface p-4">
     <!-- Price Tag (Rotated) -->
-    <div
-        class="absolute -top-3 -right-3 bg-urban-yellow text-black font-oswald font-bold text-lg md:text-xl px-3 py-1 transform rotate-3 z-10 shadow-lg border border-black">
+   <div class="absolute -top-3 -right-3 bg-urban-yellow text-black font-oswald font-bold text-lg md:text-xl px-3 py-1 transform rotate-3 z-10 shadow-lg border border-black"
+     role="text" 
+     aria-label="Precio: {{ "%.2f"|format(product.price) if product.price else '0.00' }} pesos">
+    
+    <span aria-hidden="true">
         ${{ "%.2f"|format(product.price) if product.price else '0.00' }}
-    </div>
+    </span>
+</div>
 
     <div class="relative overflow-hidden border border-gray-800 mb-4 bg-black aspect-square">
         {{ render_product_image(product, 'w-full h-full object-cover transition-transform duration-500
@@ -36,10 +40,11 @@ Requiere: product (modelo Product), macros render_product_image ya importado #}
     <form action="{{ url_for('public.add_to_cart', product_id=product.id) }}" method="post" class="mt-auto">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="redirect_to" value="cart">
-        <button type="submit"
-            class="w-full urban-btn-secondary text-center text-sm py-2 border-urban-yellow text-urban-yellow hover:bg-urban-yellow hover:text-black">
-            Pedir
-        </button>
+       <button type="submit"
+             class="w-full urban-btn-secondary text-center text-sm py-2 border-urban-yellow text-urban-yellow hover:bg-urban-yellow hover:text-black"
+             aria-label="Pedir {{ product.name }}">
+             Pedir
+       </button>
     </form>
     {% else %}
     <div class="mt-auto">

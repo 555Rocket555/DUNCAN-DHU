@@ -9,9 +9,8 @@
         <div class="text-center mb-8">
             <h1 class="font-oswald text-4xl text-urban-yellow uppercase tracking-wider">Inicia Sesión</h1>
             <span class="urban-white"> ó </span><br>
-            <a href=" {{ url_for('auth.register') }}"
-                class="inline-block border-b-2 border-urban-yellow text-white font-oswald uppercase hover:text-urban-yellow transition-colors">
-                Regístrate Aquí.
+            <a href="{{ url_for('auth.register') }}" aria-label="Crear una cuenta nueva, regístrate aquí">
+               Regístrate aquí
             </a>
         </div>
 
@@ -44,9 +43,9 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full urban-btn text-center text-sm tracking-widest">
-                    Iniciar Sesión
-                </button>
+               <button type="submit" aria-label="Ingresar a mi cuenta">
+                     Inicia sesión
+               </button>
             </form>
 
             <div class="mt-8 text-center border-t border-gray-800 pt-6">
